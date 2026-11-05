@@ -4,7 +4,7 @@
 # CTRE MOTORS
 
 
-![Image from the original document](assets/document-image-11.png)
+![Image from the original document](../assets/document-image-11.png)
 
 
 The Kraken X60 is a relatively compact high-performance FRC motor with an integrated controller, meaning you don't need a separate external motor controller.
@@ -58,7 +58,7 @@ More powerful than necessary
 Overkill for a small roller or sensor-driven mechanism
 
 
-![Image from the original document](assets/document-image-1.png)
+![Motor](../assets/document-image-1.png)
 
 
 The Kraken X44 is essentially part of the same modern high-performance family but occupies a different performance/package space than the X60.
@@ -90,7 +90,7 @@ Use the X60 when you think:
 But generally, if you have access to this two, use them, they are the cream of the CROP forgot FRC motors
 
 
-![Image from the original document](assets/document-image-9.png)
+![Image from the original document](../assets/document-image-9.png)
 
 
 Unlike the Kraken, the Minion is a standalone brushless motor. It does not have a motor controller built in; CTRE designed it to pair with the Talon FXS. It is also explicitly legal for the 2026 FRC season. You generally want to use the minion in places where well, you don’t need that much space but you want movement, one thing I want to point out is…
