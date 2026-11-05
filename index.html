@@ -1,7 +1,9 @@
-<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.4.0/model-viewer.min.js"></script>
 <!doctype html>
 <html lang="en">
-<head>
+<head script
+  type="module"
+  src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.1.0/model-viewer.min.js">
+</script>>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pair of Dice Design</title>
@@ -89,27 +91,85 @@ function setActive(key){
   document.getElementById("heroEyebrow").textContent=pages[key].eyebrow;
   document.getElementById("heroIndex").textContent=String(pageKeys.indexOf(key)+1).padStart(2,"0")+" — 07";
 }
-function renderLibrary(){
-  const root=document.getElementById("library");
-  root.hidden=false;
-  fetch("models/catalog.json").then(r=>{if(!r.ok)throw new Error();return r.json();}).then(data=>{
-    root.innerHTML="<h2>Interactive CAD models</h2><p>Select a model to inspect it. Use your mouse or trackpad to rotate, zoom, and pan.</p><div class='model-grid' id='modelGrid'></div>";
-    const grid=root.querySelector("#modelGrid");
-    (data.models||[]).forEach(m=>{
-      const card=document.createElement("div");card.className="model-card";
-      const viewer=document.createElement("model-viewer");
-      viewer.setAttribute("src",m.file);viewer.setAttribute("camera-controls","");
-      viewer.setAttribute("touch-action","pan-y");viewer.setAttribute("shadow-intensity","1");
-      viewer.setAttribute("environment-image","neutral");viewer.setAttribute("loading","lazy");viewer.setAttribute("alt",m.name);
-      const info=document.createElement("div");info.className="model-info";
-      info.innerHTML=`<span class="tag">${m.type||"MODEL"}</span><h3></h3><p></p>`;
-      info.querySelector("h3").textContent=m.name;info.querySelector("p").textContent=m.description||"";
-      if(m.onshapeUrl){const a=document.createElement("a");a.href=m.onshapeUrl;a.target="_blank";a.rel="noopener";a.textContent="Open in Onshape ↗";info.append(a);}
-      (m.downloads||[]).forEach(d=>{const a=document.createElement("a");a.href=d.file;a.textContent="Download "+d.label;a.className="download-link";info.append(a);});
-      card.append(viewer,info);grid.append(card);
-    });
-    if(!data.models || !data.models.length) root.insertAdjacentHTML("beforeend","<p class='empty-note'>No models have been added yet. Add a model entry to models/catalog.json to display it here.</p>");
-  }).catch(()=>{root.innerHTML="<p>Could not load the model catalog. Check models/catalog.json.</p>";});
+async function renderLibrary() {
+    const root = document.getElementById("library");
+    root.hidden = false;
+
+    root.innerHTML = `
+        <h2>Interactive CAD Library</h2>
+        <p>Select a model to explore its design.</p>
+        <div class="model-grid" id="modelGrid"></div>
+    `;
+
+    const grid = root.querySelector("#modelGrid");
+
+    try {
+        const response = await fetch("models/catalog.json");
+
+        if (!response.ok) {
+            throw new Error("Could not load catalog.");
+        }
+
+        const data = await response.json();
+
+        if (!data.models?.length) {
+            grid.innerHTML = "<p>No models available yet.</p>";
+            return;
+        }
+
+        data.models.forEach(model => {
+            const card = document.createElement("div");
+            card.className = "model-card";
+
+            const viewer = document.createElement("model-viewer");
+
+            viewer.src = model.file;
+            viewer.alt = model.name;
+
+            viewer.setAttribute("camera-controls", "");
+            viewer.setAttribute("touch-action", "pan-y");
+            viewer.setAttribute("shadow-intensity", "1");
+            viewer.setAttribute("loading", "lazy");
+            viewer.setAttribute("interaction-prompt", "auto");
+
+            const info = document.createElement("div");
+            info.className = "model-info";
+
+            info.innerHTML = `
+                <span class="tag"></span>
+                <h3></h3>
+                <p></p>
+            `;
+
+            info.querySelector(".tag").textContent =
+                model.type || "MODEL";
+
+            info.querySelector("h3").textContent =
+                model.name;
+
+            info.querySelector("p").textContent =
+                model.description || "";
+
+            if (model.onshapeUrl) {
+                const link = document.createElement("a");
+
+                link.href = model.onshapeUrl;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                link.textContent = "Open in Onshape ↗";
+
+                info.appendChild(link);
+            }
+
+            card.append(viewer, info);
+            grid.appendChild(card);
+        });
+
+    } catch (error) {
+        console.error(error);
+        grid.innerHTML =
+            "<p>Could not load CAD models.</p>";
+    }
 }
 async function loadPage(key, direction="right", animate=true){
   if(busy)return;busy=true;
