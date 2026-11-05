@@ -6,7 +6,7 @@ Gears are categorized as the transmission of rotary power on a toothed wheel ont
 ## The Spur gear
 
 
-![Image from the original document](assets/document-image-4.png)
+
 
 Two toothed wheels with straight cut teeth cut parallel with the axis of rotation, they are usually defined by diametral pitch (also known as DP). Which just means how many teeth per inch are in its pitch diameter (Pitch diameter is the diameter of the pitch circle, where two mating gears are considered to be tangent and where their rotational motion is effectively transmitted). Note that if one gear goes clockwise, the other one will go the opposite direction.
 
