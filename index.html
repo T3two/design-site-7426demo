@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pair of Dice Design</title>
+<meta name="description" content="FRC engineering education and interactive CAD library.">
+<link rel="stylesheet" href="styles.css">
+<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="./"><span class="brand-mark">PD</span><span>PAIR OF DICE DESIGN<small>ENGINEERING KNOWLEDGE BASE</small></span></a>
+  <button class="menu-button" id="menuButton" aria-label="Open navigation">☰</button>
+</header>
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="side-label">LEARN</div>
+    <a href="?page=home">Overview</a>
+    <a href="?page=design-philosophy">Design Philosophy</a>
+    <a href="?page=cad-featurescript">CAD & FeatureScript</a>
+    <a href="?page=power-transmission">Power Transmission</a>
+    <a href="?page=motors">FRC Motors</a>
+    <a href="?page=gears-and-shafts">Gears & Shafts</a>
+    <div class="side-label">EXPLORE</div>
+    <a href="?page=cad-library">Interactive CAD Library</a>
+    <div class="sidebar-note">A growing engineering resource for FRC students and builders.</div>
+  </aside>
+  <main>
+    <div class="breadcrumbs">PAIR OF DICE DESIGN <span>/</span> <span id="crumb">OVERVIEW</span></div>
+    <article id="content"><p>Loading Pair of Dice Design…</p></article>
+    <section id="library" hidden></section>
+    <footer>PAIR OF DICE DESIGN · Engineering education and interactive CAD</footer>
+  </main>
+</div>
+<script>
+const pages = {
+  "home":"home.md",
+  "design-philosophy":"design-philosophy.md",
+  "cad-featurescript":"cad-featurescript.md",
+  "power-transmission":"power-transmission.md",
+  "motors":"motors.md",
+  "gears-and-shafts":"gears-and-shafts.md",
+  "cad-library":"cad-library.md"
+};
+const titles = {
+  home:"OVERVIEW", "design-philosophy":"DESIGN PHILOSOPHY",
+  "cad-featurescript":"CAD & FEATURESCRIPT", "power-transmission":"POWER TRANSMISSION",
+  motors:"FRC MOTORS", "gears-and-shafts":"GEARS & SHAFTS", "cad-library":"CAD LIBRARY"
+};
+const params = new URLSearchParams(location.search);
+const page = pages[params.get("page")] ? params.get("page") : "home";
+document.getElementById("crumb").textContent = titles[page];
+document.querySelectorAll(".sidebar a").forEach(a => {
+  if (new URL(a.href).searchParams.get("page") === page) a.classList.add("active");
+});
+document.getElementById("menuButton").addEventListener("click", () =>
+  document.getElementById("sidebar").classList.toggle("open")
+);
+fetch("content/" + pages[page])
+  .then(r => { if(!r.ok) throw new Error("Could not load page"); return r.text(); })
+  .then(md => { document.getElementById("content").innerHTML = marked.parse(md); })
+  .catch(() => { document.getElementById("content").innerHTML = "<h1>Page not found</h1><p>Check the page file in the content folder.</p>"; });
+
+if (page === "cad-library") {
+  document.getElementById("library").hidden = false;
+  fetch("models/catalog.json").then(r=>r.json()).then(data=>{
+    const root=document.getElementById("library");
+    root.innerHTML="<h2>Interactive CAD models</h2><p>Select a model to inspect it. Use your mouse or trackpad to rotate, zoom, and pan.</p><div class='model-grid' id='modelGrid'></div>";
+    const grid=root.querySelector("#modelGrid");
+    data.models.forEach(m=>{
+      const card=document.createElement("div"); card.className="model-card";
+      const viewer=document.createElement("model-viewer");
+      viewer.setAttribute("src",m.file); viewer.setAttribute("camera-controls","");
+      viewer.setAttribute("touch-action","pan-y"); viewer.setAttribute("shadow-intensity","1");
+      viewer.setAttribute("environment-image","neutral"); viewer.setAttribute("loading","lazy");
+      viewer.setAttribute("alt",m.name);
+      const info=document.createElement("div"); info.className="model-info";
+      info.innerHTML=`<span class="tag">${m.type}</span><h3></h3><p></p>`;
+      info.querySelector("h3").textContent=m.name;
+      info.querySelector("p").textContent=m.description || "";
+      if(m.onshapeUrl){
+        const link=document.createElement("a"); link.href=m.onshapeUrl; link.target="_blank"; link.rel="noopener"; link.textContent="Open in Onshape ↗"; info.appendChild(link);
+      }
+      (m.downloads||[]).forEach(d=>{
+        const link=document.createElement("a"); link.href=d.file; link.textContent="Download "+d.label; link.className="download-link"; info.appendChild(link);
+      });
+      card.append(viewer,info); grid.append(card);
+    });
+  }).catch(()=>{document.getElementById("library").innerHTML="<p>Could not load the model catalog.</p>";});
+}
+</script>
+</body>
+</html>
