@@ -1,0 +1,24 @@
+{
+  "models": [
+    {
+      "id": "example-part",
+      "name": "Example individual part",
+      "type": "part",
+      "category": "Example",
+      "description": "Replace this entry with one of your own Onshape exports.",
+      "file": "models/parts/example-part.glb",
+      "onshapeUrl": "",
+      "downloads": []
+    },
+    {
+      "id": "TShirt Cannon Assembly",
+      "name": "TShirt Cannon",
+      "type": "assembly",
+      "category": "Robot",
+      "description": "2026 Offseason Robot",
+      "file": "assemblies/TShirt Cannon Assembly.glb",
+      "onshapeUrl": "",
+      "downloads": []
+    }
+  ]
+}
