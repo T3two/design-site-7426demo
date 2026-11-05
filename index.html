@@ -4,92 +4,164 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Pair of Dice Design</title>
-<meta name="description" content="Team 7426">
+<meta name="description" content="FRC engineering education and interactive CAD library.">
 <link rel="stylesheet" href="styles.css">
 <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
 <header class="topbar">
-  <a class="brand" href="./"><span class="brand-mark">7426</span><span>PAIR OF DICE DESIGN<small>Las Vegas FRC Team</small></span></a>
-  <button class="menu-button" id="menuButton" aria-label="Open navigation">☰</button>
+  <a class="brand" href="./" aria-label="Pair of Dice Design home">
+    <span class="brand-mark">7426</span>
+    <span>PAIR OF DICE DESIGN<small>LAS VEGAS FRC TEAM</small></span>
+  </a>
+  <button class="menu-button" id="menuButton" aria-label="Open navigation" aria-expanded="false">☰</button>
 </header>
+
 <div class="layout">
   <aside class="sidebar" id="sidebar">
-    <div class="side-label">LEARN</div>
-    <a href="?page=home">Overview</a>
-    <a href="?page=design-philosophy">Design Philosophy</a>
-    <a href="?page=cad-featurescript">CAD & FeatureScript</a>
-    <a href="?page=power-transmission">Power Transmission</a>
-    <a href="?page=motors">FRC Motors</a>
-    <a href="?page=gears-and-shafts">Gears & Shafts</a>
     <div class="side-label">EXPLORE</div>
-    <a href="?page=cad-library">Interactive CAD Library</a>
-    <div class="sidebar-note">A growing engineering resource for FRC students and builders.</div>
+    <nav id="navigation" aria-label="Main navigation">
+      <a href="?page=home" data-page="home">Overview</a>
+      <a href="?page=design-philosophy" data-page="design-philosophy">Design Philosophy</a>
+      <a href="?page=cad-featurescript" data-page="cad-featurescript">CAD & FeatureScript</a>
+      <a href="?page=power-transmission" data-page="power-transmission">Power Transmission</a>
+      <a href="?page=motors" data-page="motors">FRC Motors</a>
+      <a href="?page=gears-and-shafts" data-page="gears-and-shafts">Gears & Shafts</a>
+      <a href="?page=cad-library" data-page="cad-library">Interactive CAD Library</a>
+    </nav>
+    <div class="sidebar-note">A growing engineering resource for FRC students, designers, and builders.</div>
   </aside>
+
   <main>
-    <div class="breadcrumbs">PAIR OF DICE DESIGN <span>/</span> <span id="crumb">OVERVIEW</span></div>
-    <article id="content"><p>Loading Pair of Dice Design…</p></article>
-    <section id="library" hidden></section>
-    <footer>PAIR OF DICE DESIGN · Engineering education and interactive CAD</footer>
+    <section class="hero" id="hero" aria-label="Section introduction">
+      <div class="hero-copy">
+        <div class="eyebrow" id="heroEyebrow">PAIR OF DICE DESIGN / ENGINEERING</div>
+        <h1 id="heroTitle">Engineering beyond the blueprint.</h1>
+        <p id="heroDescription">Explore the ideas, tools, and decisions behind effective engineering.</p>
+        <div class="hero-actions">
+          <a class="hero-link" href="?page=cad-library">Explore the CAD library <span>↗</span></a>
+        </div>
+      </div>
+      <div class="hero-art" id="heroArt" aria-hidden="true">
+        <img id="heroImage" src="assets/hero/home.png" alt="">
+        <div class="art-glow"></div>
+        <div class="art-orbit orbit-one"></div>
+        <div class="art-orbit orbit-two"></div>
+      </div>
+      <div class="hero-index" id="heroIndex">01 — 07</div>
+    </section>
+
+    <div class="content-shell" id="contentShell">
+      <div class="breadcrumbs">PAIR OF DICE DESIGN <span>/</span> <span id="crumb">OVERVIEW</span></div>
+      <article id="content"><p>Loading Pair of Dice Design…</p></article>
+      <section id="library" hidden></section>
+      <footer>PAIR OF DICE DESIGN <span>·</span> 7426 DESIGN AND CAD</footer>
+    </div>
   </main>
 </div>
+
 <script>
 const pages = {
-  "home":"home.md",
-  "design-philosophy":"design-philosophy.md",
-  "cad-featurescript":"cad-featurescript.md",
-  "power-transmission":"power-transmission.md",
-  "motors":"motors.md",
-  "gears-and-shafts":"gears-and-shafts.md",
-  "cad-library":"cad-library.md"
+  "home": {file:"home.md", title:"OVERVIEW", eyebrow:"PAIR OF DICE DESIGN / ENGINEERING", hero:"Engineering beyond the blueprint.", desc:"A practical engineering resource built around thoughtful design, technical knowledge, and the process of turning ideas into working mechanisms.", image:"assets/hero/home.png"},
+  "design-philosophy": {file:"design-philosophy.md", title:"DESIGN PHILOSOPHY", eyebrow:"HOW WE THINK / META", hero:"Good design starts with better questions.", desc:"Manufacturable. Efficient. Thoughtful. Adaptable. Explore the principles that guide the way we design.", image:"assets/hero/philosophy.png"},
+  "cad-featurescript": {file:"cad-featurescript.md", title:"CAD & FEATURESCRIPT", eyebrow:"DIGITAL DESIGN / CAD", hero:"Build it. Test it. Understand it.", desc:"Explore parametric modeling, CAD workflows, and custom tools that make design more useful.", image:"assets/hero/cad.png"},
+  "power-transmission": {file:"power-transmission.md", title:"POWER TRANSMISSION", eyebrow:"MECHANISMS / MOTION", hero:"Turn motion into purposeful work.", desc:"Understand how gears, belts, chains, and other systems transfer power through a robot.", image:"assets/hero/transmission.png"},
+  "motors": {file:"motors.md", title:"FRC MOTORS", eyebrow:"ELECTROMECHANICAL SYSTEMS", hero:"Choose the right power for the job.", desc:"Compare motor families, understand specifications, and connect electrical performance to mechanical design.", image:"assets/hero/motors.png"},
+  "gears-and-shafts": {file:"gears-and-shafts.md", title:"GEARS & SHAFTS", eyebrow:"MACHINE ELEMENTS / DESIGN", hero:"Small details. Significant consequences.", desc:"Learn how interfaces, geometry, and tolerances shape reliable mechanical assemblies.", image:"assets/hero/gears.png"},
+  "cad-library": {file:"cad-library.md", title:"CAD LIBRARY", eyebrow:"INTERACTIVE MODELS / EXPLORE", hero:"Explore the design in three dimensions.", desc:"Inspect parts and assemblies, rotate models, and connect engineering concepts to real geometry.", image:"assets/hero/library.png"}
 };
-const titles = {
-  home:"OVERVIEW", "design-philosophy":"DESIGN PHILOSOPHY",
-  "cad-featurescript":"CAD & FEATURESCRIPT", "power-transmission":"POWER TRANSMISSION",
-  motors:"FRC MOTORS", "gears-and-shafts":"GEARS & SHAFTS", "cad-library":"CAD LIBRARY"
-};
-const params = new URLSearchParams(location.search);
-const page = pages[params.get("page")] ? params.get("page") : "home";
-document.getElementById("crumb").textContent = titles[page];
-document.querySelectorAll(".sidebar a").forEach(a => {
-  if (new URL(a.href).searchParams.get("page") === page) a.classList.add("active");
-});
-document.getElementById("menuButton").addEventListener("click", () =>
-  document.getElementById("sidebar").classList.toggle("open")
-);
-fetch("content/" + pages[page])
-  .then(r => { if(!r.ok) throw new Error("Could not load page"); return r.text(); })
-  .then(md => { document.getElementById("content").innerHTML = marked.parse(md); })
-  .catch(() => { document.getElementById("content").innerHTML = "<h1>Page not found</h1><p>Check the page file in the content folder.</p>"; });
+const pageKeys=Object.keys(pages);
+const titleEl=document.getElementById("heroTitle");
+const descEl=document.getElementById("heroDescription");
+const imageEl=document.getElementById("heroImage");
+const artEl=document.getElementById("heroArt");
+const heroEl=document.getElementById("hero");
+const shell=document.getElementById("contentShell");
+let currentPage=null;
+let busy=false;
 
-if (page === "cad-library") {
-  document.getElementById("library").hidden = false;
-  fetch("models/catalog.json").then(r=>r.json()).then(data=>{
-    const root=document.getElementById("library");
+function getPage(){const p=new URLSearchParams(location.search).get("page");return pages[p]?p:"home";}
+function setActive(key){
+  document.querySelectorAll("#navigation a").forEach(a=>a.classList.toggle("active",a.dataset.page===key));
+  document.getElementById("crumb").textContent=pages[key].title;
+  document.getElementById("heroEyebrow").textContent=pages[key].eyebrow;
+  document.getElementById("heroIndex").textContent=String(pageKeys.indexOf(key)+1).padStart(2,"0")+" — 07";
+}
+function renderLibrary(){
+  const root=document.getElementById("library");
+  root.hidden=false;
+  fetch("models/catalog.json").then(r=>{if(!r.ok)throw new Error();return r.json();}).then(data=>{
     root.innerHTML="<h2>Interactive CAD models</h2><p>Select a model to inspect it. Use your mouse or trackpad to rotate, zoom, and pan.</p><div class='model-grid' id='modelGrid'></div>";
     const grid=root.querySelector("#modelGrid");
-    data.models.forEach(m=>{
-      const card=document.createElement("div"); card.className="model-card";
+    (data.models||[]).forEach(m=>{
+      const card=document.createElement("div");card.className="model-card";
       const viewer=document.createElement("model-viewer");
-      viewer.setAttribute("src",m.file); viewer.setAttribute("camera-controls","");
-      viewer.setAttribute("touch-action","pan-y"); viewer.setAttribute("shadow-intensity","1");
-      viewer.setAttribute("environment-image","neutral"); viewer.setAttribute("loading","lazy");
-      viewer.setAttribute("alt",m.name);
-      const info=document.createElement("div"); info.className="model-info";
-      info.innerHTML=`<span class="tag">${m.type}</span><h3></h3><p></p>`;
-      info.querySelector("h3").textContent=m.name;
-      info.querySelector("p").textContent=m.description || "";
-      if(m.onshapeUrl){
-        const link=document.createElement("a"); link.href=m.onshapeUrl; link.target="_blank"; link.rel="noopener"; link.textContent="Open in Onshape ↗"; info.appendChild(link);
-      }
-      (m.downloads||[]).forEach(d=>{
-        const link=document.createElement("a"); link.href=d.file; link.textContent="Download "+d.label; link.className="download-link"; info.appendChild(link);
-      });
-      card.append(viewer,info); grid.append(card);
+      viewer.setAttribute("src",m.file);viewer.setAttribute("camera-controls","");
+      viewer.setAttribute("touch-action","pan-y");viewer.setAttribute("shadow-intensity","1");
+      viewer.setAttribute("environment-image","neutral");viewer.setAttribute("loading","lazy");viewer.setAttribute("alt",m.name);
+      const info=document.createElement("div");info.className="model-info";
+      info.innerHTML=`<span class="tag">${m.type||"MODEL"}</span><h3></h3><p></p>`;
+      info.querySelector("h3").textContent=m.name;info.querySelector("p").textContent=m.description||"";
+      if(m.onshapeUrl){const a=document.createElement("a");a.href=m.onshapeUrl;a.target="_blank";a.rel="noopener";a.textContent="Open in Onshape ↗";info.append(a);}
+      (m.downloads||[]).forEach(d=>{const a=document.createElement("a");a.href=d.file;a.textContent="Download "+d.label;a.className="download-link";info.append(a);});
+      card.append(viewer,info);grid.append(card);
     });
-  }).catch(()=>{document.getElementById("library").innerHTML="<p>Could not load the model catalog.</p>";});
+    if(!data.models || !data.models.length) root.insertAdjacentHTML("beforeend","<p class='empty-note'>No models have been added yet. Add a model entry to models/catalog.json to display it here.</p>");
+  }).catch(()=>{root.innerHTML="<p>Could not load the model catalog. Check models/catalog.json.</p>";});
 }
+async function loadPage(key, direction="right", animate=true){
+  if(busy)return;busy=true;
+  const meta=pages[key];
+  if(animate && currentPage!==null){
+    heroEl.classList.remove("enter-left","enter-right","leave-left","leave-right");
+    shell.classList.remove("enter-left","enter-right","leave-left","leave-right");
+    heroEl.classList.add(direction==="right"?"leave-left":"leave-right");
+    shell.classList.add(direction==="right"?"leave-left":"leave-right");
+    await new Promise(resolve=>setTimeout(resolve,170));
+  }
+  setActive(key);
+  titleEl.textContent=meta.hero;descEl.textContent=meta.desc;
+  imageEl.classList.remove("image-visible");
+  imageEl.onload=()=>imageEl.classList.add("image-visible");
+  imageEl.onerror=()=>{imageEl.style.opacity="0";};
+  imageEl.style.opacity="";
+  imageEl.src=meta.image;
+  heroEl.classList.remove("leave-left","leave-right","enter-left","enter-right");
+  shell.classList.remove("leave-left","leave-right","enter-left","enter-right");
+  if(animate && currentPage!==null){
+    heroEl.classList.add(direction==="right"?"enter-right":"enter-left");
+    shell.classList.add(direction==="right"?"enter-right":"enter-left");
+  }
+  document.getElementById("content").innerHTML="<p class='loading'>Loading section…</p>";
+  const library=document.getElementById("library");library.hidden=true;library.innerHTML="";
+  try{
+    const response=await fetch("content/"+meta.file);
+    if(!response.ok)throw new Error("Could not load page");
+    const md=await response.text();
+    document.getElementById("content").innerHTML=marked.parse(md);
+  }catch(e){
+    document.getElementById("content").innerHTML="<h1>Page not found</h1><p>Check the page file in the content folder.</p>";
+  }
+  if(key==="cad-library")renderLibrary();
+  currentPage=key;
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("menuButton").setAttribute("aria-expanded","false");
+  setTimeout(()=>{heroEl.classList.remove("enter-left","enter-right");shell.classList.remove("enter-left","enter-right");busy=false;},420);
+}
+document.getElementById("navigation").addEventListener("click",e=>{
+  const link=e.target.closest("a[data-page]");if(!link)return;
+  e.preventDefault();const next=link.dataset.page;if(next===currentPage)return;
+  const direction=pageKeys.indexOf(next)>pageKeys.indexOf(currentPage||"home")?"right":"left";
+  history.pushState({page:next},"","?page="+next);loadPage(next,direction,true);
+});
+document.querySelector(".brand").addEventListener("click",e=>{e.preventDefault();history.pushState({page:"home"},"","./");loadPage("home","left",true);});
+document.getElementById("menuButton").addEventListener("click",()=>{
+  const open=document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("menuButton").setAttribute("aria-expanded",String(open));
+});
+window.addEventListener("popstate",()=>{const next=getPage();const direction=pageKeys.indexOf(next)>pageKeys.indexOf(currentPage||"home")?"right":"left";loadPage(next,direction,true);});
+loadPage(getPage(),"right",false);
 </script>
 </body>
 </html>
