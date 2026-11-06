@@ -1,0 +1,112 @@
+[
+  {
+    "label": "START HERE",
+    "items": [
+      {
+        "id": "home",
+        "label": "Overview",
+        "file": "home.md",
+        "eyebrow": "PAIR OF DICE ROBOTICS \u00b7 DESIGN RESOURCES",
+        "description": "Engineering education, design reasoning, and interactive CAD.",
+        "title": "Pair of Dice Design"
+      }
+    ]
+  },
+  {
+    "label": "DESIGN PRINCIPLES",
+    "items": [
+      {
+        "id": "design-philosophy",
+        "label": "Design Philosophy",
+        "file": "design-philosophy.md",
+        "eyebrow": "HOW WE THINK",
+        "description": "The principles behind practical, effective engineering.",
+        "title": "Design Philosophy"
+      }
+    ]
+  },
+  {
+    "label": "CAD RESOURCES",
+    "items": [
+      {
+        "id": "cad-featurescript",
+        "label": "CAD & FeatureScript",
+        "file": "cad-featurescript.md",
+        "eyebrow": "DIGITAL DESIGN",
+        "description": "CAD workflows, parametric modeling, and custom tools.",
+        "title": "CAD & FeatureScript"
+      },
+      {
+        "id": "cad-library",
+        "label": "CAD Library",
+        "file": "cad-library.md",
+        "eyebrow": "INTERACTIVE CAD",
+        "description": "Explore public parts and assemblies in three dimensions.",
+        "title": "CAD Library",
+        "children": [
+          {
+            "id": "cad-parts",
+            "label": "Individual Parts",
+            "file": "cad-parts.md",
+            "eyebrow": "CAD LIBRARY \u00b7 PARTS",
+            "description": "Browse individual component models.",
+            "title": "Individual Parts",
+            "modelType": "part"
+          },
+          {
+            "id": "cad-assemblies",
+            "label": "Assemblies",
+            "file": "cad-assemblies.md",
+            "eyebrow": "CAD LIBRARY \u00b7 ASSEMBLIES",
+            "description": "Browse complete assembly models.",
+            "title": "Assemblies",
+            "modelType": "assembly"
+          }
+        ],
+        "showAllModels": true
+      }
+    ]
+  },
+  {
+    "label": "MECHANICAL DESIGN",
+    "items": [
+      {
+        "id": "power-transmission",
+        "label": "Power Transmission",
+        "file": "power-transmission.md",
+        "eyebrow": "MECHANISMS \u00b7 MOTION",
+        "description": "How mechanical systems transfer motion and power.",
+        "title": "Power Transmission"
+      },
+      {
+        "id": "motors",
+        "label": "FRC Motors",
+        "file": "motors.md",
+        "eyebrow": "ELECTROMECHANICAL SYSTEMS",
+        "description": "Motor families, specifications, and design considerations.",
+        "title": "FRC Motors"
+      },
+      {
+        "id": "gears-and-shafts",
+        "label": "Gears & Shafts",
+        "file": "gears-and-shafts.md",
+        "eyebrow": "MACHINE ELEMENTS",
+        "description": "Interfaces, geometry, and mechanical design details.",
+        "title": "Gears & Shafts"
+      }
+    ]
+  },
+  {
+    "label": "TEAM",
+    "items": [
+      {
+        "id": "sponsors",
+        "label": "Sponsors",
+        "file": "sponsors.md",
+        "eyebrow": "THANK YOU",
+        "description": "Organizations and people supporting student engineering.",
+        "title": "Our Sponsors"
+      }
+    ]
+  }
+]
