@@ -1,228 +1,626 @@
 <!doctype html>
 <html lang="en">
-<head script
-  type="module"
-  src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.1.0/model-viewer.min.js">
-</script>>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Pair of Dice Design</title>
-<meta name="description" content="FRC engineering education and interactive CAD library.">
-<link rel="stylesheet" href="styles.css">
-<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#a32632">
+  <meta name="description" content="Engineering resources, design reasoning, and interactive CAD from Pair of Dice Robotics, FRC Team 7426.">
+  <title>Pair of Dice Design | FRC 7426</title>
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
 </head>
 <body>
-<header class="topbar">
-  <a class="brand" href="./" aria-label="Pair of Dice Design home">
-    <span class="brand-mark">7426</span>
-    <span>PAIR OF DICE DESIGN<small>LAS VEGAS FRC TEAM</small></span>
-  </a>
-  <button class="menu-button" id="menuButton" aria-label="Open navigation" aria-expanded="false">☰</button>
-</header>
-
-<div class="layout">
-  <aside class="sidebar" id="sidebar">
-    <div class="side-label">EXPLORE</div>
-    <nav id="navigation" aria-label="Main navigation">
-      <a href="?page=home" data-page="home">Overview</a>
-      <a href="?page=design-philosophy" data-page="design-philosophy">Design Philosophy</a>
-      <a href="?page=cad-featurescript" data-page="cad-featurescript">CAD & FeatureScript</a>
-      <a href="?page=power-transmission" data-page="power-transmission">Power Transmission</a>
-      <a href="?page=motors" data-page="motors">FRC Motors</a>
-      <a href="?page=gears-and-shafts" data-page="gears-and-shafts">Gears & Shafts</a>
-      <a href="?page=cad-library" data-page="cad-library">Interactive CAD Library</a>
-    </nav>
-    <div class="sidebar-note">A growing engineering resource for FRC students, designers, and builders.</div>
-  </aside>
-
-  <main>
-    <section class="hero" id="hero" aria-label="Section introduction">
-      <div class="hero-copy">
-        <div class="eyebrow" id="heroEyebrow">PAIR OF DICE DESIGN / ENGINEERING</div>
-        <h1 id="heroTitle">Engineering beyond the blueprint.</h1>
-        <p id="heroDescription">Explore the ideas, tools, and decisions behind effective engineering.</p>
-        <div class="hero-actions">
-          <a class="hero-link" href="?page=cad-library">Explore the CAD library <span>↗</span></a>
-        </div>
-      </div>
-      <div class="hero-art" id="heroArt" aria-hidden="true">
-        <img id="heroImage" src="assets/hero/home.png" alt="">
-        <div class="art-glow"></div>
-        <div class="art-orbit orbit-one"></div>
-        <div class="art-orbit orbit-two"></div>
-      </div>
-      <div class="hero-index" id="heroIndex">01 — 07</div>
-    </section>
-
-    <div class="content-shell" id="contentShell">
-      <div class="breadcrumbs">PAIR OF DICE DESIGN <span>/</span> <span id="crumb">OVERVIEW</span></div>
-      <article id="content"><p>Loading Pair of Dice Design…</p></article>
-      <section id="library" hidden></section>
-      <footer>PAIR OF DICE DESIGN <span>·</span> 7426 DESIGN AND CAD</footer>
+  <div class="site-loader" id="siteLoader" role="status" aria-live="polite">
+    <div class="loader-content">
+      <img id="loaderLogo" class="loader-logo" alt="" hidden>
+      <div class="loader-mark" id="loaderMark">7426</div>
+      <p id="loaderText">Loading Pair of Dice Design</p>
+      <div class="loader-track"><span></span></div>
     </div>
-  </main>
-</div>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="./" aria-label="Pair of Dice Design home">
+      <span class="brand-mark">7426</span>
+      <span class="brand-copy"><strong id="brandName">PAIR OF DICE DESIGN</strong><small id="brandLabel">FRC TEAM 7426</small></span>
+    </a>
+    <button class="menu-button" id="menuButton" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="side-label">EXPLORE</div>
+      <nav id="navigation" aria-label="Main navigation"></nav>
+      <div class="sidebar-note">A technical resource from Pair of Dice Robotics.</div>
+    </aside>
+
+    <main>
+      <section class="page-intro" id="pageIntro">
+        <div class="eyebrow" id="pageEyebrow">PAIR OF DICE ROBOTICS · DESIGN RESOURCES</div>
+        <h1 id="pageTitle">Pair of Dice Design</h1>
+        <p id="pageDescription">Engineering education, design reasoning, and interactive CAD.</p>
+        <div class="intro-rule"></div>
+      </section>
+
+      <div class="content-shell">
+        <div class="breadcrumbs"><a href="?page=home" id="homeCrumb">PAIR OF DICE DESIGN</a><span>/</span><span id="crumb">OVERVIEW</span></div>
+        <article id="content"><p>Loading content…</p></article>
+        <section id="sponsorStrip" class="sponsor-strip" hidden aria-label="Sponsors">
+          <h2>Supported by</h2>
+          <div id="footerSponsors" class="sponsor-logos"></div>
+        </section>
+        <footer>
+          <div><strong id="footerBrand">PAIR OF DICE ROBOTICS</strong><span> · </span><span>TEAM 7426</span></div>
+          <a href="?page=sponsors">Sponsors</a>
+        </footer>
+      </div>
+    </main>
+  </div>
 
 <script>
-const pages = {
-  "home": {file:"home.md", title:"OVERVIEW", eyebrow:"PAIR OF DICE DESIGN / ENGINEERING", hero:"Technical Binder + Design philosophy!", desc:"This includes our previous years, our life as a team, and hopefully an inspiration for FRC design", image:"assets/hero/home.png"},
-  "design-philosophy": {file:"design-philosophy.md", title:"DESIGN PHILOSOPHY", eyebrow:"HOW WE THINK / META", hero:"Good design starts with better questions.", desc:"Explore the principles that guide the way we design", image:"assets/hero/philosophy.png"},
-  "cad-featurescript": {file:"cad-featurescript.md", title:"CAD & FEATURESCRIPT", eyebrow:"DIGITAL DESIGN / CAD", hero:"You know it, we love it, CAD", desc:"Explore parametric modeling, CAD workflows, and custom tools that make design more useful.", image:"assets/hero/cad.png"},
-  "power-transmission": {file:"power-transmission.md", title:"POWER TRANSMISSION", eyebrow:"MECHANISMS / MOTION", hero:"Turn motion into purposeful work.", desc:"Understand how gears, belts, chains, and other systems transfer power through a robot.", image:"assets/hero/transmission.png"},
-  "motors": {file:"motors.md", title:"FRC MOTORS", eyebrow:"ELECTROMECHANICAL SYSTEMS", hero:"How can I turn electricity into power", desc:"Compare motor families, understand specifications, and connect electrical performance to mechanical design.", image:"assets/hero/motors.png"},
-  "gears-and-shafts": {file:"gears-and-shafts.md", title:"GEARS & SHAFTS", eyebrow:"MACHINE ELEMENTS / DESIGN", hero:"Small details. Significant consequences.", desc:"Learn how interfaces, geometry, and tolerances shape reliable mechanical assemblies.", image:"assets/hero/gears.png"},
-  "cad-library": {file:"cad-library.md", title:"CAD LIBRARY", eyebrow:"INTERACTIVE MODELS / EXPLORE", hero:"Explore the design in three dimensions.", desc:"Inspect parts and assemblies, rotate models, and connect engineering concepts to real geometry.", image:"assets/hero/library.png"}
-};
-const pageKeys=Object.keys(pages);
-const titleEl=document.getElementById("heroTitle");
-const descEl=document.getElementById("heroDescription");
-const imageEl=document.getElementById("heroImage");
-const artEl=document.getElementById("heroArt");
-const heroEl=document.getElementById("hero");
-const shell=document.getElementById("contentShell");
-let currentPage=null;
-let busy=false;
+(() => {
+  "use strict";
 
-function getPage(){const p=new URLSearchParams(location.search).get("page");return pages[p]?p:"home";}
-function setActive(key){
-  document.querySelectorAll("#navigation a").forEach(a=>a.classList.toggle("active",a.dataset.page===key));
-  document.getElementById("crumb").textContent=pages[key].title;
-  document.getElementById("heroEyebrow").textContent=pages[key].eyebrow;
-  document.getElementById("heroIndex").textContent=String(pageKeys.indexOf(key)+1).padStart(2,"0")+" — 07";
-}
-async function renderLibrary() {
-    const root = document.getElementById("library");
-    root.hidden = false;
+  const DEFAULT_SETTINGS = {
+    siteName: "PAIR OF DICE DESIGN",
+    teamLabel: "FRC TEAM 7426",
+    footerText: "PAIR OF DICE ROBOTICS · TEAM 7426",
+    theme: {
+      accent: "#a32632", accentDark: "#7f1d27", accentLight: "#f8e9eb",
+      page: "#ffffff", pageSoft: "#f5f5f4", panel: "#ffffff",
+      text: "#202124", muted: "#66686b", line: "#e5e2e0",
+      sidebar: "#f7f6f5", header: "#ffffff"
+    },
+    loading: { enabled: true, logo: "", text: "Loading Pair of Dice Design", background: "#ffffff", accent: "#a32632", minimumDisplayMs: 250 }
+  };
 
-    root.innerHTML = `
-        <h2>Interactive CAD Library</h2>
-        <p>Select a model to explore its design.</p>
-        <div class="model-grid" id="modelGrid"></div>
-    `;
+  let settings = DEFAULT_SETTINGS;
+  let navigation = [];
+  let modelCatalog = [];
+  let sponsors = [];
+  let pageMap = {};
+  let currentPage = "home";
+  let isLoadingPage = false;
+  let loaderStartedAt = Date.now();
 
-    const grid = root.querySelector("#modelGrid");
+  const $ = (id) => document.getElementById(id);
 
+  async function readJson(path, fallback) {
     try {
-        const response = await fetch("models/catalog.json");
-
-        if (!response.ok) {
-            throw new Error("Could not load catalog.");
-        }
-
-        const data = await response.json();
-
-        if (!data.models?.length) {
-            grid.innerHTML = "<p>No models available yet.</p>";
-            return;
-        }
-
-        data.models.forEach(model => {
-            const card = document.createElement("div");
-            card.className = "model-card";
-
-            const viewer = document.createElement("model-viewer");
-
-            viewer.src = model.file;
-            viewer.alt = model.name;
-
-            viewer.setAttribute("camera-controls", "");
-            viewer.setAttribute("touch-action", "pan-y");
-            viewer.setAttribute("shadow-intensity", "1");
-            viewer.setAttribute("loading", "lazy");
-            viewer.setAttribute("interaction-prompt", "auto");
-
-            const info = document.createElement("div");
-            info.className = "model-info";
-
-            info.innerHTML = `
-                <span class="tag"></span>
-                <h3></h3>
-                <p></p>
-            `;
-
-            info.querySelector(".tag").textContent =
-                model.type || "MODEL";
-
-            info.querySelector("h3").textContent =
-                model.name;
-
-            info.querySelector("p").textContent =
-                model.description || "";
-
-            if (model.onshapeUrl) {
-                const link = document.createElement("a");
-
-                link.href = model.onshapeUrl;
-                link.target = "_blank";
-                link.rel = "noopener noreferrer";
-                link.textContent = "Open in Onshape ↗";
-
-                info.appendChild(link);
-            }
-
-            card.append(viewer, info);
-            grid.appendChild(card);
-        });
-
+      const response = await fetch(path);
+      if (!response.ok) throw new Error(`Could not load ${path} (${response.status})`);
+      return await response.json();
     } catch (error) {
-        console.error(error);
-        grid.innerHTML =
-            "<p>Could not load CAD models.</p>";
+      console.warn(error);
+      return fallback;
     }
-}
-async function loadPage(key, direction="right", animate=true){
-  if(busy)return;busy=true;
-  const meta=pages[key];
-  if(animate && currentPage!==null){
-    heroEl.classList.remove("enter-left","enter-right","leave-left","leave-right");
-    shell.classList.remove("enter-left","enter-right","leave-left","leave-right");
-    heroEl.classList.add(direction==="right"?"leave-left":"leave-right");
-    shell.classList.add(direction==="right"?"leave-left":"leave-right");
-    await new Promise(resolve=>setTimeout(resolve,170));
   }
-  setActive(key);
-  titleEl.textContent=meta.hero;descEl.textContent=meta.desc;
-  imageEl.classList.remove("image-visible");
-  imageEl.onload=()=>imageEl.classList.add("image-visible");
-  imageEl.onerror=()=>{imageEl.style.opacity="0";};
-  imageEl.style.opacity="";
-  imageEl.src=meta.image;
-  heroEl.classList.remove("leave-left","leave-right","enter-left","enter-right");
-  shell.classList.remove("leave-left","leave-right","enter-left","enter-right");
-  if(animate && currentPage!==null){
-    heroEl.classList.add(direction==="right"?"enter-right":"enter-left");
-    shell.classList.add(direction==="right"?"enter-right":"enter-left");
+
+  function flattenNavigation(groups) {
+    const map = {};
+    (groups || []).forEach(group => {
+      (group.items || []).forEach(item => {
+        map[item.id] = item;
+        (item.children || []).forEach(child => { map[child.id] = child; });
+      });
+    });
+    return map;
   }
-  document.getElementById("content").innerHTML="<p class='loading'>Loading section…</p>";
-  const library=document.getElementById("library");library.hidden=true;library.innerHTML="";
-  try{
-    const response=await fetch("content/"+meta.file);
-    if(!response.ok)throw new Error("Could not load page");
-    const md=await response.text();
-    document.getElementById("content").innerHTML=marked.parse(md);
-  }catch(e){
-    document.getElementById("content").innerHTML="<h1>Page not found</h1><p>Check the page file in the content folder.</p>";
+
+  function applySettings() {
+    const theme = settings.theme || DEFAULT_SETTINGS.theme;
+    const root = document.documentElement;
+    Object.entries(theme).forEach(([key, value]) => {
+      if (typeof value === "string") root.style.setProperty("--" + key.replace(/[A-Z]/g, m => "-" + m.toLowerCase()), value);
+    });
+
+    $("brandName").textContent = settings.siteName || DEFAULT_SETTINGS.siteName;
+    $("brandLabel").textContent = settings.teamLabel || DEFAULT_SETTINGS.teamLabel;
+    $("footerBrand").textContent = settings.footerText || DEFAULT_SETTINGS.footerText;
+
+    const loading = settings.loading || DEFAULT_SETTINGS.loading;
+    if (loading.background) $("siteLoader").style.background = loading.background;
+    if (loading.accent) $("siteLoader").style.setProperty("--loader-accent", loading.accent);
+    $("loaderText").textContent = loading.text || DEFAULT_SETTINGS.loading.text;
+    if (loading.logo) {
+      $("loaderLogo").src = loading.logo;
+      $("loaderLogo").hidden = false;
+      $("loaderMark").hidden = true;
+      $("loaderLogo").onerror = () => { $("loaderLogo").hidden = true; $("loaderMark").hidden = false; };
+    }
+    if (loading.enabled === false) $("siteLoader").classList.add("loader-disabled");
   }
-  if(key==="cad-library")renderLibrary();
-  currentPage=key;
-  document.getElementById("sidebar").classList.remove("open");
-  document.getElementById("menuButton").setAttribute("aria-expanded","false");
-  setTimeout(()=>{heroEl.classList.remove("enter-left","enter-right");shell.classList.remove("enter-left","enter-right");busy=false;},420);
-}
-document.getElementById("navigation").addEventListener("click",e=>{
-  const link=e.target.closest("a[data-page]");if(!link)return;
-  e.preventDefault();const next=link.dataset.page;if(next===currentPage)return;
-  const direction=pageKeys.indexOf(next)>pageKeys.indexOf(currentPage||"home")?"right":"left";
-  history.pushState({page:next},"","?page="+next);loadPage(next,direction,true);
-});
-document.querySelector(".brand").addEventListener("click",e=>{e.preventDefault();history.pushState({page:"home"},"","./");loadPage("home","left",true);});
-document.getElementById("menuButton").addEventListener("click",()=>{
-  const open=document.getElementById("sidebar").classList.toggle("open");
-  document.getElementById("menuButton").setAttribute("aria-expanded",String(open));
-});
-window.addEventListener("popstate",()=>{const next=getPage();const direction=pageKeys.indexOf(next)>pageKeys.indexOf(currentPage||"home")?"right":"left";loadPage(next,direction,true);});
-loadPage(getPage(),"right",false);
+
+  function pageLink(item, child = false) {
+    const wrapper = document.createElement("div");
+    wrapper.className = child ? "nav-child-wrap" : "nav-item-wrap";
+
+    const link = document.createElement("a");
+    link.className = child ? "nav-link nav-child" : "nav-link";
+    link.href = "?page=" + encodeURIComponent(item.id);
+    link.dataset.page = item.id;
+    link.textContent = item.label;
+    wrapper.appendChild(link);
+
+    return wrapper;
+  }
+
+  function buildNavigation() {
+    const root = $("navigation");
+    root.replaceChildren();
+
+    navigation.forEach(group => {
+      const section = document.createElement("section");
+      section.className = "nav-group";
+
+      const heading = document.createElement("div");
+      heading.className = "nav-group-title";
+      heading.textContent = group.label || "PAGES";
+      section.appendChild(heading);
+
+      (group.items || []).forEach(item => {
+        const itemWrap = document.createElement("div");
+        itemWrap.className = "nav-item-wrap";
+
+        const row = document.createElement("div");
+        row.className = "nav-parent-row";
+
+        const link = document.createElement("a");
+        link.className = "nav-link";
+        link.href = "?page=" + encodeURIComponent(item.id);
+        link.dataset.page = item.id;
+        link.textContent = item.label;
+        row.appendChild(link);
+
+        if (item.children && item.children.length) {
+          const toggle = document.createElement("button");
+          toggle.className = "nav-toggle";
+          toggle.type = "button";
+          toggle.textContent = "⌄";
+          toggle.setAttribute("aria-label", "Show subtabs for " + item.label);
+          toggle.setAttribute("aria-expanded", "true");
+          row.appendChild(toggle);
+          const children = document.createElement("div");
+          children.className = "nav-children";
+          item.children.forEach(child => children.appendChild(pageLink(child, true)));
+          toggle.addEventListener("click", () => {
+            const expanded = toggle.getAttribute("aria-expanded") === "true";
+            toggle.setAttribute("aria-expanded", String(!expanded));
+            children.hidden = expanded;
+            toggle.textContent = expanded ? "›" : "⌄";
+          });
+          itemWrap.append(row, children);
+        } else {
+          itemWrap.appendChild(row);
+        }
+        section.appendChild(itemWrap);
+      });
+
+      root.appendChild(section);
+    });
+  }
+
+  function setActiveNavigation(key) {
+    document.querySelectorAll("#navigation a[data-page]").forEach(link => {
+      const active = link.dataset.page === key;
+      link.classList.toggle("active", active);
+      if (active) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+
+    const item = pageMap[key] || pageMap.home;
+    $("crumb").textContent = (item.title || item.label || "OVERVIEW").toUpperCase();
+
+    document.querySelectorAll(".nav-children").forEach(children => {
+      const activeChild = children.querySelector(".active");
+      if (activeChild) {
+        children.hidden = false;
+        const toggle = children.previousElementSibling?.querySelector(".nav-toggle");
+        if (toggle) {
+          toggle.setAttribute("aria-expanded", "true");
+          toggle.textContent = "⌄";
+        }
+      }
+    });
+  }
+
+  function safeImagePath(path) {
+    if (!path) return "";
+    return String(path).replace(/^(\.\.\/)+assets\//, "assets/");
+  }
+
+  function makeModelCard(model) {
+    const card = document.createElement("article");
+    card.className = "model-card";
+
+    const viewerWrap = document.createElement("div");
+    viewerWrap.className = "viewer-wrap";
+
+    const viewer = document.createElement("model-viewer");
+    viewer.src = model.file;
+    viewer.alt = model.name || "Interactive CAD model";
+    viewer.setAttribute("camera-controls", "");
+    viewer.setAttribute("touch-action", "pan-y");
+    viewer.setAttribute("shadow-intensity", "0.7");
+    viewer.setAttribute("loading", "eager");
+    viewer.setAttribute("interaction-prompt", "auto");
+    viewer.setAttribute("environment-image", "neutral");
+    viewer.setAttribute("exposure", "1");
+    viewer.setAttribute("ar", "");
+    if (model.thumbnail) viewer.setAttribute("poster", safeImagePath(model.thumbnail));
+
+    const loading = document.createElement("div");
+    loading.className = "viewer-loading";
+    loading.innerHTML = '<span class="mini-spinner"></span><span>Loading 3D model…</span>';
+
+    const error = document.createElement("div");
+    error.className = "viewer-error";
+    error.hidden = true;
+    error.textContent = "This model could not load. Check the file path and GLB file.";
+
+    viewer.addEventListener("load", () => {
+      loading.hidden = true;
+      error.hidden = true;
+    });
+    viewer.addEventListener("progress", event => {
+      const progress = Math.max(0, Math.min(100, (event.detail?.totalProgress || 0) * 100));
+      loading.style.setProperty("--progress", progress + "%");
+    });
+    viewer.addEventListener("error", () => {
+      loading.hidden = true;
+      error.hidden = false;
+    });
+
+    viewerWrap.append(viewer, loading, error);
+
+    const info = document.createElement("div");
+    info.className = "model-info";
+
+    const tag = document.createElement("span");
+    tag.className = "model-tag";
+    tag.textContent = model.type === "assembly" ? "ASSEMBLY" : "PART";
+
+    const title = document.createElement("h3");
+    title.textContent = model.name || model.id;
+
+    const description = document.createElement("p");
+    description.textContent = model.description || "";
+
+    const controls = document.createElement("div");
+    controls.className = "model-actions";
+
+    const reset = document.createElement("button");
+    reset.type = "button";
+    reset.className = "small-button";
+    reset.textContent = "Reset view";
+    reset.addEventListener("click", () => {
+      viewer.cameraOrbit = "auto auto auto";
+      viewer.cameraTarget = "auto auto auto";
+      if (typeof viewer.jumpCameraToGoal === "function") viewer.jumpCameraToGoal();
+    });
+    controls.appendChild(reset);
+
+    const fullscreen = document.createElement("button");
+    fullscreen.type = "button";
+    fullscreen.className = "small-button";
+    fullscreen.textContent = "Full screen";
+    fullscreen.addEventListener("click", async () => {
+      try {
+        if (viewerWrap.requestFullscreen) await viewerWrap.requestFullscreen();
+        else if (viewer.requestFullscreen) await viewer.requestFullscreen();
+      } catch (err) {
+        console.warn("Fullscreen is unavailable in this browser.", err);
+      }
+    });
+    controls.appendChild(fullscreen);
+
+    if (model.onshapeUrl) {
+      const onshape = document.createElement("a");
+      onshape.className = "text-link";
+      onshape.href = model.onshapeUrl;
+      onshape.target = "_blank";
+      onshape.rel = "noopener noreferrer";
+      onshape.textContent = "Open Onshape ↗";
+      controls.appendChild(onshape);
+    }
+
+    info.append(tag, title, description, controls);
+
+    if (Array.isArray(model.downloads) && model.downloads.length) {
+      const downloads = document.createElement("div");
+      downloads.className = "model-downloads";
+      model.downloads.forEach(download => {
+        if (!download.file) return;
+        const a = document.createElement("a");
+        a.href = download.file;
+        a.textContent = "Download " + (download.label || "file");
+        a.className = "text-link";
+        a.setAttribute("download", "");
+        downloads.appendChild(a);
+      });
+      info.appendChild(downloads);
+    }
+
+    card.append(viewerWrap, info);
+
+    // If the custom element script is blocked or fails, give a visible explanation.
+    setTimeout(() => {
+      if (!customElements.get("model-viewer") && !error.hidden) {
+        loading.hidden = true;
+        error.hidden = false;
+        error.textContent = "The 3D viewer library did not load. Check whether the network allows the model-viewer CDN.";
+      } else if (!customElements.get("model-viewer")) {
+        loading.hidden = true;
+        error.hidden = false;
+        error.textContent = "The 3D viewer library did not load. Check whether the network allows the model-viewer CDN.";
+      }
+    }, 12000);
+
+    return card;
+  }
+
+  function renderModelCollection(container, models, emptyText) {
+    const grid = document.createElement("div");
+    grid.className = "model-grid";
+    if (!models.length) {
+      const note = document.createElement("p");
+      note.className = "empty-note";
+      note.textContent = emptyText || "No models have been added here yet.";
+      container.appendChild(note);
+      return;
+    }
+    models.forEach(model => grid.appendChild(makeModelCard(model)));
+    container.appendChild(grid);
+  }
+
+  function renderModelPlaceholders(article) {
+    article.querySelectorAll("[data-model-id]").forEach(slot => {
+      const model = modelCatalog.find(item => item.id === slot.dataset.modelId);
+      if (!model) {
+        slot.className = "model-placeholder-error";
+        slot.textContent = "Model not found in models/catalog.json. Check the model ID.";
+        return;
+      }
+      slot.replaceWith(makeModelCard(model));
+    });
+  }
+
+  function renderSponsorsPage(article) {
+    const section = document.createElement("section");
+    section.className = "sponsor-grid";
+    if (!sponsors.length) {
+      const note = document.createElement("p");
+      note.className = "empty-note";
+      note.textContent = "Sponsor listings will appear here once the team adds approved logos and information to sponsors.json.";
+      section.appendChild(note);
+    } else {
+      sponsors.forEach(sponsor => {
+        const card = document.createElement("div");
+        card.className = "sponsor-card";
+        if (sponsor.logo) {
+          const img = document.createElement("img");
+          img.src = safeImagePath(sponsor.logo);
+          img.alt = (sponsor.name || "Sponsor") + " logo";
+          img.loading = "lazy";
+          card.appendChild(img);
+        }
+        const name = document.createElement("h2");
+        name.textContent = sponsor.name || "Sponsor";
+        card.appendChild(name);
+        if (sponsor.level) {
+          const level = document.createElement("p");
+          level.className = "sponsor-level";
+          level.textContent = sponsor.level;
+          card.appendChild(level);
+        }
+        if (sponsor.description) {
+          const desc = document.createElement("p");
+          desc.textContent = sponsor.description;
+          card.appendChild(desc);
+        }
+        if (sponsor.url) {
+          const link = document.createElement("a");
+          link.href = sponsor.url;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          link.textContent = "Visit website ↗";
+          card.appendChild(link);
+        }
+        section.appendChild(card);
+      });
+    }
+    article.appendChild(section);
+  }
+
+  async function loadPage(key, animate = true) {
+    if (isLoadingPage) return;
+    const meta = pageMap[key] || pageMap.home;
+    if (!meta) return;
+    isLoadingPage = true;
+
+    const intro = $("pageIntro");
+    const content = $("content");
+    if (animate && currentPage !== key) {
+      intro.classList.add("page-fade");
+      content.classList.add("page-fade");
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+
+    $("pageTitle").textContent = meta.title || meta.label;
+    $("pageEyebrow").textContent = meta.eyebrow || "PAIR OF DICE DESIGN";
+    $("pageDescription").textContent = meta.description || "";
+    setActiveNavigation(meta.id);
+
+    content.innerHTML = "<p class='loading-copy'>Loading page…</p>";
+    try {
+      const response = await fetch("content/" + meta.file);
+      if (!response.ok) throw new Error("Page file not found: " + meta.file);
+      let markdown = await response.text();
+      // Markdown files are stored in /content but rendered on index.html. Normalize paths
+      // so the image paths work consistently on GitHub Pages project sites.
+      markdown = markdown.replace(/\((?:\.\.\/)+assets\//g, "(assets/");
+      // A model token becomes a viewer at the exact point where it appears in Markdown.
+      markdown = markdown.replace(/\{\{model:([a-zA-Z0-9_-]+)\}\}/g,
+        '<div class="model-slot" data-model-id="$1"></div>');
+      content.innerHTML = window.marked ? marked.parse(markdown) : "<pre></pre>";
+      if (!window.marked) content.querySelector("pre").textContent = markdown;
+
+      renderModelPlaceholders(content);
+
+      let pageModels = modelCatalog.filter(model => Array.isArray(model.pages) && model.pages.includes(meta.id));
+      if (meta.modelType) pageModels = pageModels.filter(model => model.type === meta.modelType);
+      if (meta.showAllModels) pageModels = modelCatalog.slice();
+
+      if (pageModels.length) {
+        const section = document.createElement("section");
+        section.className = "page-models";
+        const heading = document.createElement("h2");
+        heading.textContent = meta.modelType === "part" ? "Parts" : meta.modelType === "assembly" ? "Assemblies" : "Models on this page";
+        section.appendChild(heading);
+        renderModelCollection(section, pageModels, "No models have been assigned to this page yet.");
+        content.appendChild(section);
+      } else if (meta.showAllModels || meta.modelType) {
+        const section = document.createElement("section");
+        section.className = "page-models";
+        const heading = document.createElement("h2");
+        heading.textContent = meta.modelType === "part" ? "Parts" : meta.modelType === "assembly" ? "Assemblies" : "Models";
+        section.appendChild(heading);
+        renderModelCollection(section, [], "No models have been added here yet. Follow HOW-TO-EDIT.md to add your first model.");
+        content.appendChild(section);
+      }
+
+      if (meta.id === "sponsors") renderSponsorsPage(content);
+      if (meta.id === "home" && sponsors.length) renderFooterSponsors();
+    } catch (error) {
+      console.error(error);
+      content.innerHTML = "<h2>Page could not be loaded</h2><p>Check that <code>content/" + String(meta.file).replace(/[<>&"]/g, "") + "</code> exists and that its name matches the entry in <code>navigation.json</code>.</p>";
+    }
+
+    $("sidebar").classList.remove("open");
+    $("menuButton").setAttribute("aria-expanded", "false");
+    currentPage = meta.id;
+    intro.classList.remove("page-fade");
+    content.classList.remove("page-fade");
+    isLoadingPage = false;
+  }
+
+  function renderFooterSponsors() {
+    const strip = $("sponsorStrip");
+    const root = $("footerSponsors");
+    root.replaceChildren();
+    if (!sponsors.length) {
+      strip.hidden = true;
+      return;
+    }
+    sponsors.slice(0, 6).forEach(sponsor => {
+      if (!sponsor.logo) return;
+      const img = document.createElement("img");
+      img.src = safeImagePath(sponsor.logo);
+      img.alt = (sponsor.name || "Sponsor") + " logo";
+      img.loading = "lazy";
+      root.appendChild(img);
+    });
+    strip.hidden = root.children.length === 0;
+  }
+
+  function hideLoader() {
+    const loader = $("siteLoader");
+    const loading = settings.loading || DEFAULT_SETTINGS.loading;
+    const elapsed = Date.now() - loaderStartedAt;
+    const minimum = Math.max(0, Number(loading.minimumDisplayMs) || 0);
+    setTimeout(() => {
+      loader.classList.add("loader-hidden");
+      setTimeout(() => { loader.hidden = true; }, 450);
+    }, Math.max(0, minimum - elapsed));
+  }
+
+  async function init() {
+    const [settingsData, navData, catalogData, sponsorData] = await Promise.all([
+      readJson("settings.json", DEFAULT_SETTINGS),
+      readJson("navigation.json", []),
+      readJson("models/catalog.json", { models: [] }),
+      readJson("sponsors.json", { sponsors: [] })
+    ]);
+
+    settings = settingsData || DEFAULT_SETTINGS;
+    navigation = Array.isArray(navData) ? navData : [];
+    modelCatalog = Array.isArray(catalogData.models) ? catalogData.models : [];
+    sponsors = Array.isArray(sponsorData.sponsors) ? sponsorData.sponsors : [];
+    pageMap = flattenNavigation(navigation);
+
+    // Add a safe fallback if navigation.json is missing or misconfigured.
+    if (!pageMap.home) {
+      navigation = [{ label: "START HERE", items: [{ id: "home", label: "Overview", file: "home.md", title: "Pair of Dice Design" }] }];
+      pageMap = flattenNavigation(navigation);
+    }
+
+    applySettings();
+    buildNavigation();
+    renderFooterSponsors();
+
+    const params = new URLSearchParams(location.search);
+    const requested = params.get("page");
+    const initialPage = requested && pageMap[requested] ? requested : "home";
+    await loadPage(initialPage, false);
+    hideLoader();
+  }
+
+  $("navigation").addEventListener("click", event => {
+    const link = event.target.closest("a[data-page]");
+    if (!link) return;
+    event.preventDefault();
+    const next = link.dataset.page;
+    if (next === currentPage) return;
+    history.pushState({ page: next }, "", "?page=" + encodeURIComponent(next));
+    loadPage(next, true);
+  });
+
+  $("content").addEventListener("click", event => {
+    const link = event.target.closest("a[href]");
+    if (!link) return;
+    const url = new URL(link.href, location.href);
+    const page = url.searchParams.get("page");
+    if (url.origin === location.origin && page && pageMap[page]) {
+      event.preventDefault();
+      history.pushState({ page }, "", "?page=" + encodeURIComponent(page));
+      loadPage(page, true);
+    }
+  });
+
+  $("brandName").closest("a").addEventListener("click", event => {
+    event.preventDefault();
+    history.pushState({ page: "home" }, "", "./");
+    loadPage("home", true);
+  });
+
+  $("homeCrumb").addEventListener("click", event => {
+    event.preventDefault();
+    history.pushState({ page: "home" }, "", "./");
+    loadPage("home", true);
+  });
+
+  $("menuButton").addEventListener("click", () => {
+    const open = $("sidebar").classList.toggle("open");
+    $("menuButton").setAttribute("aria-expanded", String(open));
+  });
+
+  window.addEventListener("popstate", () => {
+    const page = new URLSearchParams(location.search).get("page") || "home";
+    loadPage(pageMap[page] ? page : "home", true);
+  });
+
+  // If configuration or network requests stall, the loading screen still gets dismissed.
+  setTimeout(() => {
+    if (!$("siteLoader").classList.contains("loader-hidden")) hideLoader();
+  }, 12000);
+
+  init().catch(error => {
+    console.error(error);
+    $("content").innerHTML = "<h2>Website setup could not load</h2><p>Check that the JSON settings files are present and valid.</p>";
+    hideLoader();
+  });
+})();
 </script>
 </body>
 </html>
