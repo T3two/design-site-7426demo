@@ -1,18 +1,115 @@
 {
   "models": [
     {
-      "id": "tshirt-cannon-assembly",
+      "id": "tshirt-cannon",
       "name": "TShirt Cannon",
       "type": "assembly",
       "category": "Robot",
-      "description": "2026 offseason assembly · original source GLB",
+      "description": "Offseason T-shirt cannon CAD assembly (original GLB, optimized version available in downloadable ZIP).",
       "file": "models/assemblies/TShirt.glb",
       "onshapeUrl": "",
       "downloads": [],
       "pages": [
-        "cad-library",
-        "cad-assemblies"
+        "tshirt-cannon"
       ]
+    },
+    {
+      "id": "robot-2026-assembly",
+      "name": "2026 Robot — CAD Assembly",
+      "type": "assembly",
+      "category": "Season Robots",
+      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "file": "models/assemblies/2026-optimized.glb",
+      "pages": [
+        "robot-2026"
+      ],
+      "year": 2026,
+      "bytes": 54000000,
+      "hosted": false
+    },
+    {
+      "id": "robot-2025-assembly",
+      "name": "2025 Robot — CAD Assembly",
+      "type": "assembly",
+      "category": "Season Robots",
+      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "file": "models/assemblies/2025-optimized.glb",
+      "pages": [
+        "robot-2025"
+      ],
+      "year": 2025,
+      "bytes": 68400000,
+      "hosted": false
+    },
+    {
+      "id": "robot-2024-assembly",
+      "name": "2024 Robot — CAD Assembly",
+      "type": "assembly",
+      "category": "Season Robots",
+      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "file": "models/assemblies/2024-optimized.glb",
+      "pages": [
+        "robot-2024"
+      ],
+      "year": 2024,
+      "bytes": 260700000,
+      "hosted": false
+    },
+    {
+      "id": "robot-2023-assembly",
+      "name": "2023 Robot — CAD Assembly",
+      "type": "assembly",
+      "category": "Season Robots",
+      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "file": "models/assemblies/2023-optimized.glb",
+      "pages": [
+        "robot-2023"
+      ],
+      "year": 2023,
+      "bytes": 242500000,
+      "hosted": false
+    },
+    {
+      "id": "robot-2022-assembly",
+      "name": "2022 Robot — CAD Assembly",
+      "type": "assembly",
+      "category": "Season Robots",
+      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "file": "models/assemblies/2022-optimized.glb",
+      "pages": [
+        "robot-2022"
+      ],
+      "year": 2022,
+      "bytes": 21390000,
+      "hosted": false
+    },
+    {
+      "id": "robot-2020-assembly",
+      "name": "2020 Robot — CAD Assembly",
+      "type": "assembly",
+      "category": "Season Robots",
+      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "file": "models/assemblies/2020-optimized.glb",
+      "pages": [
+        "robot-2020"
+      ],
+      "year": 2020,
+      "bytes": 51390000,
+      "hosted": false
+    },
+    {
+      "id": "robot-2019-assembly",
+      "name": "2019 Robot — CAD Assembly",
+      "type": "assembly",
+      "category": "Season Robots",
+      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "file": "models/assemblies/2019-optimized.glb",
+      "pages": [
+        "robot-2019"
+      ],
+      "year": 2019,
+      "bytes": 210363000,
+      "hosted": false
     }
   ]
 }

@@ -1,57 +1,43 @@
-# 2026 / REBUILT
+# 2026 / RICOCHET
 
-> Documentation framework only. No robot subsystem specifications have been verified from the team's CAD or binders.
+**Pair of Dice · FRC 7426 · REBUILT**
 
-**Team:** 7426 · **Season:** 2026 · **Game:** REBUILT
+The team's uploaded *2025–2026 RICOCHET Technical Binder* documents this robot. Original PDF is included in the downloadable full-project ZIP; it has not yet been uploaded to the GitHub review branch.
 
-## Overview
+{{model:robot-2026-assembly}}
 
-*Verified documentation pending.*
+## Overview and strategy
 
-## Robot strategy
-
-*Verified documentation pending.*
+The binder describes a swerve-drive robot with over-bumper intake, extendable hopper, feeder, turret shooter, and climber. The hopper is designed to retract for passing under the trench while holding fuel (binder pp. 4–11).
 
 ## Drivetrain
 
-*Verified documentation pending.*
+SDS MK5N swerve modules with R3 reduction, 4-inch wheels, Kraken X60 drive and X44 steering motors, and a 27 × 27-inch chassis (p. 5).
 
-## Intake
+## Intake and hopper
 
-*Verified documentation pending.*
+The intake uses a Kraken X60-driven 1.5-inch polycarbonate roller and two X60 pivot motors. The extendable hopper uses cabinet drawer slides and bearings to reduce friction (pp. 6–7).
 
-## Manipulator / scoring
+## Feeder
 
-*Verified documentation pending.*
+Five guide belts and spinning blades feed fuel toward the shooter (p. 8).
 
-## Climber (if applicable)
+## Turret and shooter
 
-*Verified documentation pending.*
+A 370-degree turret, three Limelights, and a 40.125-degree fixed shooter hood are documented. The flywheel is described as an 8 lb, 4-inch brass wheel (pp. 9–10).
 
-## Electrical system
+## Climber
 
-*Verified documentation pending.*
+30-inch maximum extension and an X60 motor with 45:1 gearing (p. 11).
 
-## Software
+## Electrical system and software
 
-*Verified documentation pending.*
+*Full wiring diagram and source-code documentation pending.*
 
-## CAD / engineering documentation
+## Design decisions and lessons learned
 
-*Verified documentation pending.*
+The binder details modular prototyping, changing shooter compression, removing pulleys, improving intake stability, and adding backrollers after an Arizona event (pp. 14–18).
 
-## Photos and diagrams
+## Binder and photos
 
-*Verified documentation pending.*
-
-## Design decisions
-
-*Verified documentation pending.*
-
-## Lessons learned
-
-*Verified documentation pending.*
-
-## Original binder
-
-*Verified documentation pending.*
+The complete 19-page technical binder, including its original diagrams, is included in the downloadable project ZIP. Its upload to the public repository is still pending.

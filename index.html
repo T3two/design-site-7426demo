@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 </head>
 <body>
   <div class="site-loader" id="siteLoader" role="status" aria-live="polite">
@@ -33,9 +34,9 @@
 
   <div class="layout">
     <aside class="sidebar" id="sidebar">
-      <div class="side-label">ENGINEERING INDEX / 7426</div>
+      <div class="side-label">ENGINEERING INDEX <span class="side-number">/ 7426</span></div>
       <nav id="navigation" aria-label="Main navigation"></nav>
-      <div class="sidebar-note"><strong>PAIR OF DICE / 7426</strong><span>A technical resource built to document the decisions behind the machines.</span><a href="https://pairofdice.vegas/" target="_blank" rel="noopener noreferrer">TEAM WEBSITE ↗</a></div>
+      <div class="sidebar-note"><strong>PAIR OF DICE / 7426</strong><span>Built to document the decisions behind the machines.</span><a href="https://pairofdice.vegas/" target="_blank" rel="noopener noreferrer">TEAM WEBSITE ↗</a></div>
     </aside>
 
     <main>
@@ -43,7 +44,7 @@
         <div class="eyebrow" id="pageEyebrow">PAIR OF DICE ROBOTICS · DESIGN RESOURCES</div>
         <h1 id="pageTitle">Pair of Dice Design</h1>
         <p id="pageDescription">Engineering education, design reasoning, and interactive CAD.</p>
-        <div class="intro-rule"></div><div class="intro-stamp">LAS VEGAS, NV <span>✦</span> FIRST ROBOTICS COMPETITION</div>
+        <div class="intro-rule"></div><div class="intro-stamp">LAS VEGAS, NV <span>✦</span> FIRST ROBOTICS COMPETITION <span>✦</span> EST. 2019</div>
       </section>
 
       <div class="content-shell">
@@ -55,7 +56,7 @@
         </section>
         <footer>
           <div><strong id="footerBrand">PAIR OF DICE ROBOTICS</strong><span> · </span><span>TEAM 7426</span></div>
-          <a href="?page=sponsors">Sponsors</a>
+          <div class="footer-links"><a href="builder.html">Site Builder (export)</a><a href="?page=sponsors">Sponsors</a><a href="https://pairofdice.vegas/" target="_blank" rel="noopener noreferrer">Team website ↗</a></div>
         </footer>
       </div>
     </main>
@@ -234,6 +235,40 @@
     return String(path).replace(/^(\.\.\/)+assets\//, "assets/");
   }
 
+  async function loadPackedModel(model, status) {
+    const info = model.packed;
+    if (!info || info.compression !== "gzip" || !Array.isArray(info.parts) || !info.parts.length) {
+      throw new Error("The model does not have a valid packed manifest.");
+    }
+    if (typeof DecompressionStream === "undefined") {
+      throw new Error("This browser cannot decompress packed GLBs. Use current Chrome or Edge.");
+    }
+    const total = Number(info.compressedBytes) || 0;
+    let read = 0;
+    let partIndex = 0;
+    // This stream fetches one small part at a time. It avoids downloading every
+    // large part into a single compressed ArrayBuffer in browser memory.
+    const compressed = new ReadableStream({
+      async pull(controller) {
+        if (partIndex >= info.parts.length) { controller.close(); return; }
+        const part = info.parts[partIndex++];
+        const response = await fetch(part, { cache: "force-cache" });
+        if (!response.ok) throw new Error("Missing model chunk " + part + " (HTTP " + response.status + "). Upload all parts before publishing.");
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        read += bytes.byteLength;
+        status.textContent = "Downloading assembly… " + (total ? Math.min(99, Math.round(100 * read / total)) + "%" : partIndex + "/" + info.parts.length + " parts");
+        controller.enqueue(bytes);
+      }
+    });
+    const decompressed = compressed.pipeThrough(new DecompressionStream("gzip"));
+    const blob = await new Response(decompressed).blob();
+    if (Number.isFinite(info.bytes) && blob.size !== info.bytes) {
+      throw new Error("Downloaded assembly size does not match the catalog. Check that every part is current.");
+    }
+    status.textContent = "Loading 3D geometry…";
+    return URL.createObjectURL(new Blob([blob], { type: "model/gltf-binary" }));
+  }
+
   function makeModelCard(model) {
     const card = document.createElement("article");
     card.className = "model-card";
@@ -242,16 +277,16 @@
     viewerWrap.className = "viewer-wrap";
 
     const viewer = document.createElement("model-viewer");
-    viewer.src = model.file;
+    // Load only on request to avoid eager downloads of large CAD files.
     viewer.alt = model.name || "Interactive CAD model";
     viewer.setAttribute("camera-controls", "");
     viewer.setAttribute("touch-action", "pan-y");
     viewer.setAttribute("shadow-intensity", "0.7");
-    viewer.setAttribute("loading", "eager");
+    viewer.setAttribute("loading", "lazy");
     viewer.setAttribute("interaction-prompt", "auto");
     viewer.setAttribute("environment-image", "neutral");
     viewer.setAttribute("exposure", "1");
-    viewer.setAttribute("ar", "");
+    // In-page CAD viewing only.
     if (model.thumbnail) viewer.setAttribute("poster", safeImagePath(model.thumbnail));
 
     const loading = document.createElement("div");
@@ -275,9 +310,70 @@
     viewer.addEventListener("error", () => {
       loading.hidden = true;
       error.hidden = false;
+      error.textContent = "The 3D engine could not render this assembly. Try a different browser or the original download.";
     });
 
-    viewerWrap.append(viewer, loading, error);
+    let temporaryModelUrl = null;
+    const releaseModelUrl = () => { if (temporaryModelUrl) { URL.revokeObjectURL(temporaryModelUrl); temporaryModelUrl = null; } };
+    const loadButton = document.createElement("button");
+    loadButton.type = "button";
+    loadButton.className = "small-button";
+    loadButton.textContent = "▶ LOAD INTERACTIVE 3D";
+    loading.hidden = true;
+    loadButton.addEventListener("click", async () => {
+      error.hidden = true;
+      loading.hidden = false;
+      loadButton.disabled = true;
+      if (!customElements.get("model-viewer")) {
+        loading.hidden = true;
+        error.hidden = false;
+        error.textContent = "3D engine unavailable. Check whether your network allows the model-viewer library.";
+        loadButton.disabled = false;
+        return;
+      }
+      let timeout = null;
+      try {
+        releaseModelUrl();
+        if (model.packed) {
+          temporaryModelUrl = await loadPackedModel(model, loading.querySelector("span:last-child"));
+          viewer.src = temporaryModelUrl;
+        } else {
+          viewer.src = model.file;
+        }
+        timeout = setTimeout(() => {
+          if (!loading.hidden) {
+            loading.hidden = true;
+            error.hidden = false;
+            error.textContent = "This large assembly is still preparing. Check memory usage or try again on a stronger computer.";
+            loadButton.disabled = false;
+          }
+        }, 180000);
+        viewer.addEventListener("load", () => clearTimeout(timeout), { once: true });
+        viewer.addEventListener("error", () => clearTimeout(timeout), { once: true });
+      } catch (err) {
+        console.error("3D model load failed", err);
+        loading.hidden = true;
+        error.hidden = false;
+        error.textContent = "Could not load this model: " + (err?.message || String(err));
+        loadButton.disabled = false;
+        releaseModelUrl();
+      }
+    });
+    viewer.addEventListener("load", () => { loadButton.disabled = false; setTimeout(releaseModelUrl, 1000); });
+    viewer.addEventListener("error", () => { loadButton.disabled = false; releaseModelUrl(); });
+    if (model.bytes && model.bytes > 100 * 1024 * 1024) {
+      const sizeWarning = document.createElement("div");
+      sizeWarning.className = "model-size-warning";
+      sizeWarning.textContent = "Large CAD assembly (" + Math.round(model.bytes / (1024 * 1024)) + " MiB). Loading may be slow on school computers.";
+      viewerWrap.append(sizeWarning);
+    }
+    if (model.hosted === false) {
+      loadButton.disabled = true;
+      loadButton.textContent = "MODEL HOSTING REQUIRED";
+      error.hidden = false;
+      error.textContent = "This CAD file is not hosted on the public site yet. Download the complete archive ZIP or use a configured HTTPS asset host.";
+    }
+    viewerWrap.append(viewer, loading, loadButton, error);
 
     const info = document.createElement("div");
     info.className = "model-info";
@@ -295,12 +391,12 @@
     const controls = document.createElement("div");
     controls.className = "model-actions";
 
-    const sourceDownload = document.createElement("a");
-    sourceDownload.href = model.file;
-    sourceDownload.download = "";
-    sourceDownload.className = "text-link";
-    sourceDownload.textContent = "Download GLB";
-    controls.appendChild(sourceDownload);
+    const modelFile = document.createElement("a");
+    modelFile.className = "text-link";
+    modelFile.href = model.file;
+    modelFile.textContent = "GLB file ↗";
+    modelFile.setAttribute("download", "");
+    if (model.hosted !== false && !model.packed) controls.appendChild(modelFile);
     const reset = document.createElement("button");
     reset.type = "button";
     reset.className = "small-button";
@@ -357,6 +453,7 @@
 
     // If the custom element script is blocked or fails, give a visible explanation.
     setTimeout(() => {
+      if (model.hosted === false) return;
       if (!customElements.get("model-viewer") && !error.hidden) {
         loading.hidden = true;
         error.hidden = false;
@@ -404,18 +501,20 @@
       const row = document.createElement("a");
       row.className = "robot-directory-item";
       row.href = "?page=" + encodeURIComponent(robot.pageId);
+      row.innerHTML = "";
       const year = document.createElement("span"); year.textContent = robot.season || "SEASON";
-      const name = document.createElement("strong"); name.textContent = robot.name || "Robot";
+      const name = document.createElement("strong"); name.textContent = robot.name || "Robot documentation";
       const status = document.createElement("small"); status.textContent = robot.status || "Documentation in progress";
       row.append(year, name, status); section.appendChild(row);
     }
     if (!robots.length) {
       const p = document.createElement("p"); p.className = "empty-note";
-      p.textContent = "Add a season to robots.json and navigation.json to populate the archive.";
-      section.append(p);
+      p.textContent = "Add a robot entry in robots.json and its page in navigation.json to populate this archive.";
+      section.appendChild(p);
     }
     article.append(section);
   }
+
   function renderSponsorsPage(article) {
     const section = document.createElement("section");
     section.className = "sponsor-grid";
@@ -495,14 +594,16 @@
       // A model token becomes a viewer at the exact point where it appears in Markdown.
       markdown = markdown.replace(/\{\{model:([a-zA-Z0-9_-]+)\}\}/g,
         '<div class="model-slot" data-model-id="$1"></div>');
-      content.innerHTML = window.marked ? marked.parse(markdown) : "<pre></pre>";
-      if (!window.marked) content.querySelector("pre").textContent = markdown;
+      content.innerHTML = window.marked && window.DOMPurify ? DOMPurify.sanitize(marked.parse(markdown), {ADD_ATTR: ["data-model-id"]}) : "<pre></pre>";
+      if (!window.marked || !window.DOMPurify) content.querySelector("pre").textContent = markdown;
 
+      const placedIds = [...content.querySelectorAll('[data-model-id]')].map(node => node.dataset.modelId);
       renderModelPlaceholders(content);
 
       let pageModels = modelCatalog.filter(model => Array.isArray(model.pages) && model.pages.includes(meta.id));
       if (meta.modelType) pageModels = pageModels.filter(model => model.type === meta.modelType);
-      if (meta.showAllModels) pageModels = modelCatalog.slice();
+      pageModels = pageModels.filter(model => !placedIds.includes(model.id));
+      if (meta.showAllModels) pageModels = modelCatalog.slice().filter(model => !placedIds.includes(model.id));
 
       if (pageModels.length) {
         const section = document.createElement("section");

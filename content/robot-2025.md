@@ -1,57 +1,59 @@
 # 2025 / REEFSCAPE
 
-> Documentation framework only. No robot subsystem specifications have been verified from the team's CAD or binders.
+**Pair of Dice · FRC 7426 · 2025**
 
-**Team:** 7426 · **Season:** 2025 · **Game:** REEFSCAPE
+> Verified: the uploaded archive includes a CAD model for this year. The model's engineering specifications have not been verified from a season binder.
+
+{{model:robot-2025-assembly}}
 
 ## Overview
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
 ## Robot strategy
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
 ## Drivetrain
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
 ## Intake
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
 ## Manipulator / scoring
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
 ## Climber (if applicable)
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
 ## Electrical system
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
 ## Software
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
-## CAD / engineering documentation
+## CAD and engineering documentation
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
 ## Photos and diagrams
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
 ## Design decisions
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
 ## Lessons learned
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*
 
-## Original binder
+## Technical binder
 
-*Verified documentation pending.*
+*Verified engineering documentation pending.*

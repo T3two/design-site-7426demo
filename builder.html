@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Site Builder / Pair of Dice Design</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="styles.css">
+<style>
+.builder{max-width:1130px;margin:35px auto;padding:0 22px 60px} .builder header{display:flex;align-items:center;justify-content:space-between;gap:20px;border-bottom:3px solid var(--accent);padding:0 0 20px}
+.builder h1{font:800 clamp(40px,6vw,68px)/1 'Barlow Condensed',Impact,sans-serif;text-transform:uppercase;margin:5px 0}
+.builder .eyebrow{color:var(--accent)} .builder p{color:var(--muted)}
+.builder-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:25px;margin-top:24px}
+.builder aside{display:grid;gap:6px;align-content:start}.builder aside button{border:0;border-left:4px solid transparent;background:#f2f1ef;padding:12px;text-align:left;color:var(--text);font:700 17px 'Barlow Condensed',sans-serif;cursor:pointer}.builder aside button[aria-current=true]{border-color:var(--accent);background:#f8e9eb}
+.builder main{min-width:0}.builder select,.builder input,.builder textarea{display:block;width:100%;padding:10px;font:15px 'Barlow',sans-serif;border:1px solid #bbb;background:#fff;color:#202124;box-sizing:border-box}.builder textarea{height:430px;resize:vertical;line-height:1.5;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+.builder label{font-weight:700;display:block;margin:12px 0 6px}.builder-actions{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}.builder button.action,.builder a.action{background:var(--accent);color:white;padding:10px 16px;border:0;font:700 16px 'Barlow Condensed',sans-serif;cursor:pointer;text-decoration:none}.builder button.action.secondary{background:#242424}.builder .status{min-height:25px;font-size:14px}.builder .notice{padding:12px 14px;border-left:3px solid var(--accent);background:#f7f6f5}.builder pre{white-space:pre-wrap}
+@media(max-width:760px){.builder-layout{grid-template-columns:1fr}.builder aside{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style></head><body>
+<div class="builder"><header><div><div class="eyebrow">PAIR OF DICE / PRIVATE WORKFLOW</div><h1>Site Builder</h1><p>Edit files, download your changes, then commit through GitHub.</p></div><a href="index.html" class="action">← VIEW SITE</a></header>
+<div class="notice"><strong>No public publishing access.</strong> This editor changes a temporary in-browser copy only. Nothing is sent to GitHub or saved on the server. Download the edited file and upload/commit it through your authenticated GitHub account. Delete <code>builder.html</code> when no longer needed.</div>
+<div class="builder-layout"><aside id="tabs" aria-label="Editor files"></aside><main>
+<label for="filePicker">File to edit</label><select id="filePicker"></select>
+<div id="customArea" hidden><label for="customFile">New Markdown filename (inside content/)</label><input id="customFile" placeholder="robot-2027.md" value="new-page.md"></div>
+<label for="editor">Source editor</label><textarea id="editor" spellcheck="false" aria-label="Source file editor"></textarea>
+<div class="builder-actions"><button id="addEntry" class="action secondary" type="button">Add record</button><button id="validate" class="action secondary" type="button">Validate</button><button id="download" class="action" type="button">Download edited file</button></div>
+<p id="status" class="status" role="status" aria-live="polite"></p><p><strong>Workflow:</strong> download, place in the matching repository path, commit, then refresh the live site. For GLB/PDF uploads, use GitHub’s file upload or your approved asset host; this editor only edits text files.</p>
+</main></div></div>
+<script>
+(() => {'use strict';
+const sections=[
+ ['Documentation','content','content/robot-2026.md'],['Navigation','navigation','navigation.json'],['Robot years','robots','robots.json'],['CAD models','models','models/catalog.json'],['Sponsors','sponsors','sponsors.json'],['Site settings','settings','settings.json']];
+let current=sections[0], filepaths=[],saved={}, dirty=false;
+const tabs=document.querySelector('#tabs'), picker=document.querySelector('#filePicker'),editor=document.querySelector('#editor'),status=document.querySelector('#status');
+const show=(text,ok=true)=>{status.textContent=text;status.style.color=ok?'#17613a':'#a32632'};
+const pathSafe=x=>/^[\w-]+\.md$/.test(x);
+function choices(paths){picker.replaceChildren();for(const path of paths){let op=document.createElement('option');op.value=path;op.textContent=path;picker.append(op)}if(current[1]==='content'){const op=document.createElement('option');op.value='__new__';op.textContent='＋ New Markdown page';picker.append(op)}}
+async function loadFile(path){let data='';if(path!=='__new__'){if(path in saved)data=saved[path];else{try{const r=await fetch(path,{cache:'no-store'});if(!r.ok)throw new Error('HTTP '+r.status);data=await r.text()}catch(e){show('File could not be loaded: '+e.message,false);return}}}
+editor.value=data||'# New page\n\nAdd verified engineering documentation here.\n';document.querySelector('#customArea').hidden=path!=='__new__';dirty=false;show('Loaded '+(path==='__new__'?'new page':path))}
+async function selectSection(s){current=s;for(const button of tabs.children)button.setAttribute('aria-current',String(button.dataset.key===s[1]));if(s[1]==='content'){
+try{const r=await fetch('navigation.json');const nav=await r.json();filepaths=[...new Set(nav.flatMap(g=>(g.items||[]).flatMap(i=>[i.file,...(i.children||[]).map(c=>c.file)])).filter(Boolean).map(f=>'content/'+f))]}catch{filepaths=[s[2]]}
+}else filepaths=[s[2]];choices(filepaths);await loadFile(picker.value)}
+for(const s of sections){const b=document.createElement('button');b.textContent=s[0];b.dataset.key=s[1];b.type='button';b.addEventListener('click',()=>selectSection(s));tabs.append(b)}
+picker.addEventListener('change',()=>loadFile(picker.value));editor.addEventListener('input',()=>{dirty=true;show('Unsaved browser edits — download to keep them.')});
+document.querySelector('#validate').addEventListener('click',()=>{try{if(current[1]==='content'){if(!editor.value.trim())throw new Error('Markdown is empty');if(picker.value==='__new__'&&!pathSafe(document.querySelector('#customFile').value.trim()))throw new Error('Filename must be name.md (letters, numbers, hyphen, underscore)')}else{const data=JSON.parse(editor.value);if(!Array.isArray(data)&&typeof data!=='object')throw new Error('Expected JSON object or array')}show('Syntax validated. Asset links and deployment still need testing.')}catch(e){show('Validation failed: '+e.message,false)}});
+document.querySelector('#addEntry').addEventListener('click',()=>{try{if(current[1]==='content'){editor.value+='\n## New section\n\nDocumentation pending.\n';show('Added Markdown heading');return}let data=JSON.parse(editor.value);if(current[1]==='robots')data.robots.push({season:'2027',name:'Robot name',pageId:'robot-2027',markdown:'robot-2027.md',modelId:'robot-2027-assembly',binderPdf:null,status:'Documentation pending'});else if(current[1]==='models')data.models.push({id:'new-model',name:'New CAD model',type:'assembly',file:'models/assemblies/new-model.glb',pages:[]});else if(current[1]==='sponsors')data.sponsors.push({name:'New sponsor',logo:'',description:'',url:''});else if(current[1]==='navigation')data.push({label:'NEW SECTION',items:[{id:'new-page',label:'New page',file:'new-page.md',title:'New Page'}]});else{show('Edit theme values directly in this file.');return}editor.value=JSON.stringify(data,null,2)+'\n';show('Record added. Update the placeholders and download the file.')}catch(e){show('Could not add record: '+e.message,false)}});
+document.querySelector('#download').addEventListener('click',()=>{try{const path=picker.value==='__new__'?'content/'+document.querySelector('#customFile').value.trim():picker.value;if(!path||!/^([\w-]+\/)*[\w-]+\.(json|md)$/.test(path))throw new Error('Invalid output path');if(!path.endsWith('.md'))JSON.parse(editor.value);const blob=new Blob([editor.value],{type:path.endsWith('.json')?'application/json':'text/markdown'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=path.split('/').pop();document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);saved[path]=editor.value;dirty=false;show('Downloaded '+a.download+'. Commit it into GitHub at '+path+'.')}catch(e){show('Download blocked: '+e.message,false)}});
+selectSection(sections[0]);
+})();
+</script></body></html>
