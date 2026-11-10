@@ -235,6 +235,40 @@
     return String(path).replace(/^(\.\.\/)+assets\//, "assets/");
   }
 
+  async function loadPackedModel(model, status) {
+    const info = model.packed;
+    if (!info || info.compression !== "gzip" || !Array.isArray(info.parts) || !info.parts.length) {
+      throw new Error("The model does not have a valid packed manifest.");
+    }
+    if (typeof DecompressionStream === "undefined") {
+      throw new Error("This browser cannot decompress packed GLBs. Use current Chrome or Edge.");
+    }
+    const total = Number(info.compressedBytes) || 0;
+    let read = 0;
+    let partIndex = 0;
+    // This stream fetches one small part at a time. It avoids downloading every
+    // large part into a single compressed ArrayBuffer in browser memory.
+    const compressed = new ReadableStream({
+      async pull(controller) {
+        if (partIndex >= info.parts.length) { controller.close(); return; }
+        const part = info.parts[partIndex++];
+        const response = await fetch(part, { cache: "force-cache" });
+        if (!response.ok) throw new Error("Missing model chunk " + part + " (HTTP " + response.status + "). Upload all parts before publishing.");
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        read += bytes.byteLength;
+        status.textContent = "Downloading assembly… " + (total ? Math.min(99, Math.round(100 * read / total)) + "%" : partIndex + "/" + info.parts.length + " parts");
+        controller.enqueue(bytes);
+      }
+    });
+    const decompressed = compressed.pipeThrough(new DecompressionStream("gzip"));
+    const blob = await new Response(decompressed).blob();
+    if (Number.isFinite(info.bytes) && blob.size !== info.bytes) {
+      throw new Error("Downloaded assembly size does not match the catalog. Check that every part is current.");
+    }
+    status.textContent = "Loading 3D geometry…";
+    return URL.createObjectURL(new Blob([blob], { type: "model/gltf-binary" }));
+  }
+
   function makeModelCard(model) {
     const card = document.createElement("article");
     card.className = "model-card";
@@ -279,12 +313,14 @@
       error.textContent = "The 3D engine could not render this assembly. Try a different browser or the original download.";
     });
 
+    let temporaryModelUrl = null;
+    const releaseModelUrl = () => { if (temporaryModelUrl) { URL.revokeObjectURL(temporaryModelUrl); temporaryModelUrl = null; } };
     const loadButton = document.createElement("button");
     loadButton.type = "button";
     loadButton.className = "small-button";
     loadButton.textContent = "▶ LOAD INTERACTIVE 3D";
     loading.hidden = true;
-    loadButton.addEventListener("click", () => {
+    loadButton.addEventListener("click", async () => {
       error.hidden = true;
       loading.hidden = false;
       loadButton.disabled = true;
@@ -295,18 +331,36 @@
         loadButton.disabled = false;
         return;
       }
-      viewer.src = model.file;
-      setTimeout(() => {
-        if (!loading.hidden) {
-          loading.hidden = true;
-          error.hidden = false;
-          error.textContent = "The model is taking too long to load. Check the file and network.";
-          loadButton.disabled = false;
+      let timeout = null;
+      try {
+        releaseModelUrl();
+        if (model.packed) {
+          temporaryModelUrl = await loadPackedModel(model, loading.querySelector("span:last-child"));
+          viewer.src = temporaryModelUrl;
+        } else {
+          viewer.src = model.file;
         }
-      }, (model.bytes && model.bytes > 100*1024*1024) ? 180000 : 90000);
+        timeout = setTimeout(() => {
+          if (!loading.hidden) {
+            loading.hidden = true;
+            error.hidden = false;
+            error.textContent = "This large assembly is still preparing. Check memory usage or try again on a stronger computer.";
+            loadButton.disabled = false;
+          }
+        }, 180000);
+        viewer.addEventListener("load", () => clearTimeout(timeout), { once: true });
+        viewer.addEventListener("error", () => clearTimeout(timeout), { once: true });
+      } catch (err) {
+        console.error("3D model load failed", err);
+        loading.hidden = true;
+        error.hidden = false;
+        error.textContent = "Could not load this model: " + (err?.message || String(err));
+        loadButton.disabled = false;
+        releaseModelUrl();
+      }
     });
-    viewer.addEventListener("load", () => { loadButton.disabled = false; });
-    viewer.addEventListener("error", () => { loadButton.disabled = false; });
+    viewer.addEventListener("load", () => { loadButton.disabled = false; setTimeout(releaseModelUrl, 1000); });
+    viewer.addEventListener("error", () => { loadButton.disabled = false; releaseModelUrl(); });
     if (model.bytes && model.bytes > 100 * 1024 * 1024) {
       const sizeWarning = document.createElement("div");
       sizeWarning.className = "model-size-warning";
@@ -342,7 +396,7 @@
     modelFile.href = model.file;
     modelFile.textContent = "GLB file ↗";
     modelFile.setAttribute("download", "");
-    if (model.hosted !== false) controls.appendChild(modelFile);
+    if (model.hosted !== false && !model.packed) controls.appendChild(modelFile);
     const reset = document.createElement("button");
     reset.type = "button";
     reset.className = "small-button";
