@@ -1,14 +1,18 @@
 {
   "models": [
     {
-      "id": "TShirt Cannon Assembly",
+      "id": "tshirt-cannon-assembly",
       "name": "TShirt Cannon",
       "type": "assembly",
       "category": "Robot",
-      "description": "2026 Offseason Robot",
+      "description": "2026 offseason assembly · original source GLB",
       "file": "models/assemblies/TShirt.glb",
       "onshapeUrl": "",
-      "downloads": []
+      "downloads": [],
+      "pages": [
+        "cad-library",
+        "cad-assemblies"
+      ]
     }
   ]
 }

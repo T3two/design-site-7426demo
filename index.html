@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#a32632">
   <meta name="description" content="Engineering resources, design reasoning, and interactive CAD from Pair of Dice Robotics, FRC Team 7426.">
   <title>Pair of Dice Design | FRC 7426</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
@@ -22,7 +25,7 @@
 
   <header class="topbar">
     <a class="brand" href="./" aria-label="Pair of Dice Design home">
-      <span class="brand-mark">7426</span>
+      <span class="brand-mark" aria-hidden="true"><span class="dice-face dice-one"></span><span class="dice-face dice-two"></span></span>
       <span class="brand-copy"><strong id="brandName">PAIR OF DICE DESIGN</strong><small id="brandLabel">FRC TEAM 7426</small></span>
     </a>
     <button class="menu-button" id="menuButton" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
@@ -30,9 +33,9 @@
 
   <div class="layout">
     <aside class="sidebar" id="sidebar">
-      <div class="side-label">EXPLORE</div>
+      <div class="side-label">ENGINEERING INDEX / 7426</div>
       <nav id="navigation" aria-label="Main navigation"></nav>
-      <div class="sidebar-note">A technical resource from Pair of Dice Robotics.</div>
+      <div class="sidebar-note"><strong>PAIR OF DICE / 7426</strong><span>A technical resource built to document the decisions behind the machines.</span><a href="https://pairofdice.vegas/" target="_blank" rel="noopener noreferrer">TEAM WEBSITE ↗</a></div>
     </aside>
 
     <main>
@@ -40,7 +43,7 @@
         <div class="eyebrow" id="pageEyebrow">PAIR OF DICE ROBOTICS · DESIGN RESOURCES</div>
         <h1 id="pageTitle">Pair of Dice Design</h1>
         <p id="pageDescription">Engineering education, design reasoning, and interactive CAD.</p>
-        <div class="intro-rule"></div>
+        <div class="intro-rule"></div><div class="intro-stamp">LAS VEGAS, NV <span>✦</span> FIRST ROBOTICS COMPETITION</div>
       </section>
 
       <div class="content-shell">
@@ -79,9 +82,10 @@
   let navigation = [];
   let modelCatalog = [];
   let sponsors = [];
+  let robots = [];
   let pageMap = {};
   let currentPage = "home";
-  let isLoadingPage = false;
+  let pageRequestId = 0;
   let loaderStartedAt = Date.now();
 
   const $ = (id) => document.getElementById(id);
@@ -252,7 +256,7 @@
 
     const loading = document.createElement("div");
     loading.className = "viewer-loading";
-    loading.innerHTML = '<span class="mini-spinner"></span><span>Loading 3D model…</span>';
+    loading.innerHTML = '<span class="mini-spinner"></span><span>Preparing model… 0%</span>';
 
     const error = document.createElement("div");
     error.className = "viewer-error";
@@ -266,6 +270,7 @@
     viewer.addEventListener("progress", event => {
       const progress = Math.max(0, Math.min(100, (event.detail?.totalProgress || 0) * 100));
       loading.style.setProperty("--progress", progress + "%");
+      loading.querySelector("span:last-child").textContent = "Preparing model… " + Math.round(progress) + "%";
     });
     viewer.addEventListener("error", () => {
       loading.hidden = true;
@@ -290,6 +295,12 @@
     const controls = document.createElement("div");
     controls.className = "model-actions";
 
+    const sourceDownload = document.createElement("a");
+    sourceDownload.href = model.file;
+    sourceDownload.download = "";
+    sourceDownload.className = "text-link";
+    sourceDownload.textContent = "Download GLB";
+    controls.appendChild(sourceDownload);
     const reset = document.createElement("button");
     reset.type = "button";
     reset.className = "small-button";
@@ -386,6 +397,25 @@
     });
   }
 
+  function renderRobotsPage(article) {
+    const section = document.createElement("section");
+    section.className = "robot-directory";
+    for (const robot of robots) {
+      const row = document.createElement("a");
+      row.className = "robot-directory-item";
+      row.href = "?page=" + encodeURIComponent(robot.pageId);
+      const year = document.createElement("span"); year.textContent = robot.season || "SEASON";
+      const name = document.createElement("strong"); name.textContent = robot.name || "Robot";
+      const status = document.createElement("small"); status.textContent = robot.status || "Documentation in progress";
+      row.append(year, name, status); section.appendChild(row);
+    }
+    if (!robots.length) {
+      const p = document.createElement("p"); p.className = "empty-note";
+      p.textContent = "Add a season to robots.json and navigation.json to populate the archive.";
+      section.append(p);
+    }
+    article.append(section);
+  }
   function renderSponsorsPage(article) {
     const section = document.createElement("section");
     section.className = "sponsor-grid";
@@ -434,10 +464,10 @@
   }
 
   async function loadPage(key, animate = true) {
-    if (isLoadingPage) return;
+    const requestId = ++pageRequestId;
     const meta = pageMap[key] || pageMap.home;
     if (!meta) return;
-    isLoadingPage = true;
+
 
     const intro = $("pageIntro");
     const content = $("content");
@@ -445,6 +475,7 @@
       intro.classList.add("page-fade");
       content.classList.add("page-fade");
       await new Promise(resolve => setTimeout(resolve, 100));
+      if (requestId !== pageRequestId) return;
     }
 
     $("pageTitle").textContent = meta.title || meta.label;
@@ -457,6 +488,7 @@
       const response = await fetch("content/" + meta.file);
       if (!response.ok) throw new Error("Page file not found: " + meta.file);
       let markdown = await response.text();
+      if (requestId !== pageRequestId) return;
       // Markdown files are stored in /content but rendered on index.html. Normalize paths
       // so the image paths work consistently on GitHub Pages project sites.
       markdown = markdown.replace(/\((?:\.\.\/)+assets\//g, "(assets/");
@@ -491,6 +523,7 @@
       }
 
       if (meta.id === "sponsors") renderSponsorsPage(content);
+      if (meta.id === "robot-archive") renderRobotsPage(content);
       if (meta.id === "home" && sponsors.length) renderFooterSponsors();
     } catch (error) {
       console.error(error);
@@ -502,7 +535,7 @@
     currentPage = meta.id;
     intro.classList.remove("page-fade");
     content.classList.remove("page-fade");
-    isLoadingPage = false;
+
   }
 
   function renderFooterSponsors() {
@@ -536,17 +569,19 @@
   }
 
   async function init() {
-    const [settingsData, navData, catalogData, sponsorData] = await Promise.all([
+    const [settingsData, navData, catalogData, sponsorData, robotsData] = await Promise.all([
       readJson("settings.json", DEFAULT_SETTINGS),
       readJson("navigation.json", []),
       readJson("models/catalog.json", { models: [] }),
-      readJson("sponsors.json", { sponsors: [] })
+      readJson("sponsors.json", { sponsors: [] }),
+      readJson("robots.json", { robots: [] })
     ]);
 
     settings = settingsData || DEFAULT_SETTINGS;
     navigation = Array.isArray(navData) ? navData : [];
     modelCatalog = Array.isArray(catalogData.models) ? catalogData.models : [];
     sponsors = Array.isArray(sponsorData.sponsors) ? sponsorData.sponsors : [];
+    robots = Array.isArray(robotsData.robots) ? robotsData.robots : [];
     pageMap = flattenNavigation(navigation);
 
     // Add a safe fallback if navigation.json is missing or misconfigured.
@@ -571,6 +606,8 @@
     if (!link) return;
     event.preventDefault();
     const next = link.dataset.page;
+    $("sidebar").classList.remove("open");
+    $("menuButton").setAttribute("aria-expanded", "false");
     if (next === currentPage) return;
     history.pushState({ page: next }, "", "?page=" + encodeURIComponent(next));
     loadPage(next, true);
