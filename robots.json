@@ -1,0 +1,31 @@
+{
+  "robots": [
+    {
+      "season": "2026",
+      "name": "REBUILT",
+      "pageId": "robot-2026",
+      "markdown": "robot-2026.md",
+      "modelId": null,
+      "binderPdf": null,
+      "status": "Engineering notes pending"
+    },
+    {
+      "season": "2025",
+      "name": "REEFSCAPE",
+      "pageId": "robot-2025",
+      "markdown": "robot-2025.md",
+      "modelId": null,
+      "binderPdf": null,
+      "status": "Engineering notes pending"
+    },
+    {
+      "season": "2024",
+      "name": "CRESCENDO",
+      "pageId": "robot-2024",
+      "markdown": "robot-2024.md",
+      "modelId": null,
+      "binderPdf": null,
+      "status": "Engineering notes pending"
+    }
+  ]
+}
