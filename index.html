@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles.css">
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
 </head>
 <body>
   <div class="site-loader" id="siteLoader" role="status" aria-live="polite">
@@ -33,9 +34,9 @@
 
   <div class="layout">
     <aside class="sidebar" id="sidebar">
-      <div class="side-label">ENGINEERING INDEX / 7426</div>
+      <div class="side-label">ENGINEERING INDEX <span class="side-number">/ 7426</span></div>
       <nav id="navigation" aria-label="Main navigation"></nav>
-      <div class="sidebar-note"><strong>PAIR OF DICE / 7426</strong><span>A technical resource built to document the decisions behind the machines.</span><a href="https://pairofdice.vegas/" target="_blank" rel="noopener noreferrer">TEAM WEBSITE ↗</a></div>
+      <div class="sidebar-note"><strong>PAIR OF DICE / 7426</strong><span>Built to document the decisions behind the machines.</span><a href="https://pairofdice.vegas/" target="_blank" rel="noopener noreferrer">TEAM WEBSITE ↗</a></div>
     </aside>
 
     <main>
@@ -43,7 +44,7 @@
         <div class="eyebrow" id="pageEyebrow">PAIR OF DICE ROBOTICS · DESIGN RESOURCES</div>
         <h1 id="pageTitle">Pair of Dice Design</h1>
         <p id="pageDescription">Engineering education, design reasoning, and interactive CAD.</p>
-        <div class="intro-rule"></div><div class="intro-stamp">LAS VEGAS, NV <span>✦</span> FIRST ROBOTICS COMPETITION</div>
+        <div class="intro-rule"></div><div class="intro-stamp">LAS VEGAS, NV <span>✦</span> FIRST ROBOTICS COMPETITION <span>✦</span> EST. 2019</div>
       </section>
 
       <div class="content-shell">
@@ -55,7 +56,7 @@
         </section>
         <footer>
           <div><strong id="footerBrand">PAIR OF DICE ROBOTICS</strong><span> · </span><span>TEAM 7426</span></div>
-          <a href="?page=sponsors">Sponsors</a>
+          <div class="footer-links"><a href="builder.html">Site Builder (export)</a><a href="?page=sponsors">Sponsors</a><a href="https://pairofdice.vegas/" target="_blank" rel="noopener noreferrer">Team website ↗</a></div>
         </footer>
       </div>
     </main>
@@ -242,16 +243,16 @@
     viewerWrap.className = "viewer-wrap";
 
     const viewer = document.createElement("model-viewer");
-    viewer.src = model.file;
+    // Load only on request to avoid eager downloads of large CAD files.
     viewer.alt = model.name || "Interactive CAD model";
     viewer.setAttribute("camera-controls", "");
     viewer.setAttribute("touch-action", "pan-y");
     viewer.setAttribute("shadow-intensity", "0.7");
-    viewer.setAttribute("loading", "eager");
+    viewer.setAttribute("loading", "lazy");
     viewer.setAttribute("interaction-prompt", "auto");
     viewer.setAttribute("environment-image", "neutral");
     viewer.setAttribute("exposure", "1");
-    viewer.setAttribute("ar", "");
+    // In-page CAD viewing only.
     if (model.thumbnail) viewer.setAttribute("poster", safeImagePath(model.thumbnail));
 
     const loading = document.createElement("div");
@@ -275,9 +276,50 @@
     viewer.addEventListener("error", () => {
       loading.hidden = true;
       error.hidden = false;
+      error.textContent = "The 3D engine could not render this assembly. Try a different browser or the original download.";
     });
 
-    viewerWrap.append(viewer, loading, error);
+    const loadButton = document.createElement("button");
+    loadButton.type = "button";
+    loadButton.className = "small-button";
+    loadButton.textContent = "▶ LOAD INTERACTIVE 3D";
+    loading.hidden = true;
+    loadButton.addEventListener("click", () => {
+      error.hidden = true;
+      loading.hidden = false;
+      loadButton.disabled = true;
+      if (!customElements.get("model-viewer")) {
+        loading.hidden = true;
+        error.hidden = false;
+        error.textContent = "3D engine unavailable. Check whether your network allows the model-viewer library.";
+        loadButton.disabled = false;
+        return;
+      }
+      viewer.src = model.file;
+      setTimeout(() => {
+        if (!loading.hidden) {
+          loading.hidden = true;
+          error.hidden = false;
+          error.textContent = "The model is taking too long to load. Check the file and network.";
+          loadButton.disabled = false;
+        }
+      }, (model.bytes && model.bytes > 100*1024*1024) ? 180000 : 90000);
+    });
+    viewer.addEventListener("load", () => { loadButton.disabled = false; });
+    viewer.addEventListener("error", () => { loadButton.disabled = false; });
+    if (model.bytes && model.bytes > 100 * 1024 * 1024) {
+      const sizeWarning = document.createElement("div");
+      sizeWarning.className = "model-size-warning";
+      sizeWarning.textContent = "Large CAD assembly (" + Math.round(model.bytes / (1024 * 1024)) + " MiB). Loading may be slow on school computers.";
+      viewerWrap.append(sizeWarning);
+    }
+    if (model.hosted === false) {
+      loadButton.disabled = true;
+      loadButton.textContent = "MODEL HOSTING REQUIRED";
+      error.hidden = false;
+      error.textContent = "This CAD file is not hosted on the public site yet. Download the complete archive ZIP or use a configured HTTPS asset host.";
+    }
+    viewerWrap.append(viewer, loading, loadButton, error);
 
     const info = document.createElement("div");
     info.className = "model-info";
@@ -295,12 +337,12 @@
     const controls = document.createElement("div");
     controls.className = "model-actions";
 
-    const sourceDownload = document.createElement("a");
-    sourceDownload.href = model.file;
-    sourceDownload.download = "";
-    sourceDownload.className = "text-link";
-    sourceDownload.textContent = "Download GLB";
-    controls.appendChild(sourceDownload);
+    const modelFile = document.createElement("a");
+    modelFile.className = "text-link";
+    modelFile.href = model.file;
+    modelFile.textContent = "GLB file ↗";
+    modelFile.setAttribute("download", "");
+    if (model.hosted !== false) controls.appendChild(modelFile);
     const reset = document.createElement("button");
     reset.type = "button";
     reset.className = "small-button";
@@ -357,6 +399,7 @@
 
     // If the custom element script is blocked or fails, give a visible explanation.
     setTimeout(() => {
+      if (model.hosted === false) return;
       if (!customElements.get("model-viewer") && !error.hidden) {
         loading.hidden = true;
         error.hidden = false;
@@ -404,18 +447,20 @@
       const row = document.createElement("a");
       row.className = "robot-directory-item";
       row.href = "?page=" + encodeURIComponent(robot.pageId);
+      row.innerHTML = "";
       const year = document.createElement("span"); year.textContent = robot.season || "SEASON";
-      const name = document.createElement("strong"); name.textContent = robot.name || "Robot";
+      const name = document.createElement("strong"); name.textContent = robot.name || "Robot documentation";
       const status = document.createElement("small"); status.textContent = robot.status || "Documentation in progress";
       row.append(year, name, status); section.appendChild(row);
     }
     if (!robots.length) {
       const p = document.createElement("p"); p.className = "empty-note";
-      p.textContent = "Add a season to robots.json and navigation.json to populate the archive.";
-      section.append(p);
+      p.textContent = "Add a robot entry in robots.json and its page in navigation.json to populate this archive.";
+      section.appendChild(p);
     }
     article.append(section);
   }
+
   function renderSponsorsPage(article) {
     const section = document.createElement("section");
     section.className = "sponsor-grid";
@@ -495,14 +540,16 @@
       // A model token becomes a viewer at the exact point where it appears in Markdown.
       markdown = markdown.replace(/\{\{model:([a-zA-Z0-9_-]+)\}\}/g,
         '<div class="model-slot" data-model-id="$1"></div>');
-      content.innerHTML = window.marked ? marked.parse(markdown) : "<pre></pre>";
-      if (!window.marked) content.querySelector("pre").textContent = markdown;
+      content.innerHTML = window.marked && window.DOMPurify ? DOMPurify.sanitize(marked.parse(markdown), {ADD_ATTR: ["data-model-id"]}) : "<pre></pre>";
+      if (!window.marked || !window.DOMPurify) content.querySelector("pre").textContent = markdown;
 
+      const placedIds = [...content.querySelectorAll('[data-model-id]')].map(node => node.dataset.modelId);
       renderModelPlaceholders(content);
 
       let pageModels = modelCatalog.filter(model => Array.isArray(model.pages) && model.pages.includes(meta.id));
       if (meta.modelType) pageModels = pageModels.filter(model => model.type === meta.modelType);
-      if (meta.showAllModels) pageModels = modelCatalog.slice();
+      pageModels = pageModels.filter(model => !placedIds.includes(model.id));
+      if (meta.showAllModels) pageModels = modelCatalog.slice().filter(model => !placedIds.includes(model.id));
 
       if (pageModels.length) {
         const section = document.createElement("section");
