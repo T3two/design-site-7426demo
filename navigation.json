@@ -6,7 +6,7 @@
         "id": "home",
         "label": "Overview",
         "file": "home.md",
-        "eyebrow": "PAIR OF DICE ROBOTICS \u00b7 DESIGN RESOURCES",
+        "eyebrow": "PAIR OF DICE ROBOTICS · DESIGN RESOURCES",
         "description": "Engineering education, design reasoning, and interactive CAD.",
         "title": "Pair of Dice Design"
       }
@@ -48,7 +48,7 @@
             "id": "cad-parts",
             "label": "Individual Parts",
             "file": "cad-parts.md",
-            "eyebrow": "CAD LIBRARY \u00b7 PARTS",
+            "eyebrow": "CAD LIBRARY · PARTS",
             "description": "Browse individual component models.",
             "title": "Individual Parts",
             "modelType": "part"
@@ -57,7 +57,7 @@
             "id": "cad-assemblies",
             "label": "Assemblies",
             "file": "cad-assemblies.md",
-            "eyebrow": "CAD LIBRARY \u00b7 ASSEMBLIES",
+            "eyebrow": "CAD LIBRARY · ASSEMBLIES",
             "description": "Browse complete assembly models.",
             "title": "Assemblies",
             "modelType": "assembly"
@@ -74,7 +74,7 @@
         "id": "power-transmission",
         "label": "Power Transmission",
         "file": "power-transmission.md",
-        "eyebrow": "MECHANISMS \u00b7 MOTION",
+        "eyebrow": "MECHANISMS · MOTION",
         "description": "How mechanical systems transfer motion and power.",
         "title": "Power Transmission"
       },
@@ -93,6 +93,42 @@
         "eyebrow": "MACHINE ELEMENTS",
         "description": "Interfaces, geometry, and mechanical design details.",
         "title": "Gears & Shafts"
+      }
+    ]
+  },
+  {
+    "label": "ROBOT TECHNICAL BINDERS",
+    "items": [
+      {
+        "id": "robot-archive",
+        "label": "Robot Archive",
+        "title": "Robot Technical Archive",
+        "file": "robot-archive.md",
+        "description": "Multi-year engineering documentation"
+      },
+      {
+        "id": "robot-2026",
+        "label": "2026 / REBUILT",
+        "title": "2026 / REBUILT",
+        "file": "robot-2026.md",
+        "eyebrow": "TEAM 7426 · ROBOT ARCHIVE",
+        "description": "Subsystem documentation and design notes"
+      },
+      {
+        "id": "robot-2025",
+        "label": "2025 / REEFSCAPE",
+        "title": "2025 / REEFSCAPE",
+        "file": "robot-2025.md",
+        "eyebrow": "TEAM 7426 · ROBOT ARCHIVE",
+        "description": "Subsystem documentation and design notes"
+      },
+      {
+        "id": "robot-2024",
+        "label": "2024 / CRESCENDO",
+        "title": "2024 / CRESCENDO",
+        "file": "robot-2024.md",
+        "eyebrow": "TEAM 7426 · ROBOT ARCHIVE",
+        "description": "Subsystem documentation and design notes"
       }
     ]
   },
