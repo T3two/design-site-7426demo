@@ -15,7 +15,7 @@
     },
     {
       "id": "robot-2026-assembly",
-      "name": "2026 Robot — CAD Assembly",
+      "name": "2026 Robot \u2014 CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -24,12 +24,21 @@
         "robot-2026"
       ],
       "year": 2026,
-      "bytes": 54000000,
-      "hosted": false
+      "bytes": 53991300,
+      "hosted": true,
+      "packed": {
+        "compression": "gzip",
+        "parts": [
+          "models/packed/2026/2026.glb.gz.part001"
+        ],
+        "bytes": 53991300,
+        "compressedBytes": 18187887,
+        "sha256": "e0eba6a50597b0f7f39a22ccd7fd1728e14239b0078adce7c8b52c9e211471b1"
+      }
     },
     {
       "id": "robot-2025-assembly",
-      "name": "2025 Robot — CAD Assembly",
+      "name": "2025 Robot \u2014 CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -38,12 +47,22 @@
         "robot-2025"
       ],
       "year": 2025,
-      "bytes": 68400000,
-      "hosted": false
+      "bytes": 68410484,
+      "hosted": true,
+      "packed": {
+        "compression": "gzip",
+        "parts": [
+          "models/packed/2025/2025.glb.gz.part001",
+          "models/packed/2025/2025.glb.gz.part002"
+        ],
+        "bytes": 68410484,
+        "compressedBytes": 27629085,
+        "sha256": "ca84c6b09473a1f2113a9d9cf73a8fa4488eab62c44f97c43f89297d1e9d9f1c"
+      }
     },
     {
       "id": "robot-2024-assembly",
-      "name": "2024 Robot — CAD Assembly",
+      "name": "2024 Robot \u2014 CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -52,12 +71,26 @@
         "robot-2024"
       ],
       "year": 2024,
-      "bytes": 260700000,
-      "hosted": false
+      "bytes": 260711284,
+      "hosted": true,
+      "packed": {
+        "compression": "gzip",
+        "parts": [
+          "models/packed/2024/2024.glb.gz.part001",
+          "models/packed/2024/2024.glb.gz.part002",
+          "models/packed/2024/2024.glb.gz.part003",
+          "models/packed/2024/2024.glb.gz.part004",
+          "models/packed/2024/2024.glb.gz.part005",
+          "models/packed/2024/2024.glb.gz.part006"
+        ],
+        "bytes": 260711284,
+        "compressedBytes": 122978090,
+        "sha256": "e9545ecd78c3f860531a8fc7bc86640fe5a68249e5c8889653c554b993b22653"
+      }
     },
     {
       "id": "robot-2023-assembly",
-      "name": "2023 Robot — CAD Assembly",
+      "name": "2023 Robot \u2014 CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -66,12 +99,27 @@
         "robot-2023"
       ],
       "year": 2023,
-      "bytes": 242500000,
-      "hosted": false
+      "bytes": 242527184,
+      "hosted": true,
+      "packed": {
+        "compression": "gzip",
+        "parts": [
+          "models/packed/2023/2023.glb.gz.part001",
+          "models/packed/2023/2023.glb.gz.part002",
+          "models/packed/2023/2023.glb.gz.part003",
+          "models/packed/2023/2023.glb.gz.part004",
+          "models/packed/2023/2023.glb.gz.part005",
+          "models/packed/2023/2023.glb.gz.part006",
+          "models/packed/2023/2023.glb.gz.part007"
+        ],
+        "bytes": 242527184,
+        "compressedBytes": 130436743,
+        "sha256": "8958f7d65cf2e0b4a6ce99236e9253a5bc83bfcbd66fc51b495e9758961ec7b2"
+      }
     },
     {
       "id": "robot-2022-assembly",
-      "name": "2022 Robot — CAD Assembly",
+      "name": "2022 Robot \u2014 CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -80,12 +128,21 @@
         "robot-2022"
       ],
       "year": 2022,
-      "bytes": 21390000,
-      "hosted": false
+      "bytes": 21367408,
+      "hosted": true,
+      "packed": {
+        "compression": "gzip",
+        "parts": [
+          "models/packed/2022/2022.glb.gz.part001"
+        ],
+        "bytes": 21367408,
+        "compressedBytes": 7753696,
+        "sha256": "494fb6c40ccc422bdde8759d4646072772eda86a3ab117a439305a3f18c48015"
+      }
     },
     {
       "id": "robot-2020-assembly",
-      "name": "2020 Robot — CAD Assembly",
+      "name": "2020 Robot \u2014 CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -94,12 +151,21 @@
         "robot-2020"
       ],
       "year": 2020,
-      "bytes": 51390000,
-      "hosted": false
+      "bytes": 51392464,
+      "hosted": true,
+      "packed": {
+        "compression": "gzip",
+        "parts": [
+          "models/packed/2020/2020.glb.gz.part001"
+        ],
+        "bytes": 51392464,
+        "compressedBytes": 19116701,
+        "sha256": "0f1d3117735604ef9a2b9f2ccbb7484178cdc460cbf05666766d4f824f6e6577"
+      }
     },
     {
       "id": "robot-2019-assembly",
-      "name": "2019 Robot — CAD Assembly",
+      "name": "2019 Robot \u2014 CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -108,8 +174,21 @@
         "robot-2019"
       ],
       "year": 2019,
-      "bytes": 210363000,
-      "hosted": false
+      "bytes": 210398260,
+      "hosted": true,
+      "packed": {
+        "compression": "gzip",
+        "parts": [
+          "models/packed/2019/2019.glb.gz.part001",
+          "models/packed/2019/2019.glb.gz.part002",
+          "models/packed/2019/2019.glb.gz.part003",
+          "models/packed/2019/2019.glb.gz.part004",
+          "models/packed/2019/2019.glb.gz.part005"
+        ],
+        "bytes": 210398260,
+        "compressedBytes": 86455120,
+        "sha256": "41add6513fcdfe17590c38336a6a8c944ce5bb0a851c122108979a4ce2ce33fc"
+      }
     }
   ]
 }
