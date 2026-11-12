@@ -605,44 +605,89 @@ function mount(host,year,models,loadPackedModel){
     scene.add(group);
     return group;
   };
+  // REEFSCAPE CORAL: 11.875in x 4.5in foam-core PVC (outside diameter).
+  // The mesh is a visibly hollow pipe, not a solid bar.
   const makeCoral=()=>{
     const group=new THREE.Group();
-    const ivory=new THREE.MeshPhysicalMaterial({color:0xf4f1e7,roughness:.48,metalness:0});
-    const tube=new THREE.Mesh(new THREE.CylinderGeometry(.052,.052,.30,32,1,true),ivory);
-    group.add(tube);
-    const ringMat=new THREE.MeshStandardMaterial({color:0xd9d9d4,roughness:.65});
-    for(const y of [-.15,.15]){
-      const rim=new THREE.Mesh(new THREE.TorusGeometry(.051,.006,8,32),ringMat);
-      rim.rotation.x=Math.PI/2;rim.position.y=y;group.add(rim);
+    const shell=new THREE.MeshStandardMaterial({color:0xf1eee4,roughness:.82,side:THREE.FrontSide});
+    const inside=new THREE.MeshStandardMaterial({color:0xd8d5cd,roughness:.87,side:THREE.BackSide});
+    const edge=new THREE.MeshStandardMaterial({color:0xe0ddd4,roughness:.83});
+    group.add(
+      new THREE.Mesh(new THREE.CylinderGeometry(.05715,.05715,.3016,40,1,true),shell),
+      new THREE.Mesh(new THREE.CylinderGeometry(.0508,.0508,.3016,40,1,true),inside)
+    );
+    for(const y of [-.1508,.1508]){
+      const rim=new THREE.Mesh(new THREE.RingGeometry(.0508,.05715,40),edge);
+      rim.rotation.x=-Math.PI/2*(y<0?-1:1);
+      rim.position.y=y;
+      group.add(rim);
     }
-    group.rotation.z=Math.PI/2;
     scene.add(group);
     return group;
   };
-  const makeTarget=(at,coral)=>{
-    const group=new THREE.Group();
-    if(coral){
-      const post=new THREE.Mesh(new THREE.CylinderGeometry(.046,.065,.7,14),
-        new THREE.MeshPhysicalMaterial({color:0xc6cac9,roughness:.55,metalness:.06,transparent:true,opacity:.83}));
-      post.position.set(0,-.21,0);
-      group.add(post);
-      const branch=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.35,12),
-        new THREE.MeshStandardMaterial({color:0xb5c0bd,metalness:.08,roughness:.6}));
-      branch.rotation.z=-Math.PI/3;
-      branch.position.set(.14,.1,0);
-      group.add(branch);
-    }else{
-      const ring=new THREE.Mesh(new THREE.TorusGeometry(.25,.012,12,64),
-        new THREE.MeshBasicMaterial({color:0xffcb59,transparent:true,opacity:.85}));
-      ring.rotation.y=Math.PI/3;
-      group.add(ring);
-      const core=new THREE.Mesh(new THREE.CircleGeometry(.24,48),
-        new THREE.MeshBasicMaterial({color:0xc83c49,transparent:true,opacity:.07,side:THREE.DoubleSide}));
-      core.rotation.y=Math.PI/3;group.add(core);
+  // The official REBUILT HUB opening is a 1.06 m wide hexagon,
+  // 1.83 m above the carpet. This reduced field prop preserves those sizes.
+  const makeHub=(center)=>{
+    const hub=new THREE.Group();
+    hub.position.set(center.x,0,center.z);
+    const rimMat=new THREE.MeshStandardMaterial({color:0x777e88,metalness:.43,roughness:.52});
+    const postMat=new THREE.MeshStandardMaterial({color:0xb8bec4,metalness:.33,roughness:.65});
+    const radius=1.06/Math.sqrt(3);
+    const rimY=1.83, edgeCount=6;
+    const corners=Array.from({length:edgeCount},(_,i)=>{
+      const angle=(i/edgeCount)*Math.PI*2+Math.PI/6;
+      return new THREE.Vector3(radius*Math.cos(angle),rimY,radius*Math.sin(angle));
+    });
+    const connect=(a,b,r,mat)=>{
+      const vec=b.clone().sub(a);
+      const cylinder=new THREE.Mesh(new THREE.CylinderGeometry(r,r,vec.length(),10),mat);
+      cylinder.position.copy(a).add(b).multiplyScalar(.5);
+      cylinder.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),vec.normalize());
+      hub.add(cylinder);
+    };
+    corners.forEach((v,i)=>{
+      connect(v,corners[(i+1)%edgeCount],.018,rimMat);
+      connect(new THREE.Vector3(v.x,0,v.z),v,.012,postMat);
+    });
+    scene.add(hub);
+    return hub;
+  };
+  // L3 REEF branches: ~1.21 m at the upper tip, tilted 35 degrees.
+  // A two-post face gives the CORAL a real branch to slide over.
+  const makeReefFace=(tip)=>{
+    const face=new THREE.Group();
+    const steel=new THREE.MeshStandardMaterial({color:0x9fa6aa,metalness:.5,roughness:.56});
+    const accent=new THREE.MeshStandardMaterial({color:0x858e98,metalness:.4,roughness:.6});
+    const direction=new THREE.Vector3(0,Math.sin(35*Math.PI/180),-Math.cos(35*Math.PI/180));
+    const tube=(a,b,r,material)=>{
+      const axis=b.clone().sub(a);
+      const mesh=new THREE.Mesh(new THREE.CylinderGeometry(r,r,axis.length(),18),material);
+      mesh.position.copy(a).add(b).multiplyScalar(.5);
+      mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),axis.normalize());
+      face.add(mesh);
+    };
+    const centerZ=tip.z+.30*Math.cos(35*Math.PI/180);
+    const baseY=0;
+    for(const lateral of [-.165,.165]){
+      const x=tip.x+lateral;
+      const stemZ=centerZ;
+      tube(new THREE.Vector3(x,baseY,stemZ),
+        new THREE.Vector3(x,1.55,stemZ),.022,steel);
+      for(const upper of [.81,1.21]){
+        const elbow=new THREE.Vector3(x,upper-.30*direction.y,stemZ);
+        const branchEnd=elbow.clone().addScaledVector(direction,.30);
+        tube(elbow,branchEnd,.018,accent);
+      }
+      // L4 branch: vertical top section (simplified to the near face).
+      tube(new THREE.Vector3(x,1.55,stemZ),
+        new THREE.Vector3(x,1.83,stemZ),.018,steel);
     }
-    group.position.copy(at);
-    scene.add(group);
-    return group;
+    // The active branch is centered on the claw, between the two support posts.
+    const root=new THREE.Vector3(tip.x,tip.y-.30*direction.y,centerZ);
+    tube(root,tip,.019,steel);
+    scene.add(face);
+    return {face,base:root,tip:tip.clone(),direction,
+      seat:root.clone().addScaledVector(direction,.165)};
   };
   // Whole-robot choreography uses the full CAD assembly, not a miniature
   // proxy. A ground-level pivot moves the drivetrain and every mechanism
