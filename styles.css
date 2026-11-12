@@ -717,3 +717,45 @@ article:has(.ricochet-facts) .model-grid{max-width:900px}
 .ricochet-photo figcaption span{color:#756861;font:500 12px/1.45 "Barlow",Arial,sans-serif}
 @media(max-width:800px){.ricochet-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.ricochet-photo-grid{grid-template-columns:1fr}.ricochet-photo img{height:250px}}
+
+/* Final loader: the actual red-outline MP4 is the ONLY animation.
+   The earlier CSS dice/skyline artwork is no longer used in HTML. */
+#siteLoader.site-loader { background:#fff !important; }
+#siteLoader .loader-video-content { width:min(1024px,calc(100vw - 24px)); }
+#siteLoader .loader-video {
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:min(74vh,630px);
+  background:#fff;
+  object-fit:contain;
+  margin:0 auto;
+}
+#siteLoader .loader-video[hidden] { display:none !important; }
+#siteLoader .loader-video-fallback {
+  min-height:clamp(180px,33vw,420px);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+}
+#siteLoader .loader-video-fallback[hidden]{display:none !important}
+#siteLoader .loader-video-fallback span {
+  font:800 clamp(42px,7vw,90px)/1 "Barlow Condensed","Arial Narrow",Impact,sans-serif;
+  letter-spacing:.035em;
+  color:#2e2726;
+}
+#siteLoader .loader-video-fallback b{color:#a32632}
+#siteLoader .loader-video-fallback small {
+  color:#7b6c68;
+  font:700 12px/1 "Barlow",Arial,sans-serif;
+  letter-spacing:.18em;
+}
+#siteLoader .loader-video-content>p{color:#74615d;margin:8px 0 12px}
+#siteLoader .loader-track{background:#ebdfdc}
+#siteLoader .loader-track span{background:#a32632}
+@media(prefers-reduced-motion:reduce) {
+  #siteLoader .loader-video { display:block !important; animation:none; }
+  #siteLoader .loader-video[hidden]{display:none !important}
+}
