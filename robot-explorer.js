@@ -829,43 +829,91 @@ function mount(host,year,models,loadPackedModel){
     };
   };
   const runCoral=()=>{
-    const original=active.group.position.clone();
-    const box=new THREE.Box3().setFromObject(active.group);
-    const start=box.getCenter(new THREE.Vector3()).add(new THREE.Vector3(.08,.02,.04));
-    const end=start.clone().add(new THREE.Vector3(.85,.27,-.72));
+    const motion=stageRobot();
+    const claw=motion.root.getObjectByName("2025Claw <1>");
+    const carriage=motion.root.getObjectByName("2025Carriage <1>");
+    const clawCenter=claw
+      ?new THREE.Box3().setFromObject(claw).getCenter(new THREE.Vector3())
+      :motion.base.clone().add(new THREE.Vector3(0,.8,.48));
+    const lift=motion.articulate(
+      ["2025Carriage <1>","2025Claw <1>"],
+      clawCenter
+    );
+    const liftRest=lift?.position.clone();
+    const gripLocal=lift
+      ?lift.worldToLocal(clawCenter.clone().add(new THREE.Vector3(0,0,.09)))
+      :null;
+
+    const startOffset=new THREE.Vector3(-.74,0,-.76);
+    const startYaw=-.57;
+    const reefYaw=.13;
+    motion.chassis.rotation.y=reefYaw;
+    motion.chassis.updateMatrixWorld(true);
+    lift?.position.copy(liftRest);
+    const finalClawCenter=claw
+      ?new THREE.Box3().setFromObject(claw).getCenter(new THREE.Vector3())
+      :clawCenter.clone();
+    const reefPosition=finalClawCenter.clone().add(new THREE.Vector3(.12,-.035,.55));
+    const reef=makeTarget(reefPosition.clone().add(new THREE.Vector3(.02,-.11,.02)),true);
+
+    motion.chassis.position.copy(motion.base).add(startOffset);
+    motion.chassis.rotation.y=startYaw;
+    if(lift)lift.position.copy(liftRest).add(new THREE.Vector3(0,-.34,0));
     const coral=makeCoral();
-    const target=makeTarget(end.clone().add(new THREE.Vector3(.11,-.06,0)),true);
-    const curve=new THREE.CatmullRomCurve3([
-      start.clone().add(new THREE.Vector3(-.21,-.13,.12)),
-      start,
-      start.clone().lerp(end,.40).add(new THREE.Vector3(0,.36,0)),
-      end.clone().add(new THREE.Vector3(-.13,.19,0)),
-      end
-    ]);
-    const started=performance.now(),duration=5400;
+    const started=performance.now()+180;
+    const duration=8300;
+    let finalPlaced=false;
+    demoTitle.textContent="Reef approach and CORAL placement";
+    demoStep.textContent="Approach the reef";
     action={
       update(now){
-        const t=clamp((now-started)/duration,0,1);
+        const elapsed=Math.max(0,now-started);
+        const t=clamp(elapsed/duration,0,1);
+        const drive=ease(clamp(elapsed/2100,0,1));
+        const ready=ease(clamp((elapsed-2100)/530,0,1));
+        const settle=ease(clamp((elapsed-7480)/780,0,1));
+        motion.chassis.position.copy(motion.base)
+          .addScaledVector(startOffset,1-drive);
+        motion.chassis.rotation.y=startYaw+(reefYaw-startYaw)*drive+
+          (-reefYaw)*settle;
+
+        // Move the actual CAD claw and carriage with a simplified elevator
+        // stage. Exact linkage geometry and motor timing are not inferred.
+        const rise=ease(clamp((elapsed-2700)/1700,0,1));
+        const retract=ease(clamp((elapsed-6800)/1330,0,1));
+        const reach=ease(clamp((elapsed-4300)/750,0,1))*
+          (1-ease(clamp((elapsed-6400)/900,0,1)));
+        if(lift){
+          lift.position.copy(liftRest);
+          lift.position.y-=.34*(1-rise+rise*retract);
+          lift.position.z+=.085*reach;
+          lift.updateWorldMatrix(true,false);
+        }
+        const grip=lift&&gripLocal
+          ?lift.localToWorld(gripLocal.clone())
+          :motion.chassis.position.clone().add(new THREE.Vector3(.24,.72,.65));
+        grip.add(new THREE.Vector3(0,0,.055));
+        const placement=ease(clamp((elapsed-5260)/1030,0,1));
+        if(placement<1){
+          coral.position.lerpVectors(grip,reefPosition,placement);
+          coral.rotation.z=Math.PI/2;
+        }else{
+          finalPlaced=true;
+          coral.position.copy(reefPosition);
+          coral.rotation.z=Math.PI/2;
+        }
+        if(elapsed<2200)demoStep.textContent="Drive toward the reef and turn";
+        else if(elapsed<4200)demoStep.textContent="Raise the carriage and claw";
+        else if(elapsed<6400)demoStep.textContent="Align and place CORAL";
+        else demoStep.textContent="Retract the mechanism";
         demoFill.style.width=(t*100).toFixed(1)+"%";
-        demoStep.textContent=t<.16?"01  /  ACQUIRE CORAL":t<.46?"02  /  LIFT & TRANSPORT":t<.77?"03  /  ALIGN WITH REEF":"04  /  PLACE & RETRACT";
-        const travel=ease(clamp((t-.10)/.72,0,1));
-        coral.visible=true;
-        coral.position.copy(curve.getPoint(travel));
-        coral.rotation.z=Math.PI/2-(Math.PI/4)*travel;
-        // The isolated claw travels with the piece as a storyboard proxy.
-        // This is not a verified joint/actuator motion path.
-        // Carry the isolated claw beside the coral, then return it after
-        // release. This is explicitly a choreographed visualization rather
-        // than an actuator-accurate elevator trajectory.
-        const carrying=t<.73?1:(1-ease(clamp((t-.73)/.25,0,1)));
-        const offset=curve.getPoint(Math.min(travel,.92)).sub(start).multiplyScalar(carrying);
-        active.group.position.copy(original).add(offset);
+        followRobot(motion.chassis.position,.20);
         if(t>=1)stopAction();
       },
       clean(){
-        active?.group.position.copy(original);
-        scene.remove(coral);scene.remove(target);
-        for(const obj of [coral,target])obj.traverse(m=>{m.geometry?.dispose();if(m.material&&Array.isArray(m.material))m.material.forEach(x=>x.dispose());else m.material?.dispose();});
+        motion.restore();
+        removeProp(coral);
+        removeProp(reef);
       }
     };
   };
