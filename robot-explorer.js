@@ -144,6 +144,17 @@
     const notes=make("a","workbench-deep-link","Read the full technical chapter ↗");
     notes.href="#robot-explorer";
     detail.append(detailStep,detailHeading,detailSub,detailText,notes);
+    // Jump to the real chapter heading; the site's article outline assigns
+    // numeric IDs after this workbench mounts, so don't rely on guessed hashes.
+    notes.addEventListener("click",event=>{
+      event.preventDefault();
+      const aliases={shooter:"scoring mechanism", "feeder-queuer":"feeder", turret:"turret"};
+      const key=aliases[current]||current;
+      const article=root.closest("article");
+      const headings=article?[...article.querySelectorAll("h2,h3")].filter(h=>!h.closest(".robot-workbench")):[];
+      const target=headings.find(h=>h.textContent.trim().toLowerCase().startsWith(key));
+      if(target)target.scrollIntoView({behavior:reduce()?"auto":"smooth",block:"start"});
+    });
     const demoButton=make("button","workbench-demo-button","▶ Show illustrative fuel flow");
     demoButton.type="button";
     demoButton.hidden=true;
@@ -223,6 +234,9 @@
       await Promise.race([customElements.whenDefined("model-viewer"),new Promise((_,reject)=>setTimeout(()=>reject(new Error("3D viewer library unavailable.")),12000))]);
     };
     const openFull=async()=>{
+      // Repeated taps during a long full-robot download should not cancel the
+      // in-flight request without creating a replacement.
+      if(fullBusy && current==="full") return;
       const token=++seq;
       current="full";
       setActive("full");
@@ -235,7 +249,17 @@
         overlay.hidden=true;
         return;
       }
-      if(fullBusy)return;
+      if(fullBusy){
+        showBusy("Finishing full-robot CAD download…");
+        const retry=()=>{
+          if(token!==seq)return;
+          if(fullReady){root.classList.remove("show-isolated");root.classList.add("show-full");overlay.hidden=true;clearBusy();}
+          else if(!fullBusy)openFull();
+          else setTimeout(retry,250);
+        };
+        retry();
+        return;
+      }
       fullBusy=true;
       showBusy("Preparing full robot CAD…");
       try {
