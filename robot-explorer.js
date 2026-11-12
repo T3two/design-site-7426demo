@@ -158,7 +158,7 @@ function mount(host,year,models,loadPackedModel){
   const actionMeta=e("span",null,"Motion preview");
   const actionButton=e("button","theater-action-button",def.actionName);
   actionButton.type="button";
-  const actionDisclaimer=e("p",null,"Illustrative motion using the uploaded CAD; angles and timing are not measured.");
+  const actionDisclaimer=e("p",null,"Illustrative motion. Angles and timing are not measured.");
   const aimControls=e("div","theater-aim-controls");
   const aimCaption=e("label","theater-aim-caption","Turret angle");
   const aimValue=e("output","theater-aim-value","0°");
@@ -169,6 +169,7 @@ function mount(host,year,models,loadPackedModel){
   aimControls.append(aimCaption,aimValue,aimInput);
   aimControls.hidden=true;
   actionPanel.append(actionMeta,aimControls,actionButton,actionDisclaimer);
+  actionPanel.hidden=true;
   side.append(sideHeader,nav,detail,actionPanel);
   shell.append(stage,side);
   host.replaceChildren(titleBand,shell);
@@ -208,14 +209,14 @@ function mount(host,year,models,loadPackedModel){
       detailKicker.textContent="SYSTEM / 00";
       detailTitle.textContent="THE ENTIRE ROBOT";
       detailCopy.textContent=def.intro;
-      sceneStep.textContent="01 / FULL ROBOT";
+      sceneStep.textContent="Full robot";
       sceneTitle.textContent=def.name+" / COMPLETE ASSEMBLY";
     }else{
       const p=def.pieces[index];
       detailKicker.textContent="SYSTEM / "+String(index+1).padStart(2,"0");
       detailTitle.textContent=p[1].toUpperCase();
       detailCopy.textContent=p[2];
-      sceneStep.textContent="02 / ISOLATED MECHANISM";
+      sceneStep.textContent="Subsystem";
       sceneTitle.textContent=p[1].toUpperCase();
     }
   };
@@ -328,18 +329,13 @@ function mount(host,year,models,loadPackedModel){
     key.position.set(3,6,7);scene.add(key);
     const fill=new THREE.DirectionalLight(0xf1f5ff,1.2);
     fill.position.set(-4,2,-5);scene.add(fill);
-    const rim=new THREE.PointLight(0xeaaab1,9,9,2);
-    rim.position.set(-2.3,2.7,-1.1);scene.add(rim);
+
     const ground=new THREE.GridHelper(8,24,0xd3c4c5,0xe4e4e7);
     ground.position.y=-.10;
     ground.material.transparent=true;
     ground.material.opacity=.32;
     scene.add(ground);
-    const ringGeometry=new THREE.RingGeometry(.75,.756,128);
-    const ring=new THREE.Mesh(ringGeometry,new THREE.MeshBasicMaterial({color:0xa32632,transparent:true,opacity:.19,side:THREE.DoubleSide,depthWrite:false}));
-    ring.rotation.x=-Math.PI/2;
-    ring.position.y=-.092;
-    scene.add(ring);
+    // Keep the scene focused on real CAD geometry rather than decorative props.
     camera=new THREE.PerspectiveCamera(42,1,.025,150);
     camera.position.set(1.7,1.4,2.3);
     renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
@@ -536,6 +532,7 @@ function mount(host,year,models,loadPackedModel){
   let selected="full";
   const showSelection=key=>{
     aimControls.hidden=year!=="2026"||key!=="shooter";
+    actionPanel.hidden=key!==def.actionSubsystem;
     selectNav(key);
     selected=key;
     showHotspots=false;
@@ -799,7 +796,7 @@ function mount(host,year,models,loadPackedModel){
     demoStep.textContent="00  /  SEQUENCE START";
     demoFill.style.width="0%";
     actionButton.disabled=true;
-    actionButton.textContent="●  PLAYING 3D SEQUENCE";
+    actionButton.textContent="Playing…";
     if(year==="2026")runFuel();else runCoral();
   };
   const clearMeshes=()=>{
