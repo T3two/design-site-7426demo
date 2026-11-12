@@ -691,8 +691,12 @@ function mount(host,year,models,loadPackedModel){
         coral.rotation.z=Math.PI/2-(Math.PI/4)*travel;
         // The isolated claw travels with the piece as a storyboard proxy.
         // This is not a verified joint/actuator motion path.
-        const carrying=t<.73?clamp(travel,0,.93):(.93*(1-ease(clamp((t-.73)/.25,0,1))));
-        active.group.position.copy(original).add(new THREE.Vector3(.32*carrying,.19*carrying,-.20*carrying));
+        // Carry the isolated claw beside the coral, then return it after
+        // release. This is explicitly a choreographed visualization rather
+        // than an actuator-accurate elevator trajectory.
+        const carrying=t<.73?1:(1-ease(clamp((t-.73)/.25,0,1)));
+        const offset=curve.getPoint(Math.min(travel,.92)).sub(start).multiplyScalar(carrying);
+        active.group.position.copy(original).add(offset);
         if(t>=1)stopAction();
       },
       clean(){
