@@ -15,7 +15,7 @@
     },
     {
       "id": "robot-2026-assembly",
-      "name": "2026 Robot \u2014 CAD Assembly",
+      "name": "2026 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -38,7 +38,7 @@
     },
     {
       "id": "robot-2025-assembly",
-      "name": "2025 Robot \u2014 CAD Assembly",
+      "name": "2025 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -62,7 +62,7 @@
     },
     {
       "id": "robot-2024-assembly",
-      "name": "2024 Robot \u2014 CAD Assembly",
+      "name": "2024 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -90,7 +90,7 @@
     },
     {
       "id": "robot-2023-assembly",
-      "name": "2023 Robot \u2014 CAD Assembly",
+      "name": "2023 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -119,7 +119,7 @@
     },
     {
       "id": "robot-2022-assembly",
-      "name": "2022 Robot \u2014 CAD Assembly",
+      "name": "2022 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -142,7 +142,7 @@
     },
     {
       "id": "robot-2020-assembly",
-      "name": "2020 Robot \u2014 CAD Assembly",
+      "name": "2020 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -165,7 +165,7 @@
     },
     {
       "id": "robot-2019-assembly",
-      "name": "2019 Robot \u2014 CAD Assembly",
+      "name": "2019 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
       "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
@@ -189,6 +189,202 @@
         "compressedBytes": 86455120,
         "sha256": "41add6513fcdfe17590c38336a6a8c944ce5bb0a851c122108979a4ce2ce33fc"
       }
+    },
+    {
+      "id": "robot-2025-bumpers",
+      "name": "2025 / Bumpers",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Bumper assembly",
+      "file": "models/subsystems/2025/robot-2025-bumpers.glb",
+      "year": 2025,
+      "bytes": 1412772,
+      "hosted": true,
+      "pages": [
+        "robot-2025"
+      ]
+    },
+    {
+      "id": "robot-2025-carriage",
+      "name": "2025 / Carriage",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Carriage assembly",
+      "file": "models/subsystems/2025/robot-2025-carriage.glb",
+      "year": 2025,
+      "bytes": 16315576,
+      "hosted": true,
+      "pages": [
+        "robot-2025"
+      ]
+    },
+    {
+      "id": "robot-2025-claw",
+      "name": "2025 / Claw",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Claw assembly",
+      "file": "models/subsystems/2025/robot-2025-claw.glb",
+      "year": 2025,
+      "bytes": 19692328,
+      "hosted": true,
+      "pages": [
+        "robot-2025"
+      ]
+    },
+    {
+      "id": "robot-2025-climber",
+      "name": "2025 / Climber",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Climbing subsystem",
+      "file": "models/subsystems/2025/robot-2025-climber.glb",
+      "year": 2025,
+      "bytes": 25142536,
+      "hosted": true,
+      "pages": [
+        "robot-2025"
+      ]
+    },
+    {
+      "id": "robot-2025-drivetrain",
+      "name": "2025 / Drivetrain",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Drive chassis subsystem",
+      "file": "models/subsystems/2025/robot-2025-drivetrain.glb",
+      "year": 2025,
+      "bytes": 49644672,
+      "hosted": true,
+      "pages": [
+        "robot-2025"
+      ]
+    },
+    {
+      "id": "robot-2025-elevator",
+      "name": "2025 / Elevator",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Elevator subsystem",
+      "file": "models/subsystems/2025/robot-2025-elevator.glb",
+      "year": 2025,
+      "bytes": 36784600,
+      "hosted": true,
+      "pages": [
+        "robot-2025"
+      ]
+    },
+    {
+      "id": "robot-2026-bumpers",
+      "name": "2026 / Bumpers",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Bumper assembly",
+      "file": "models/subsystems/2026/robot-2026-bumpers.glb",
+      "year": 2026,
+      "bytes": 2363392,
+      "hosted": true,
+      "pages": [
+        "robot-2026"
+      ]
+    },
+    {
+      "id": "robot-2026-climber",
+      "name": "2026 / Climber",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Climbing subsystem",
+      "file": "models/subsystems/2026/robot-2026-climber.glb",
+      "year": 2026,
+      "bytes": 17595600,
+      "hosted": true,
+      "pages": [
+        "robot-2026"
+      ]
+    },
+    {
+      "id": "robot-2026-drivetrain",
+      "name": "2026 / Drivetrain",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Swerve drivetrain subsystem",
+      "file": "models/subsystems/2026/robot-2026-drivetrain.glb",
+      "year": 2026,
+      "bytes": 27110352,
+      "hosted": true,
+      "pages": [
+        "robot-2026"
+      ]
+    },
+    {
+      "id": "robot-2026-feeder-queuer",
+      "name": "2026 / Feeder / Queuer",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Fuel feeding and queuing subsystem",
+      "file": "models/subsystems/2026/robot-2026-feeder-queuer.glb",
+      "year": 2026,
+      "bytes": 17527036,
+      "hosted": true,
+      "pages": [
+        "robot-2026"
+      ]
+    },
+    {
+      "id": "robot-2026-hopper",
+      "name": "2026 / Hopper",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Extendable fuel storage subsystem",
+      "file": "models/subsystems/2026/robot-2026-hopper.glb",
+      "year": 2026,
+      "bytes": 2119508,
+      "hosted": true,
+      "pages": [
+        "robot-2026"
+      ]
+    },
+    {
+      "id": "robot-2026-intake",
+      "name": "2026 / Intake",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Over-bumper intake subsystem",
+      "file": "models/subsystems/2026/robot-2026-intake.glb",
+      "year": 2026,
+      "bytes": 8690908,
+      "hosted": true,
+      "pages": [
+        "robot-2026"
+      ]
+    },
+    {
+      "id": "robot-2026-shooter",
+      "name": "2026 / Shooter",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Scoring shooter subsystem",
+      "file": "models/subsystems/2026/robot-2026-shooter.glb",
+      "year": 2026,
+      "bytes": 6619192,
+      "hosted": true,
+      "pages": [
+        "robot-2026"
+      ]
+    },
+    {
+      "id": "robot-2026-turret",
+      "name": "2026 / Turret",
+      "type": "assembly",
+      "category": "Robot Subsystems",
+      "description": "Rotating turret subsystem",
+      "file": "models/subsystems/2026/robot-2026-turret.glb",
+      "year": 2026,
+      "bytes": 6595628,
+      "hosted": true,
+      "pages": [
+        "robot-2026"
+      ]
     }
   ]
 }
