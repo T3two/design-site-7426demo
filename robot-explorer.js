@@ -623,11 +623,11 @@ function mount(host,year,models,loadPackedModel){
     const group=new THREE.Group();
     if(coral){
       const post=new THREE.Mesh(new THREE.CylinderGeometry(.046,.065,.7,14),
-        new THREE.MeshPhysicalMaterial({color:0x60e1de,roughness:.32,metalness:.13,transparent:true,opacity:.7}));
+        new THREE.MeshPhysicalMaterial({color:0xc6cac9,roughness:.55,metalness:.06,transparent:true,opacity:.83}));
       post.position.set(0,-.21,0);
       group.add(post);
       const branch=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.35,12),
-        new THREE.MeshStandardMaterial({color:0x68f1ed,metalness:.45,roughness:.3}));
+        new THREE.MeshStandardMaterial({color:0xb5c0bd,metalness:.08,roughness:.6}));
       branch.rotation.z=-Math.PI/3;
       branch.position.set(.14,.1,0);
       group.add(branch);
@@ -651,7 +651,7 @@ function mount(host,year,models,loadPackedModel){
     const shooter=active.group;
     const flywheels=[];
     shooter.traverse(node=>{
-      if(node.isMesh&&node.name.trim()==="Brass Wheels")
+      if(node.isMesh&&/brass[\s_-]*wheels/i.test(node.name))
         flywheels.push({mesh:node,initial:node.rotation.clone()});
     });
 
@@ -661,7 +661,7 @@ function mount(host,year,models,loadPackedModel){
     const initialYaw=rig.rotation.y;
     const aimAngle=turretUserAdjusted
       ? clamp(Number(aimInput.value)*Math.PI/180,-1.13,1.13)
-      : .79;
+      : .95;
     const overshoot=clamp(aimAngle+Math.sign(aimAngle||1)*.13,-1.13,1.13);
     const centerAtCurrentYaw=new THREE.Box3().setFromObject(shooter).getCenter(new THREE.Vector3());
     const centerAtZero=centerAtCurrentYaw.clone().sub(pivot)
