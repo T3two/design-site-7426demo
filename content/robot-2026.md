@@ -37,6 +37,10 @@ The drivetrain uses SDS MK5N swerve modules with R3 drive reduction, four-inch h
 
 We also designed custom bumper brackets for quicker swaps. Aluminum tube rails form the perimeter and inner structure, while the internal rails leave openings for wire routing and an aluminum belly pan supports the layout. That packaging helps other systems sit within a predictable frame.
 
+**Explore this subsystem in 3D**
+
+{{model:robot-2026-drivetrain}}
+
 ## Intake / built to work with the hopper
 
 Our over-bumper intake brings fuel into the robot using a polycarbonate roller on a pivoting assembly. The design pairs a Kraken X60 roller motor with two pivot motors and aluminum support plates.
@@ -45,15 +49,27 @@ The intake wasn't finalized in one pass. Across prototypes, the team changed the
 
 The important lesson was that an intake doesn't operate independently. Small changes in roller position, compression, and pivot geometry affected how well it handed fuel off to the hopper.
 
+**Explore this subsystem in 3D**
+
+{{model:robot-2026-intake}}
+
 ## Hopper / making room when it matters
 
 The hopper acts as an adjustable storage space between the intake and feeder. Its extending design allows the robot to carry fuel while also retracting to travel beneath the field's trench.
 
 The mechanism uses cabinet-style drawer slides and added bearings to reduce friction during movement. We paid particular attention to clearance between the hopper and intake, since both systems needed to move without interfering with one another.
 
+**Explore this subsystem in 3D**
+
+{{model:robot-2026-hopper}}
+
 ## Feeder / keeping fuel moving
 
 The feeder takes fuel from the robot's storage area and directs it into the scoring mechanism. Its layout uses multiple guide belts and a compact internal transfer path, with angled panels to help collect fuel. The feeder was designed with the overall robot package in mind, rather than as a separate oversized assembly.
+
+**Explore this subsystem in 3D**
+
+{{model:robot-2026-feeder-queuer}}
 
 ## Turret and vision / more flexibility
 
@@ -61,17 +77,35 @@ A rotating turret allows the scoring assembly to aim independently of the robot'
 
 This arrangement was part of the goal to give the drivers more flexibility during matches while still preserving a compact robot layout.
 
+**Explore this subsystem in 3D**
+
+{{model:robot-2026-turret}}
+
 ## Scoring mechanism / consistent performance
 
 RICOCHET's scoring assembly uses a fixed-geometry hood and a high-inertia flywheel. The team wanted predictable performance during movement and sought to reduce speed variation between scoring cycles.
 
 The design changed significantly during the season. Early versions were reworked to improve packaging and consistency, and the post-Arizona revision addressed fuel feeding behavior that had shown up in competition. These iterations show why testing a complete mechanism matters as much as testing individual components.
 
+**Explore this subsystem in 3D**
+
+{{model:robot-2026-shooter}}
+
 ## Climber / focused on the endgame
 
 The climber extends upward to engage the endgame structure. The final design emphasizes a simpler arrangement than earlier concepts, with a compact footprint and a focus on reliability.
 
 The team explored several concepts in CAD before settling on the version that fit the available space and matched the endgame strategy.
+
+**Explore this subsystem in 3D**
+
+{{model:robot-2026-climber}}
+
+## Bumpers / protection and serviceability
+
+Our bumpers are separate from the main chassis in the CAD archive, so the assembly can be examined without the rest of the robot in the way.
+
+{{model:robot-2026-bumpers}}
 
 ## Robot positions
 
