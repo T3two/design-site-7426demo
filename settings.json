@@ -2,7 +2,7 @@
   "siteName": "PAIR OF DICE DESIGN",
   "teamLabel": "FRC TEAM 7426",
   "tagline": "Engineering resources from Pair of Dice Robotics",
-  "footerText": "PAIR OF DICE ROBOTICS \u00b7 TEAM 7426",
+  "footerText": "PAIR OF DICE ROBOTICS · TEAM 7426",
   "theme": {
     "accent": "#a32632",
     "accentDark": "#7f1d27",
@@ -19,9 +19,9 @@
   "loading": {
     "enabled": true,
     "logo": "",
-    "text": "Loading Pair of Dice Design",
-    "background": "#ffffff",
+    "text": "Opening the design notebook…",
+    "background": "#f4f0ec",
     "accent": "#a32632",
-    "minimumDisplayMs": 250
+    "minimumDisplayMs": 950
   }
 }
