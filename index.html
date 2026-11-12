@@ -335,7 +335,7 @@
     const reducedMotion = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : {matches:false};
     // Smaller models are automatically prefetched once in view; avoid automatic
     // loading of 50–250 MiB full assemblies or overwhelming mobile devices.
-    const limit = media.matches ? 12 * 1024 * 1024 : 32 * 1024 * 1024;
+    const limit = 32 * 1024 * 1024;
     const automatic = model.hosted !== false && model.bytes > 0 && model.bytes <= limit && !model.packed;
     if (automatic && !reducedMotion.matches) {
       viewer.setAttribute("auto-rotate", "");
@@ -408,9 +408,7 @@
             temporaryModelUrl = await loadPackedModel(model, busy.lastChild);
             viewer.src = temporaryModelUrl;
           } else {
-            const response = await fetch(model.file, {cache:"force-cache"});
-            if (!response.ok) throw new Error("Model file not found (HTTP " + response.status + ")");
-            // The browser's own fetch/model cache handles the final GLB download.
+            // Let model-viewer fetch once; avoid downloading each GLB twice.
             viewer.src = model.file;
           }
         });
@@ -437,6 +435,14 @@
       setError("This CAD file could not be rendered. Try a different browser.");
     });
     loadButton.addEventListener("click", startLoad);
+    // Large assemblies still wait for user intent, but clicking anywhere on
+    // the preview starts them — no tiny target required.
+    viewerWrap.addEventListener("click", event => {
+      if (started || automatic || model.hosted === false) return;
+      if (event.target.closest("button, a")) return;
+      startLoad();
+    });
+
 
     if (model.hosted === false) {
       loadButton.disabled = true;
