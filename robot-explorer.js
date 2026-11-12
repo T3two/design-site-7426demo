@@ -50,8 +50,11 @@ function getEngine(){
     enginePromise=Promise.all([
       import("three"),
       import("three/addons/loaders/GLTFLoader.js"),
-      import("three/addons/controls/OrbitControls.js")
-    ]).then(([THREE,loader,orbit])=>({THREE,GLTFLoader:loader.GLTFLoader,OrbitControls:orbit.OrbitControls}))
+      import("three/addons/controls/OrbitControls.js"),
+      import("three/addons/environments/RoomEnvironment.js")
+    ]).then(([THREE,loader,orbit,room])=>({
+      THREE,GLTFLoader:loader.GLTFLoader,OrbitControls:orbit.OrbitControls,RoomEnvironment:room.RoomEnvironment
+    }))
       .catch(err=>{enginePromise=null;throw err;});
   }
   return enginePromise;
@@ -165,7 +168,7 @@ function mount(host,year,models,loadPackedModel){
     "Actual robot CAD is shown. Camera choreography, game-piece paths, and stage props are visual demonstrations, not measured robot kinematics or real match footage.");
   host.append(footnote);
 
-  let mod=null,THREE=null,renderer=null,scene=null,camera=null,orbit=null,gltfLoader=null;
+  let mod=null,THREE=null,renderer=null,scene=null,camera=null,orbit=null,gltfLoader=null,studioEnv=null;
   let full=null,fullLoad=null,fullBounds=null,active=null;
   const subsystemCache=new Map(), subsystemLoading=new Map();
   let fullUrl=null,seq=0,visibility=true, destroyed=false,clock=0;
@@ -304,7 +307,7 @@ function mount(host,year,models,loadPackedModel){
     if(scene)return;
     mod=await getEngine();
     THREE=mod.THREE;
-    const {GLTFLoader,OrbitControls}=mod;
+    const {GLTFLoader,OrbitControls,RoomEnvironment}=mod;
     scene=new THREE.Scene();
     const ambient=new THREE.HemisphereLight(0xc5d9ff,0x382e32,2.25);
     scene.add(ambient);
@@ -332,6 +335,16 @@ function mount(host,year,models,loadPackedModel){
     renderer.toneMapping=THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure=1.25;
     renderer.setClearColor(0x000000,0);
+    // PMREM studio environment gives metal and painted CAD surfaces real
+    // image-based reflections instead of flat, unlit imported materials.
+    try{
+      const pmrem=new THREE.PMREMGenerator(renderer);
+      const room=new RoomEnvironment();
+      studioEnv=pmrem.fromScene(room,.03).texture;
+      scene.environment=studioEnv;
+      room.dispose();
+      pmrem.dispose();
+    }catch(err){console.warn("Studio reflections unavailable",err);}
     canvasHome.append(renderer.domElement);
     orbit=new OrbitControls(camera,renderer.domElement);
     orbit.enableDamping=true;orbit.dampingFactor=.075;
@@ -728,6 +741,7 @@ function mount(host,year,models,loadPackedModel){
     if(fullUrl)URL.revokeObjectURL(fullUrl);
     orbit?.dispose();
     clearMeshes();
+    studioEnv?.dispose();
     renderer?.dispose();
   };
 
