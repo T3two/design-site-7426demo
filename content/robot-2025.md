@@ -4,7 +4,11 @@
 
 > Verified: the uploaded archive includes a CAD model for this year. The model's engineering specifications have not been verified from a season binder.
 
-{{model:robot-2025-assembly}}
+## Explore REEFSCAPE / interactive workbench
+
+The entire 2025 CAD assembly is the starting point. Choose a subsystem to isolate its geometry and inspect it beside its explanation. The written sections below are still being expanded from verified team notes.
+
+{{explorer:2025}}
 
 ## Overview
 
@@ -18,7 +22,7 @@
 
 The drivetrain is available as its own CAD assembly. Detailed specifications and design decisions can be added once the team's 2025 engineering notes are available.
 
-{{model:robot-2025-drivetrain}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="drivetrain">↑ Isolate drivetrain in the interactive workbench</a>
 
 ## Intake
 
@@ -30,21 +34,21 @@ These independently viewable assemblies show how the elevator, carriage, and cla
 
 ### Elevator
 
-{{model:robot-2025-elevator}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="elevator">↑ Isolate elevator in the interactive workbench</a>
 
 ### Carriage
 
-{{model:robot-2025-carriage}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="carriage">↑ Isolate carriage in the interactive workbench</a>
 
 ### Claw
 
-{{model:robot-2025-claw}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="claw">↑ Isolate claw in the interactive workbench</a>
 
 ## Climber
 
 The climbing assembly has been separated from the full robot for closer inspection.
 
-{{model:robot-2025-climber}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="climber">↑ Isolate climber in the interactive workbench</a>
 
 ## Electrical system
 
@@ -62,7 +66,7 @@ The climbing assembly has been separated from the full robot for closer inspecti
 
 The bumper assembly can be inspected separately from the drivetrain and superstructure.
 
-{{model:robot-2025-bumpers}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="bumpers">↑ Isolate bumpers in the interactive workbench</a>
 
 ## Photos and diagrams
 
