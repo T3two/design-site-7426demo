@@ -20,8 +20,8 @@
     "enabled": true,
     "logo": "",
     "text": "Opening the design notebook…",
-    "background": "#f4f0ec",
+    "background": "#ffffff",
     "accent": "#a32632",
-    "minimumDisplayMs": 2600
+    "minimumDisplayMs": 3900
   }
 }
