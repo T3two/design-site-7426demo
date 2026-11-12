@@ -662,6 +662,7 @@ function mount(host,year,models,loadPackedModel){
     const aimAngle=turretUserAdjusted
       ? clamp(Number(aimInput.value)*Math.PI/180,-1.13,1.13)
       : .95;
+    const searchAngle=clamp(aimAngle+(aimAngle>=0?-1.35:1.35),-1.13,1.13);
     const overshoot=clamp(aimAngle+Math.sign(aimAngle||1)*.13,-1.13,1.13);
     const centerAtCurrentYaw=new THREE.Box3().setFromObject(shooter).getCenter(new THREE.Vector3());
     const centerAtZero=centerAtCurrentYaw.clone().sub(pivot)
@@ -692,10 +693,12 @@ function mount(host,year,models,loadPackedModel){
 
         // A deliberate left/right aiming motion around the CAD turret axis.
         let yaw;
-        if(elapsed<1050)
-          yaw=initialYaw+(overshoot-initialYaw)*ease(clamp(elapsed/1050,0,1));
-        else if(elapsed<1580)
-          yaw=overshoot+(aimAngle-overshoot)*ease(clamp((elapsed-1050)/530,0,1));
+        if(elapsed<600)
+          yaw=initialYaw+(searchAngle-initialYaw)*ease(clamp(elapsed/600,0,1));
+        else if(elapsed<1370)
+          yaw=searchAngle+(overshoot-searchAngle)*ease(clamp((elapsed-600)/770,0,1));
+        else if(elapsed<1700)
+          yaw=overshoot+(aimAngle-overshoot)*ease(clamp((elapsed-1370)/330,0,1));
         else yaw=aimAngle;
         rig.rotation.y=yaw;
         turretGoal=yaw;
@@ -713,7 +716,7 @@ function mount(host,year,models,loadPackedModel){
         });
 
         demoFill.style.width=(t*100).toFixed(1)+"%";
-        demoStep.textContent=elapsed<1050?"Aim":elapsed<1650?"Settle":elapsed<4400?"Launch":"Complete";
+        demoStep.textContent=elapsed<1370?"Turret aiming":elapsed<1730?"Aligned":elapsed<4400?"Scoring FUEL":"Complete";
         balls.forEach((ball,i)=>{
           const progress=(elapsed-1730-i*710)/1240;
           ball.visible=progress>=0&&progress<=1;
