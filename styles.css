@@ -992,3 +992,229 @@ article:has(.ricochet-facts) .model-grid{max-width:900px}
 @media(prefers-reduced-motion:reduce){
   .model-card-modern .viewer-tour-progress span{transition:none;}
 }
+
+
+/* Interactive Robot Binder / Full assembly > isolated subsystem > design notes */
+.robot-workbench{
+  width:100%;
+  max-width:1200px;
+  scroll-margin-top:92px;
+  margin:26px 0 58px;
+  padding:0;
+  border-top:4px solid #a32632;
+  border-bottom:1px solid #e8dfda;
+  color:#302927;
+}
+.robot-workbench .workbench-header{
+  display:flex;align-items:end;justify-content:space-between;gap:24px;
+  padding:25px 2px 21px;
+}
+.robot-workbench .workbench-kicker{
+  display:block;
+  font:800 10px/1.3 "Barlow",sans-serif;
+  letter-spacing:.17em;color:#a32632;margin-bottom:12px;
+}
+.robot-workbench .workbench-heading h2{
+  font:800 clamp(28px,4vw,49px)/.96 "Barlow Condensed",Impact,sans-serif;
+  text-transform:uppercase;margin:0 0 10px;padding:0;border:0;letter-spacing:.012em;
+}
+.robot-workbench .workbench-heading p{max-width:720px;margin:0;color:#6a5b56;font-size:14px;line-height:1.55}
+.robot-workbench .workbench-legend{
+  flex:0 0 auto;font:750 10px/1.55 "Barlow",sans-serif;letter-spacing:.1em;
+  color:#92817b;text-align:right;white-space:nowrap;
+}
+.robot-workbench .workbench-shell{
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,300px);
+  min-height:570px;
+  border:1px solid #e4d9d3;background:#fff;
+  box-shadow:0 15px 48px rgba(46,32,30,.06);
+}
+.robot-workbench .workbench-stage{
+  position:relative;min-width:0;
+  background:radial-gradient(ellipse at 54% 44%,#fff 7%,#f3efeb 60%,#e9e2dd 100%);
+  border-right:1px solid #e4d9d3;
+  display:flex;flex-direction:column;
+}
+.robot-workbench .workbench-scene{
+  position:relative;flex:1;min-height:480px;overflow:hidden;
+}
+.robot-workbench .workbench-hero,
+.robot-workbench .robot-workbench-model{
+  position:absolute;inset:0;width:100%;height:100%;
+  transition:opacity .6s ease,transform .8s cubic-bezier(.2,.65,.2,1);
+}
+.robot-workbench .workbench-hero{
+  display:grid;place-items:center;
+  background:radial-gradient(ellipse at 55% 44%,#fff,#e9e2dd);
+  overflow:hidden;
+}
+.robot-workbench .workbench-hero img{width:94%;height:94%;object-fit:contain;margin:0;padding:12px;border:0}
+.robot-workbench .workbench-hero-type{
+  font:800 clamp(42px,8vw,110px)/1 "Barlow Condensed",Impact,sans-serif;
+  letter-spacing:-.035em;color:#b3a5a1;transform:rotate(-9deg);
+}
+.robot-workbench .robot-workbench-model{
+  display:block;opacity:0;pointer-events:none;
+  --poster-color:transparent;background:transparent;
+}
+.robot-workbench.show-full .full-view{opacity:1;pointer-events:auto}
+.robot-workbench.show-isolated .isolated-view{opacity:1;pointer-events:auto}
+.robot-workbench.show-full .workbench-hero,
+.robot-workbench.show-isolated .workbench-hero{
+  opacity:0;transform:scale(1.07);pointer-events:none
+}
+.robot-workbench.show-isolated .full-view{opacity:0;pointer-events:none;transform:scale(1.07)}
+.robot-workbench.show-full .isolated-view{opacity:0;pointer-events:none;transform:scale(.95)}
+.robot-workbench .workbench-stage-cover{
+  position:absolute;inset:0;z-index:3;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-end;
+  text-align:center;padding:26px 18px 47px;
+  background:linear-gradient(to bottom,transparent 12%,rgba(249,246,243,.09) 43%,rgba(250,247,245,.92) 100%);
+}
+.robot-workbench .workbench-stage-cover[hidden]{display:none}
+.robot-workbench .workbench-cover-kicker{
+  font:800 10px/1.5 "Barlow",sans-serif;letter-spacing:.19em;color:#a32632;margin-bottom:5px
+}
+.robot-workbench .workbench-stage-cover strong{
+  font:800 35px/1 "Barlow Condensed",Impact,sans-serif;color:#312824;
+}
+.robot-workbench .workbench-stage-cover p{font:500 12px/1.5 "Barlow",sans-serif;max-width:350px;color:#74645e;margin:10px 0 18px;}
+.robot-workbench .workbench-primary{
+  background:#a32632;border:1px solid #a32632;color:#fff;border-radius:4px;
+  padding:13px 19px;cursor:pointer;
+  font:750 12px/1 "Barlow",sans-serif;letter-spacing:.035em;
+  box-shadow:0 9px 26px rgba(139,28,39,.19);
+}
+.robot-workbench .workbench-primary:hover{background:#7f1d27}
+.robot-workbench .workbench-loading{
+  position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:16px;
+  background:rgba(250,247,244,.83);backdrop-filter:blur(7px);
+  color:#6a5552;font:700 13px/1.4 "Barlow",sans-serif;
+}
+.robot-workbench .workbench-loading[hidden]{display:none}
+.robot-workbench .workbench-spin{
+  width:36px;height:36px;border:3px solid #e2d4d0;border-top-color:#a32632;
+  border-radius:50%;animation:spin .8s linear infinite;
+}
+.robot-workbench .workbench-status{
+  min-height:24px;position:absolute;z-index:2;top:17px;left:17px;right:17px;
+  pointer-events:none;color:#735d56;font:700 11px/1.3 "Barlow",sans-serif;
+  text-shadow:0 1px #fff;
+}
+.robot-workbench .workbench-stage-tools{
+  display:flex;align-items:center;gap:7px;flex-wrap:wrap;
+  min-height:54px;padding:9px 14px;
+  border-top:1px solid #e4d9d3;background:rgba(255,255,255,.86);
+}
+.robot-workbench .workbench-stage-tools button,
+.robot-workbench .workbench-demo-button{
+  font:700 11px/1.3 "Barlow",sans-serif;padding:8px 11px;
+  border:1px solid #decfca;border-radius:4px;
+  color:#574944;background:#fff;cursor:pointer;
+}
+.robot-workbench .workbench-stage-tools button:hover,
+.robot-workbench .workbench-demo-button:hover{border-color:#a32632;color:#a32632}
+.robot-workbench .workbench-stage-tools button:disabled{opacity:.45;cursor:default}
+.robot-workbench .workbench-sidebar{background:#fbf9f7;min-width:0;display:flex;flex-direction:column;}
+.robot-workbench .workbench-nav-title{display:flex;flex-direction:column;gap:4px;padding:19px 19px 12px;}
+.robot-workbench .workbench-nav-title strong{
+  font:800 24px/1 "Barlow Condensed",Impact,sans-serif;text-transform:uppercase;
+}
+.robot-workbench .workbench-nav-title span{font:600 11px/1.4 "Barlow",sans-serif;color:#8d7e78;}
+.robot-workbench .workbench-nav{display:grid;gap:0;max-height:335px;overflow:auto;border-top:1px solid #e7ddd7;border-bottom:1px solid #e7ddd7;}
+.robot-workbench .workbench-system{
+  display:block;text-align:left;width:100%;
+  border:0;border-bottom:1px solid #ece4df;border-left:3px solid transparent;
+  background:transparent;color:#655752;
+  padding:11px 17px;font:700 12px/1.4 "Barlow",sans-serif;
+  cursor:pointer;transition:background .15s ease,color .15s ease;
+}
+.robot-workbench .workbench-system:last-child{border-bottom:0}
+.robot-workbench .workbench-system:hover{background:#f5e9e7;color:#9c2933}
+.robot-workbench .workbench-system.is-current{
+  color:#9b2530;border-left-color:#a32632;background:#f6e9e9;
+}
+.robot-workbench .workbench-detail{padding:23px 19px 18px;flex:1;}
+.robot-workbench .workbench-detail-step{
+  font:800 10px/1.3 "Barlow",sans-serif;letter-spacing:.14em;color:#a32632;
+}
+.robot-workbench .workbench-detail h3{
+  font:800 35px/1 "Barlow Condensed",Impact,sans-serif;
+  margin:10px 0 8px;text-transform:uppercase;color:#322825;
+}
+.robot-workbench .workbench-detail-sub{
+  color:#a32632;font:800 10px/1.3 "Barlow",sans-serif;letter-spacing:.1em;
+}
+.robot-workbench .workbench-detail p{
+  font:500 13px/1.55 "Barlow",sans-serif;color:#695b56;margin:13px 0 18px;
+}
+.robot-workbench .workbench-deep-link{
+  color:#902530;font:700 12px/1.4 "Barlow",sans-serif;
+  display:inline-block;margin:0 0 12px;
+}
+.robot-workbench .workbench-demo-button{display:block;background:#fff5f4;color:#93232f;}
+.robot-workbench .workbench-demo-button[hidden]{display:none}
+.robot-workbench .workbench-flow{
+  position:absolute;left:15%;right:15%;top:30%;height:45%;z-index:2;pointer-events:none;
+}
+.robot-workbench .workbench-flow[hidden]{display:none}
+.robot-workbench .workbench-flow-path{
+  position:absolute;left:8%;width:74%;bottom:24%;height:45%;
+  border:2px dashed rgba(163,38,50,.55);
+  border-bottom:0;border-left:0;border-radius:60% 80% 0 0;transform:rotate(-8deg);
+}
+.robot-workbench .workbench-flow-dot{
+  position:absolute;left:7%;bottom:25%;width:20px;height:20px;border-radius:50%;
+  background:radial-gradient(circle at 35% 28%,#fff 0%,#fdf3cb 26%,#d6a932 74%);
+  border:2px solid #ac842b;box-shadow:0 0 0 6px rgba(163,38,50,.09);
+  opacity:0;
+}
+.robot-workbench .workbench-flow.is-running .workbench-flow-dot{
+  animation:workbench-fuel-flight 2.1s ease-in-out 3 forwards;
+}
+@keyframes workbench-fuel-flight{
+  0%{opacity:0;transform:translate(0,0) scale(.75)}
+  10%{opacity:1}
+  46%{opacity:1;transform:translate(155%,-340%) scale(1)}
+  100%{opacity:0;transform:translate(1350%,-550%) scale(.7)}
+}
+.robot-workbench .workbench-flow small{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:6px 9px;text-align:center;background:rgba(255,251,249,.94);
+  font:700 10px/1.3 "Barlow",sans-serif;color:#8e2932;letter-spacing:.015em;
+}
+.robot-workbench .workbench-disclaimer{
+  font:500 11px/1.5 "Barlow",sans-serif;color:#8a7c76;margin:12px 2px 0;
+}
+article .workbench-jump{
+  display:inline-flex;align-items:center;margin:7px 0 24px;
+  border:1px solid #dfc8c7;background:#fbf1f1;padding:9px 13px;border-radius:4px;
+  font:750 12px/1.3 "Barlow",sans-serif;color:#9d2732;text-decoration:none;
+}
+article .workbench-jump:hover{background:#f2dddf;text-decoration:none}
+.robot-workbench button:focus-visible,
+.robot-workbench a:focus-visible{outline:3px solid #a32632;outline-offset:2px}
+@media(max-width:1020px){
+  .robot-workbench .workbench-shell{grid-template-columns:minmax(0,1fr) 240px;}
+  .robot-workbench .workbench-legend{display:none}
+}
+@media(max-width:760px){
+  .robot-workbench .workbench-shell{display:flex;flex-direction:column;}
+  .robot-workbench .workbench-stage{border-right:0;border-bottom:1px solid #e4d9d3;}
+  .robot-workbench .workbench-scene{height:390px;min-height:390px;flex:auto}
+  .robot-workbench .workbench-nav{display:flex;overflow-x:auto;max-height:none;white-space:nowrap;}
+  .robot-workbench .workbench-system{flex:0 0 auto;width:auto;padding:12px 14px;border-bottom:0;border-right:1px solid #eee4df;border-left:0;border-top:3px solid transparent;}
+  .robot-workbench .workbench-system.is-current{border-top-color:#a32632;border-left-color:transparent;}
+  .robot-workbench .workbench-detail{padding:18px;}
+  .robot-workbench .workbench-detail h3{font-size:30px}
+  .robot-workbench .workbench-stage-cover{padding:24px 14px 36px}
+  .robot-workbench .workbench-stage-cover strong{font-size:29px}
+  .robot-workbench .workbench-nav-title{padding:14px 16px;}
+}
+@media(prefers-reduced-motion:reduce){
+  .robot-workbench .workbench-hero,.robot-workbench .robot-workbench-model,
+  .robot-workbench .workbench-system{transition:none}
+  .robot-workbench .workbench-spin{animation:none}
+  .robot-workbench .workbench-flow.is-running .workbench-flow-dot{animation:none;opacity:1}
+}
