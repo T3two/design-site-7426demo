@@ -815,7 +815,7 @@ function mount(host,year,models,loadPackedModel){
         else demoStep.textContent="Return to neutral";
         demoFill.style.width=(t*100).toFixed(1)+"%";
         followRobot(motion.chassis.position,-.22);
-        if(t>=1)stopAction();
+        if(t>=1)completeAction();
       },
       clean(){
         flywheels.forEach(({node,rotation})=>node.rotation.copy(rotation));
@@ -908,7 +908,7 @@ function mount(host,year,models,loadPackedModel){
         else demoStep.textContent="Retract the mechanism";
         demoFill.style.width=(t*100).toFixed(1)+"%";
         followRobot(motion.chassis.position,.20);
-        if(t>=1)stopAction();
+        if(t>=1)completeAction();
       },
       clean(){
         motion.restore();
@@ -917,23 +917,65 @@ function mount(host,year,models,loadPackedModel){
       }
     };
   };
-  const playAction=async()=>{
-    if(!scene){
-      try{await loadFull();}catch{return;}
-    }
-    if(selected!==def.actionSubsystem)await choose(def.actionSubsystem);
-    if(!active||selected!==def.actionSubsystem)return;
+  let preparingDemo=false;
+  const completeAction=()=>{
+    if(!action)return;
     stopAction();
-    const b=new THREE.Box3().setFromObject(active.group);
-    const center=b.getCenter(new THREE.Vector3());
-    const direction=new THREE.Vector3(1.45,.90,1.75).normalize();
-    await cameraTo(center.clone().add(direction.multiplyScalar(year==="2026"?2.85:2.75)),center.clone().add(new THREE.Vector3(.25,.1,-.25)),650);
-    demoHud.hidden=false;
-    demoStep.textContent="00  /  SEQUENCE START";
-    demoFill.style.width="0%";
-    actionButton.disabled=true;
-    actionButton.textContent="Playing…";
-    if(year==="2026")runFuel();else runCoral();
+    if(destroyed||!active||selected!==def.actionSubsystem)return;
+    // Return the camera to mechanism inspection after the whole-robot story.
+    const ticket=seq;
+    const focus=focusPose(active,false);
+    Promise.all([
+      cameraTo(focus.position,focus.target,760),
+      fadeTo(full,.085,700),
+      fadeTo(active,1,700)
+    ]).then(()=>{
+      if(ticket!==seq||destroyed)return;
+      if(year==="2026")ensureTurretRig();
+    });
+  };
+  const playAction=async()=>{
+    if(destroyed||preparingDemo||action)return;
+    preparingDemo=true;
+    try{
+      if(!full)await loadFull();
+      if(selected!==def.actionSubsystem)await choose(def.actionSubsystem);
+      if(!active||selected!==def.actionSubsystem)return;
+      const ticket=seq;
+      const requestedAim=year==="2026"
+        ?Number(aimInput.value)*Math.PI/180:0;
+      // The isolated 3D part becomes a complete moving machine. Restore any
+      // isolated turret pivot before activating the same parts in full CAD.
+      if(turretRig)releaseTurretRig();
+      const home=homePose();
+      const wideTarget=home.target.clone().add(
+        new THREE.Vector3(0,.18,year==="2025"?.22:-.19)
+      );
+      const wideEye=wideTarget.clone().add(
+        new THREE.Vector3(2.35,1.63,2.9)
+      );
+      await cameraTo(wideEye,wideTarget,reduced()?0:740);
+      if(ticket!==seq||destroyed)return;
+      demoHud.hidden=false;
+      demoStep.textContent="Preparing the scoring run";
+      demoFill.style.width="0%";
+      actionButton.disabled=true;
+      actionButton.textContent="Playing…";
+      if(year==="2026")runFuel(requestedAim);
+      else runCoral();
+      await Promise.all([
+        fadeTo(full,1,reduced()?0:650),
+        fadeTo(active,0,reduced()?0:520)
+      ]);
+    }catch(error){
+      console.error("Robot scoring demonstration failed:",error);
+      if(action)stopAction();
+      actionButton.disabled=false;
+      actionButton.textContent=def.actionName;
+      setMessage("Unable to show the robot scoring sequence: "+error.message,true);
+    }finally{
+      preparingDemo=false;
+    }
   };
   const clearMeshes=()=>{
     if(!scene)return;
