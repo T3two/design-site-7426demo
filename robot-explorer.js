@@ -718,102 +718,113 @@ function mount(host,year,models,loadPackedModel){
     orbit.target.lerp(aim,.055);
   };
 
-  const runFuel=()=>{
-    if(!active||year!=="2026")return;
-    const rig=ensureTurretRig();
-    if(!rig)return;
-    const shooter=active.group;
+  const runFuel=(requestedAim=0)=>{
+    const motion=stageRobot();
+    const shooter=motion.root.getObjectByName("Shooter <2>");
+    const turret=motion.articulate(
+      ["Turret <1>","Shooter <2>"],
+      new THREE.Vector3(...TURRET_PIVOT)
+    );
     const flywheels=[];
-    shooter.traverse(node=>{
+    shooter?.traverse(node=>{
       if(node.isMesh&&/brass[\s_-]*wheels/i.test(node.name))
-        flywheels.push({mesh:node,initial:node.rotation.clone()});
+        flywheels.push({node,rotation:node.rotation.clone()});
     });
 
-    // Axis comes from the real 2026 Top Turret Plate CAD. Rotation angles
-    // demonstrate the design intent, not a measured mechanical travel limit.
-    const pivot=new THREE.Vector3(...TURRET_PIVOT);
-    const initialYaw=rig.rotation.y;
-    const aimAngle=turretUserAdjusted
-      ? clamp(Number(aimInput.value)*Math.PI/180,-1.13,1.13)
-      : .95;
-    const searchAngle=clamp(aimAngle+(aimAngle>=0?-1.35:1.35),-1.13,1.13);
-    const overshoot=clamp(aimAngle+Math.sign(aimAngle||1)*.13,-1.13,1.13);
-    const centerAtCurrentYaw=new THREE.Box3().setFromObject(shooter).getCenter(new THREE.Vector3());
-    const centerAtZero=centerAtCurrentYaw.clone().sub(pivot)
-      .applyAxisAngle(new THREE.Vector3(0,1,0),-initialYaw).add(pivot);
-    const aimPoint=p=>p.clone().sub(pivot)
-      .applyAxisAngle(new THREE.Vector3(0,1,0),aimAngle).add(pivot);
-    const start=aimPoint(centerAtZero.clone().add(new THREE.Vector3(.13,.055,-.105)));
-    const end=start.clone().add(new THREE.Vector3(1.24,.90,-1.51)
-      .applyAxisAngle(new THREE.Vector3(0,1,0),aimAngle));
-    const path=new THREE.CubicBezierCurve3(
-      start,
-      start.clone().lerp(end,.33).add(new THREE.Vector3(0,.12,0)),
-      start.clone().lerp(end,.68).add(new THREE.Vector3(0,.16,0)),
-      end
+    const startingPosition=new THREE.Vector3(-.72,0,.64);
+    const startingYaw=-.56;
+    const parkedYaw=.17;
+    const turretAim=clamp(requestedAim||.64,-1.10,1.10);
+    const mount=new THREE.Vector3(...TURRET_PIVOT);
+    // Establish the target relative to the robot's settled scoring position.
+    motion.chassis.rotation.y=parkedYaw;
+    turret&&(turret.rotation.y=turretAim);
+    motion.chassis.updateMatrixWorld(true);
+    const scoringCenter=shooter
+      ?new THREE.Box3().setFromObject(shooter).getCenter(new THREE.Vector3())
+      :mount.clone();
+    const targetPosition=scoringCenter.clone().add(
+      new THREE.Vector3(1.24,.85,-1.63)
     );
+    const goal=makeTarget(targetPosition,false);
+    motion.chassis.position.copy(motion.base).add(startingPosition);
+    motion.chassis.rotation.y=startingYaw;
+    turret&&(turret.rotation.y=-.26);
+
     const balls=Array.from({length:3},makeFuel);
     balls.forEach(ball=>ball.visible=false);
-    const startTime=performance.now(),duration=5100;
-    let previousTime=startTime,spin=0;
+    const paths=Array(3).fill(null);
+    const shotTimes=[3350,4130,4910];
+    const started=performance.now()+180;
+    const duration=7100;
+    let prior=started,spin=0;
+    demoTitle.textContent="Robot approach and FUEL scoring";
+    demoStep.textContent="Drive into range";
     aimInput.disabled=true;
-    demoTitle.textContent="Turret tracking and FUEL launch";
     action={
       update(now){
-        const elapsed=now-startTime;
+        const elapsed=Math.max(0,now-started);
         const t=clamp(elapsed/duration,0,1);
-        const delta=clamp((now-previousTime)/1000,0,.06);
-        previousTime=now;
+        const dt=clamp((now-prior)/1000,0,.06);
+        prior=now;
+        const drive=ease(clamp(elapsed/1800,0,1));
+        const settle=ease(clamp((elapsed-6200)/850,0,1));
+        motion.chassis.position.copy(motion.base)
+          .addScaledVector(startingPosition,1-drive);
+        motion.chassis.rotation.y=startingYaw+
+          (parkedYaw-startingYaw)*drive-parkedYaw*settle;
 
-        // A deliberate left/right aiming motion around the CAD turret axis.
-        let yaw;
-        if(elapsed<600)
-          yaw=initialYaw+(searchAngle-initialYaw)*ease(clamp(elapsed/600,0,1));
-        else if(elapsed<1370)
-          yaw=searchAngle+(overshoot-searchAngle)*ease(clamp((elapsed-600)/770,0,1));
-        else if(elapsed<1700)
-          yaw=overshoot+(aimAngle-overshoot)*ease(clamp((elapsed-1370)/330,0,1));
-        else yaw=aimAngle;
-        rig.rotation.y=yaw;
-        turretGoal=yaw;
-        const degrees=Math.round(yaw*180/Math.PI);
-        aimInput.value=String(degrees);
-        aimValue.textContent=degrees+"°";
+        const tracked=ease(clamp((elapsed-1680)/1200,0,1));
+        const turretYaw=(-.26+(turretAim+.26)*tracked)*
+          (1-ease(clamp((elapsed-6400)/680,0,1)));
+        if(turret)turret.rotation.y=turretYaw;
+        aimValue.textContent=Math.round(turretYaw*180/Math.PI)+"°";
+        aimInput.value=String(Math.round(turretYaw*180/Math.PI));
 
-        // Spin the three actual Brass Wheels meshes independently of turret yaw.
-        const throttle=ease(clamp(elapsed/950,0,1))*
-          (1-ease(clamp((elapsed-4320)/720,0,1)));
-        spin+=delta*36*throttle;
-        flywheels.forEach(({mesh,initial})=>{
-          mesh.rotation.copy(initial);
-          mesh.rotation.x+=spin;
+        const power=ease(clamp((elapsed-1700)/900,0,1))*
+          (1-ease(clamp((elapsed-5900)/730,0,1)));
+        spin+=dt*37*power;
+        flywheels.forEach(({node,rotation})=>{
+          node.rotation.copy(rotation);
+          node.rotation.x+=spin;
         });
-
-        demoFill.style.width=(t*100).toFixed(1)+"%";
-        demoStep.textContent=elapsed<1370?"Turret aiming":elapsed<1730?"Aligned":elapsed<4400?"Scoring FUEL":"Complete";
         balls.forEach((ball,i)=>{
-          const progress=(elapsed-1730-i*710)/1240;
+          const progress=(elapsed-shotTimes[i])/1150;
+          if(progress>=0&&!paths[i]){
+            motion.chassis.updateMatrixWorld(true);
+            const muzzle=shooter
+              ?new THREE.Box3().setFromObject(shooter)
+                .getCenter(new THREE.Vector3()).add(new THREE.Vector3(0,.055,-.13))
+              :mount.clone();
+            paths[i]=new THREE.CubicBezierCurve3(
+              muzzle,
+              muzzle.clone().lerp(targetPosition,.30).add(new THREE.Vector3(0,.21,0)),
+              muzzle.clone().lerp(targetPosition,.66).add(new THREE.Vector3(0,.29,0)),
+              targetPosition
+            );
+          }
           ball.visible=progress>=0&&progress<=1;
-          if(!ball.visible)return;
-          ball.position.copy(path.getPoint(clamp(progress,0,1)));
-          ball.rotation.set(progress*9,0,progress*6);
+          if(ball.visible&&paths[i]){
+            ball.position.copy(paths[i].getPoint(clamp(progress,0,1)));
+            ball.rotation.set(progress*8,progress*3,progress*6);
+          }
         });
+        if(elapsed<1850)demoStep.textContent="Drive and turn toward the goal";
+        else if(elapsed<3200)demoStep.textContent="Turret aims independently";
+        else if(elapsed<6100)demoStep.textContent="Launch three FUEL";
+        else demoStep.textContent="Return to neutral";
+        demoFill.style.width=(t*100).toFixed(1)+"%";
+        followRobot(motion.chassis.position,-.22);
         if(t>=1)stopAction();
       },
       clean(){
-        flywheels.forEach(({mesh,initial})=>mesh.rotation.copy(initial));
-        rig.rotation.y=aimAngle;
-        turretGoal=aimAngle;
-        aimInput.value=String(Math.round(aimAngle*180/Math.PI));
-        aimValue.textContent=aimInput.value+"°";
-        balls.forEach(ball=>{
-          scene.remove(ball);
-          ball.traverse(o=>{
-            o.geometry?.dispose();
-            if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());
-            else o.material?.dispose();
-          });
-        });
+        flywheels.forEach(({node,rotation})=>node.rotation.copy(rotation));
+        motion.restore();
+        balls.forEach(removeProp);
+        removeProp(goal);
+        aimInput.value="0";
+        aimValue.textContent="0°";
+        turretGoal=0;
       }
     };
   };
