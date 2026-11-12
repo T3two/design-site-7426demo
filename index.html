@@ -612,7 +612,7 @@
     article.append(section);
   }
 
-  async function render2026PhotoGallery(article) {
+  async function render2026PhotoGallery(article, requestedPageId) {
     // The photos are uploaded separately from the text-based website changes.
     // The section remains hidden until its first real asset exists.
     const dir = "assets/robots/2026/";
@@ -631,7 +631,7 @@
     ];
     try {
       const probe = await fetch(dir + photos[0][0], {method:"HEAD", cache:"no-cache"});
-      if (!probe.ok || !article.isConnected) return;
+      if (!probe.ok || !article.isConnected || pageRequestId !== requestedPageId) return;
       const section = document.createElement("section");
       section.className = "ricochet-photo-section";
       section.setAttribute("aria-label", "RICOCHET CAD photo gallery");
@@ -773,7 +773,7 @@
       if (meta.id === "home") renderHomeShowcase(content);
       if (meta.id.startsWith("robot-") && meta.id !== "robot-archive") addArticleOutline(content);
       if (meta.id === "robot-archive") renderRobotsPage(content);
-      if (meta.id === "robot-2026") render2026PhotoGallery(content);
+      if (meta.id === "robot-2026") render2026PhotoGallery(content, requestId);
       if (meta.id !== "home" && !meta.id.startsWith("robot-")) addArticleOutline(content);
       if (meta.id === "home" && sponsors.length) renderFooterSponsors();
     } catch (error) {
