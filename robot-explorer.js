@@ -309,21 +309,22 @@ function mount(host,year,models,loadPackedModel){
     THREE=mod.THREE;
     const {GLTFLoader,OrbitControls,RoomEnvironment}=mod;
     scene=new THREE.Scene();
-    const ambient=new THREE.HemisphereLight(0xc5d9ff,0x382e32,2.25);
+    // High-key white CAD studio. The page background and lighting now agree.
+    const ambient=new THREE.HemisphereLight(0xffffff,0xe7e3df,2.25);
     scene.add(ambient);
     const key=new THREE.DirectionalLight(0xffffff,3.5);
     key.position.set(3,6,7);scene.add(key);
-    const fill=new THREE.DirectionalLight(0x77a5d1,1.7);
+    const fill=new THREE.DirectionalLight(0xf1f5ff,1.2);
     fill.position.set(-4,2,-5);scene.add(fill);
-    const rim=new THREE.PointLight(0xf14960,28,9,2);
+    const rim=new THREE.PointLight(0xeaaab1,9,9,2);
     rim.position.set(-2.3,2.7,-1.1);scene.add(rim);
-    const ground=new THREE.GridHelper(8,24,0x5a2b37,0x34404a);
+    const ground=new THREE.GridHelper(8,24,0xd3c4c5,0xe4e4e7);
     ground.position.y=-.10;
     ground.material.transparent=true;
-    ground.material.opacity=.19;
+    ground.material.opacity=.32;
     scene.add(ground);
     const ringGeometry=new THREE.RingGeometry(.75,.756,128);
-    const ring=new THREE.Mesh(ringGeometry,new THREE.MeshBasicMaterial({color:0xa32632,transparent:true,opacity:.27,side:THREE.DoubleSide,depthWrite:false}));
+    const ring=new THREE.Mesh(ringGeometry,new THREE.MeshBasicMaterial({color:0xa32632,transparent:true,opacity:.19,side:THREE.DoubleSide,depthWrite:false}));
     ring.rotation.x=-Math.PI/2;
     ring.position.y=-.092;
     scene.add(ring);
@@ -332,8 +333,8 @@ function mount(host,year,models,loadPackedModel){
     renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
     renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.65));
     renderer.outputColorSpace=THREE.SRGBColorSpace;
-    renderer.toneMapping=THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure=1.25;
+    renderer.toneMapping=THREE.AgXToneMapping || THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure=1.12;
     renderer.setClearColor(0x000000,0);
     // PMREM studio environment gives metal and painted CAD surfaces real
     // image-based reflections instead of flat, unlit imported materials.
@@ -484,6 +485,7 @@ function mount(host,year,models,loadPackedModel){
     action.clean();
     action=null;
     demoHud.hidden=true;
+    demoTitle.textContent=def.actionTitle;
     demoFill.style.width="0%";
     actionButton.disabled=false;
     actionButton.textContent="▶  "+def.actionName;
@@ -600,7 +602,24 @@ function mount(host,year,models,loadPackedModel){
     return group;
   };
   const runFuel=()=>{
-    const shot=new THREE.Box3().setFromObject(active.group).getCenter(new THREE.Vector3());
+    // The source 2026 shooter GLB contains THREE mesh nodes named exactly
+    // "Brass Wheels". Its flywheel meshes are cylindrical along their local X
+    // axes, so rotating those mesh transforms preserves the CAD assembly.
+    const shooter=active.group;
+    const wheels=[];
+    shooter.traverse(node=>{
+      if(node.isMesh&&node.name.trim()==="Brass Wheels"){
+        wheels.push({node,rotation:node.rotation.clone()});
+      }
+    });
+    // A centered pivot allows a subtle yaw and short recoil without swinging
+    // the entire mechanism around the GLB's world origin.
+    const shot=new THREE.Box3().setFromObject(shooter).getCenter(new THREE.Vector3());
+    const shooterRig=new THREE.Group();
+    shooterRig.name="Illustrative shooter movement pivot";
+    shooterRig.position.copy(shot);
+    scene.add(shooterRig);
+    shooterRig.attach(shooter);
     const start=shot.clone().add(new THREE.Vector3(.13,.05,-.10));
     const end=start.clone().add(new THREE.Vector3(1.25,.88,-1.50));
     const path=new THREE.CubicBezierCurve3(
@@ -630,9 +649,36 @@ function mount(host,year,models,loadPackedModel){
     scene.add(guide);
     const startTime=performance.now();
     const duration=4400;
+    const originalRigPosition=shooterRig.position.clone();
+    const launchDirection=end.clone().sub(start).normalize();
+    let lastWheelFrame=startTime;
+    let wheelAngle=0;
     action={
       update(now){
         const t=clamp((now-startTime)/duration,0,1);
+        const elapsed=now-startTime;
+        const frameDt=clamp((now-lastWheelFrame)/1000,0,.05);
+        lastWheelFrame=now;
+        // Visual spin-up, sustained flywheel motion, and spin-down.
+        // This is not a claimed mechanical RPM.
+        const spinUp=ease(clamp(elapsed/850,0,1));
+        const spinDown=1-ease(clamp((elapsed-3650)/650,0,1));
+        wheelAngle+=frameDt*38*spinUp*spinDown;
+        wheels.forEach(({node,rotation})=>{
+          node.rotation.copy(rotation);
+          node.rotation.x+=wheelAngle;
+        });
+        // Three separate little recoil beats, synchronized to the fuel balls.
+        let recoil=0;
+        [380,1130,1880].forEach(shotTime=>{
+          const dt=(elapsed-shotTime-165)/145;
+          recoil=Math.max(recoil,Math.exp(-dt*dt));
+        });
+        shooterRig.position.copy(originalRigPosition)
+          .addScaledVector(launchDirection,-.025*recoil);
+        // A small aim adjustment before firing, then a gentle return.
+        shooterRig.rotation.y=.043*spinUp*(1-ease(clamp((elapsed-2850)/900,0,1)));
+        demoTitle.textContent="FUEL / FLYWHEELS IN MOTION";
         demoFill.style.width=(t*100).toFixed(1)+"%";
         demoStep.textContent=t<.18?"01  /  LOADING FUEL":t<.45?"02  /  LAUNCHING":t<.81?"03  /  FUEL IN FLIGHT":"04  /  SCORING TARGET";
         balls.forEach((ball,i)=>{
@@ -656,6 +702,14 @@ function mount(host,year,models,loadPackedModel){
         if(t>=1)stopAction();
       },
       clean(){
+        // Restore the intact CAD hierarchy and wheel transforms on replay,
+        // isolation change, or interrupted demo.
+        wheels.forEach(({node,rotation})=>node.rotation.copy(rotation));
+        shooterRig.position.copy(originalRigPosition);
+        shooterRig.rotation.set(0,0,0);
+        shooterRig.updateMatrixWorld(true);
+        scene.attach(shooter);
+        scene.remove(shooterRig);
         balls.forEach(b=>{scene.remove(b);b.traverse(o=>{o.geometry?.dispose();if(o.material&&Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material?.dispose();});});
         trails.forEach(arr=>arr.forEach(dot=>{scene.remove(dot);dot.material.dispose();}));
         trailShape.dispose();
