@@ -1254,506 +1254,275 @@ article .workbench-jump:hover{background:#f2dddf;text-decoration:none}
 }
 
 
-/* ==============================================================
-   ROBOT THEATER V3 / SINGLE WEBGL SCENE / PAIR OF DICE ENGINEERING
-   ============================================================== */
-.robot-theater {
-  --th-red:#e84b5e;--th-ink:#090e17;--th-panel:#111825;--th-line:#2a3240;
-  max-width:1200px;margin:42px 0 62px;scroll-margin-top:82px;
-  border-top:4px solid #a32632;
+/* ROBOT CAD / engineering notebook
+   Reference direction: team-produced engineering pages — one clear model,
+   plain technical descriptions, restrained controls, readable typography. */
+.robot-theater{
+  max-width:1160px;margin:34px 0 54px;scroll-margin-top:82px;
+  --theater-red:#a32632;--theater-line:#e0dddd;--theater-text:#29292b;
   font-family:"Barlow",Arial,sans-serif;
 }
-.robot-theater .theater-heading {
-  display:flex;align-items:end;justify-content:space-between;gap:24px;
-  padding:27px 0 28px;
+.robot-theater .theater-heading{
+  display:flex;align-items:end;justify-content:space-between;
+  border-top:2px solid var(--theater-red);
+  padding:22px 0 21px;
 }
-.robot-theater .theater-eyebrow {
-  display:block;color:#ac2b39;
-  font:800 10px/1.35 "Barlow",sans-serif;letter-spacing:.19em;margin-bottom:10px;
+.robot-theater .theater-eyebrow{
+  display:block;color:#a32632;font:700 11px/1.3 "Barlow",sans-serif;
+  letter-spacing:.08em;margin-bottom:9px;
 }
-.robot-theater .theater-heading h2 {
-  color:#2a2525;text-transform:uppercase;
-  font:900 clamp(31px,4.6vw,56px)/.98 "Barlow Condensed",Impact,sans-serif;
-  margin:0 0 13px;padding:0;border:0;letter-spacing:-.015em;
+.robot-theater .theater-heading h2{
+  font:800 clamp(32px,3.7vw,43px)/1 "Barlow Condensed",Arial,sans-serif;
+  color:#222327;margin:0 0 10px;padding:0;border:0;letter-spacing:.005em;
 }
 .robot-theater .theater-heading p{
-  color:#736561;font:500 14px/1.6 "Barlow",sans-serif;
-  max-width:740px;margin:0;
+  max-width:740px;font:400 14px/1.6 "Barlow",Arial,sans-serif;
+  color:#66676b;margin:0;
 }
-.robot-theater .theater-heading-mark {
-  white-space:nowrap;border:1px solid #d8c5c2;color:#a32632;
-  padding:10px 13px;font:800 10px/1.2 "Barlow",sans-serif;
-  letter-spacing:.13em;margin-bottom:6px;
-}
+.robot-theater .theater-heading-mark{display:none}
 .robot-theater .theater-shell{
-  display:grid;grid-template-columns:minmax(0,1fr) 286px;
-  min-height:610px;overflow:hidden;
-  border:1px solid #242c37;border-radius:10px;
-  background:#0c121c;
-  box-shadow:0 20px 52px rgba(18,20,26,.22);
+  display:grid;grid-template-columns:minmax(0,1fr) 280px;
+  border:1px solid var(--theater-line);border-radius:5px;
+  overflow:hidden;background:#fff;
 }
-.robot-theater .theater-stage{min-width:0;display:flex;flex-direction:column;background:#090e17;}
-.robot-theater .theater-viewport {
-  position:relative;isolation:isolate;min-height:548px;flex:1;
-  overflow:hidden;background:
-    radial-gradient(ellipse 48% 50% at 50% 53%,rgba(77,88,107,.33),transparent 100%),
-    radial-gradient(ellipse 50% 65% at 88% 60%,rgba(140,36,49,.22),transparent 82%),
-    linear-gradient(140deg,#161f2b 0%,#0a0f18 56%,#0c1421 100%);
+.robot-theater .theater-stage{
+  min-width:0;background:#fbfbfa;
+  display:flex;flex-direction:column;
 }
-.robot-theater .theater-viewport::before{
-  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
-  background:linear-gradient(180deg,rgba(8,12,20,.44),transparent 25%,transparent 68%,rgba(5,9,16,.7));
+.robot-theater .theater-viewport{
+  position:relative;isolation:isolate;min-height:520px;flex:1;
+  overflow:hidden;background:#fafafa;
 }
-.robot-theater .theater-canvas-home{position:absolute;inset:0;z-index:2;}
-.robot-theater .theater-canvas-home canvas {
-  position:absolute;inset:0;display:block;width:100%;height:100%;
-  outline:none;touch-action:none;
+.robot-theater .theater-viewport::before,
+.robot-theater .theater-visual-grid{display:none}
+.robot-theater .theater-canvas-home,
+.robot-theater .theater-canvas-home canvas{
+  position:absolute;inset:0;width:100%;height:100%;display:block;
 }
-.robot-theater .theater-visual-grid{
-  position:absolute;inset:0;pointer-events:none;z-index:1;
-  background-image:
-    linear-gradient(rgba(151,172,199,.045) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(151,172,199,.045) 1px,transparent 1px);
-  background-size:41px 41px;opacity:.48;
-  mask-image:linear-gradient(0deg,transparent,#000 30%,#000 65%,transparent);
-}
+.robot-theater .theater-canvas-home canvas{touch-action:none;outline:0}
 .robot-theater .theater-poster{
   position:absolute;inset:0;z-index:5;display:grid;place-items:center;
-  background:radial-gradient(ellipse at 50% 45%,#36404b,#0e131e 70%);
-  transition:opacity .9s ease,visibility .9s ease;
+  background:#fafafa;transition:opacity .35s ease,visibility .35s ease;
 }
-.robot-theater .theater-poster img {
-  position:absolute;left:6%;top:4%;width:88%;height:81%;
-  border:0;object-fit:contain;filter:drop-shadow(0 22px 38px rgba(0,0,0,.38));
-  margin:0;padding:0;
+.robot-theater .theater-poster img{
+  position:absolute;inset:2% 6%;width:88%;height:86%;
+  object-fit:contain;border:0;margin:0;padding:0;
 }
 .robot-theater .theater-poster-word{
-  color:#4b5767;transform:rotate(-7deg);
-  font:900 clamp(70px,10vw,170px)/.9 "Barlow Condensed",Impact,sans-serif;
-  letter-spacing:-.05em;user-select:none;
+  color:#c9c9cd;font:800 clamp(48px,8vw,95px)/1 "Barlow Condensed",Arial,sans-serif;
 }
 .robot-theater .theater-poster-shade{
-  position:absolute;inset:0;display:flex;align-items:end;justify-content:center;
-  background:linear-gradient(180deg,transparent 25%,rgba(7,10,16,.05) 42%,rgba(8,12,19,.93) 100%);
-  padding:25px;
+  position:absolute;inset:0;display:flex;
+  align-items:end;justify-content:center;padding:30px;
+  background:linear-gradient(transparent 58%,rgba(250,250,250,.96));
 }
 .robot-theater .theater-poster-caption{
-  display:flex;flex-direction:column;align-items:center;gap:9px;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  text-align:center;
 }
-.robot-theater .theater-poster-caption span{
-  font:800 10px/1.2 "Barlow",sans-serif;letter-spacing:.2em;color:#e35e6d;
-}
+.robot-theater .theater-poster-caption span{display:none}
 .robot-theater .theater-poster-caption strong{
-  color:#fff;font:900 clamp(22px,3vw,37px)/1 "Barlow Condensed",Impact,sans-serif;
-  letter-spacing:.015em;
+  font:700 23px/1.1 "Barlow Condensed",Arial,sans-serif;color:#333;
 }
-.robot-theater .theater-launch{
-  margin-top:11px;padding:14px 22px;border:1px solid #ff7784;
-  background:#b72b3d;color:#fff;border-radius:3px;
-  font:800 11px/1.1 "Barlow",sans-serif;letter-spacing:.085em;
-  cursor:pointer;box-shadow:0 8px 29px rgba(146,18,40,.32);
+.robot-theater .theater-launch,
+.robot-theater .theater-action-button{
+  border:1px solid var(--theater-red);border-radius:4px;
+  padding:11px 16px;background:var(--theater-red);color:#fff;
+  font:700 12px/1.2 "Barlow",Arial,sans-serif;cursor:pointer;
 }
-.robot-theater .theater-launch:hover{background:#d53c50}
+.robot-theater .theater-launch:hover,
+.robot-theater .theater-action-button:hover{background:#7f1d27}
 .robot-theater .theater-stage.is-ready .theater-poster{
   opacity:0;visibility:hidden;pointer-events:none;
 }
-.robot-theater .theater-hud-top{
-  position:absolute;top:16px;left:19px;right:19px;z-index:3;pointer-events:none;
-  display:flex;justify-content:space-between;align-items:center;gap:12px;
-}
-.robot-theater .theater-live-tag{
-  border:1px solid rgba(236,86,104,.36);
-  background:rgba(9,16,28,.67);color:#f37383;
-  padding:7px 10px;border-radius:2px;
-  font:850 9px/1 "Barlow",sans-serif;letter-spacing:.16em;
-  backdrop-filter:blur(6px);
-}
-.robot-theater .theater-top-year{
-  font:750 10px/1.2 "Barlow",sans-serif;letter-spacing:.13em;color:#cad1da;
-  text-shadow:0 2px 8px #090d17;
-}
+.robot-theater .theater-hud-top{display:none}
 .robot-theater .theater-hud-bottom{
-  position:absolute;z-index:3;pointer-events:none;
-  bottom:20px;left:20px;right:20px;
-  display:flex;align-items:end;justify-content:space-between;gap:14px;
+  position:absolute;z-index:3;bottom:17px;left:19px;right:19px;
+  display:flex;justify-content:space-between;align-items:end;
+  gap:14px;pointer-events:none;
 }
-.robot-theater .theater-hud-label{display:flex;flex-direction:column;gap:5px;}
+.robot-theater .theater-hud-label{
+  display:flex;flex-direction:column;gap:4px;
+}
 .robot-theater .theater-hud-step{
-  color:#fa7e8b;font:800 9px/1.3 "Barlow",sans-serif;letter-spacing:.15em;
+  font:600 10px/1.4 "Barlow",Arial,sans-serif;
+  color:#9e3541;letter-spacing:.04em;
 }
 .robot-theater .theater-hud-label strong{
-  color:#f6f4f4;
-  font:900 clamp(23px,2.8vw,37px)/1 "Barlow Condensed",Impact,sans-serif;
-  text-transform:uppercase;max-width:390px;
-  filter:drop-shadow(0 2px 6px #050910);
+  font:700 clamp(20px,2.5vw,29px)/1.1 "Barlow Condensed",Arial,sans-serif;
+  color:#29292b;
 }
 .robot-theater .theater-hud-orbit{
-  color:rgba(219,227,236,.68);
-  font:700 9px/1.4 "Barlow",sans-serif;letter-spacing:.08em;text-align:right;
+  font:500 11px/1.3 "Barlow",Arial,sans-serif;color:#828184;
+  text-align:right;
 }
-.robot-theater .theater-hotspots{position:absolute;inset:0;z-index:4;pointer-events:none;}
-.robot-theater .theater-hotspot {
-  position:absolute;transform:translate(-50%,-50%);
-  display:flex;align-items:center;gap:5px;
-  border:0;background:transparent;color:#fff;
-  padding:5px;cursor:pointer;pointer-events:auto;
-  transition:opacity .3s ease;
-}
-.robot-theater .theater-hotspot[hidden]{display:none}
-.robot-theater .theater-hotspot span{
-  display:grid;place-items:center;width:29px;height:29px;
-  border-radius:50%;background:rgba(174,34,54,.88);
-  border:1px solid rgba(255,171,177,.8);
-  box-shadow:0 0 0 5px rgba(158,34,52,.16),0 0 18px rgba(235,62,80,.35);
-  font:850 10px/1 "Barlow",sans-serif;
-}
-.robot-theater .theater-hotspot em {
-  max-width:130px;
-  opacity:0;pointer-events:none;
-  background:rgba(11,18,29,.92);border:1px solid #62404c;border-radius:3px;
-  color:#f3e8ea;padding:7px 9px;
-  font:750 10px/1.2 "Barlow",sans-serif;font-style:normal;text-align:left;
-  white-space:nowrap;transition:opacity .15s;
-}
-.robot-theater .theater-hotspot:hover em,
-.robot-theater .theater-hotspot:focus-visible em{opacity:1}
+.robot-theater .theater-hotspots{display:none}
 .robot-theater .theater-loading{
-  position:absolute;z-index:8;bottom:86px;left:50%;transform:translateX(-50%);
-  display:flex;align-items:center;gap:11px;
-  min-width:min(340px,90%);padding:13px 17px;
-  border:1px solid #753b4a;border-radius:4px;
-  background:rgba(13,18,30,.94);color:#f0dce0;
-  box-shadow:0 8px 28px rgba(0,0,0,.3);
-  font:750 10px/1.4 "Barlow",sans-serif;letter-spacing:.05em;
-  text-transform:uppercase;
+  position:absolute;z-index:8;left:50%;bottom:80px;
+  transform:translateX(-50%);
+  display:flex;align-items:center;gap:9px;
+  width:max-content;max-width:90%;
+  padding:10px 13px;border:1px solid #e6dfdf;border-radius:3px;
+  background:rgba(255,255,255,.97);color:#555;
+  font:600 11px/1.4 "Barlow",Arial,sans-serif;
 }
 .robot-theater .theater-loading[hidden]{display:none}
 .robot-theater .theater-loading-bar{
-  width:16px;height:16px;border-radius:50%;flex:0 0 auto;
-  border:2px solid rgba(248,111,122,.27);border-top-color:#ff6778;
-  animation:spin .7s linear infinite;
+  width:13px;height:13px;flex:0 0 auto;
+  border:2px solid #e9e1e1;border-top-color:#a32632;
+  border-radius:50%;animation:spin .8s linear infinite;
 }
 .robot-theater .theater-demo-hud{
-  position:absolute;z-index:5;top:65px;right:19px;
-  background:rgba(10,17,29,.92);border:1px solid rgba(248,104,116,.55);
-  border-radius:4px;padding:11px 13px;width:min(258px,70%);
-  box-shadow:0 8px 32px rgba(0,0,0,.3);pointer-events:none;
+  position:absolute;z-index:4;top:16px;right:17px;
+  background:rgba(255,255,255,.95);border:1px solid #e7dddd;
+  border-radius:4px;padding:10px 13px;width:min(215px,72%);
+  pointer-events:none;
 }
 .robot-theater .theater-demo-hud[hidden]{display:none}
 .robot-theater .theater-demo-hud>span{
-  display:block;color:#ed8b94;font:800 9px/1.3 "Barlow",sans-serif;letter-spacing:.1em;
+  font:600 10px/1.3 "Barlow",Arial,sans-serif;color:#a32632;
 }
 .robot-theater .theater-demo-hud strong{
-  display:block;color:white;margin:5px 0 11px;
-  font:850 17px/1.05 "Barlow Condensed",Impact,sans-serif;
+  display:block;font:700 15px/1.2 "Barlow",Arial,sans-serif;
+  color:#393638;margin:4px 0 10px;
 }
-.robot-theater .theater-demo-track{height:3px;background:#4b3441;overflow:hidden;}
-.robot-theater .theater-demo-track span{display:block;height:100%;width:0;background:#f26371;}
+.robot-theater .theater-demo-track{
+  height:2px;background:#e9e6e4;overflow:hidden;
+}
+.robot-theater .theater-demo-track span{
+  display:block;height:100%;width:0;background:#a32632;
+}
 .robot-theater .theater-controls{
-  min-height:56px;padding:11px 15px;
-  background:#111925;border-top:1px solid #2c3543;
-  display:flex;align-items:center;flex-wrap:wrap;gap:8px;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  padding:12px 15px;min-height:52px;
+  background:#fff;border-top:1px solid var(--theater-line);
 }
-.robot-theater .theater-tool {
-  background:#1e2938;color:#d9e0e9;
-  border:1px solid #3b4755;border-radius:3px;
-  padding:8px 10px;white-space:nowrap;cursor:pointer;
-  font:800 10px/1.2 "Barlow",sans-serif;letter-spacing:.045em;
+.robot-theater .theater-tool{
+  background:#fff;border:1px solid #ddd9d8;border-radius:4px;
+  color:#494748;font:600 11px/1.2 "Barlow",Arial,sans-serif;
+  padding:8px 11px;cursor:pointer;
 }
-.robot-theater .theater-tool:hover,
-.robot-theater .theater-tool.is-on{
-  border-color:#c84c5d;background:#422630;color:#fff;
+.robot-theater .theater-tool:hover{
+  background:#f8f3f3;border-color:#b68c91;color:#8e2934;
 }
-.robot-theater .theater-tool:disabled{opacity:.43;cursor:default}
-.robot-theater .theater-controls-note{
-  margin-left:auto;color:#778797;
-  font:750 9px/1.3 "Barlow",sans-serif;letter-spacing:.1em;
-  text-align:right;
-}
+.robot-theater .theater-tool:disabled{opacity:.42;cursor:default}
+.robot-theater .theater-controls-note{display:none}
 .robot-theater .theater-side{
-  display:flex;flex-direction:column;
-  min-width:0;background:#141d29;color:#eaf0f3;
-  border-left:1px solid #2c3846;
+  min-width:0;display:flex;flex-direction:column;
+  background:#fff;border-left:1px solid var(--theater-line);
 }
 .robot-theater .theater-side-title{
-  padding:22px 19px 18px;border-bottom:1px solid #2d3541;
+  padding:18px 19px 14px;border-bottom:1px solid #e9e6e4;
 }
-.robot-theater .theater-side-title span{
-  color:#e95b6e;font:850 9px/1 "Barlow",sans-serif;letter-spacing:.16em;
-}
+.robot-theater .theater-side-title>span{display:none}
 .robot-theater .theater-side-title h3{
-  color:#fff;margin:8px 0;font:900 29px/1 "Barlow Condensed",Impact,sans-serif;
-  letter-spacing:.01em;
+  color:#262629;font:700 24px/1 "Barlow Condensed",Arial,sans-serif;
+  margin:0 0 7px;
 }
 .robot-theater .theater-side-title p{
-  margin:0;color:#aab7c3;font:500 11px/1.5 "Barlow",sans-serif;
+  font:400 12px/1.4 "Barlow",Arial,sans-serif;
+  color:#777;margin:0;
 }
 .robot-theater .theater-nav{
-  max-height:265px;overflow-y:auto;scrollbar-color:#683440 #1a2230;
-  border-bottom:1px solid #2e3844;
+  overflow-y:auto;max-height:290px;
+  border-bottom:1px solid #e9e6e4;
+  scrollbar-color:#d0c8c7 #faf9f9;
 }
-.robot-theater .theater-nav-button {
-  display:block;width:100%;background:none;color:#bec9d4;
-  border:0;border-bottom:1px solid #232d3b;border-left:3px solid transparent;
-  padding:11px 16px;text-align:left;cursor:pointer;
-  font:750 11px/1.2 "Barlow",sans-serif;
-  transition:background-color .2s,color .2s,border-color .2s;
+.robot-theater .theater-nav-button{
+  display:block;width:100%;background:#fff;
+  border:0;border-bottom:1px solid #efedeb;border-left:2px solid transparent;
+  padding:10px 16px;text-align:left;cursor:pointer;
+  color:#535153;font:500 12px/1.3 "Barlow",Arial,sans-serif;
 }
-.robot-theater .theater-nav-button:hover{
-  color:#fff;background:#24303d;
-}
+.robot-theater .theater-nav-button:hover{background:#faf8f8}
 .robot-theater .theater-nav-button.is-selected{
-  color:#ffdce0;background:#35212d;border-left-color:#f06071;
+  background:#fbf4f4;border-left-color:#a32632;
+  color:#8d2733;font-weight:700;
 }
 .robot-theater .theater-detail{
-  flex:1;padding:21px 20px 14px;
+  flex:1;padding:19px 19px 12px;
 }
 .robot-theater .theater-detail-kicker{
-  color:#f06a7b;font:850 9px/1.3 "Barlow",sans-serif;letter-spacing:.16em;
+  color:#a32632;font:600 10px/1.4 "Barlow",Arial,sans-serif;
 }
 .robot-theater .theater-detail h4{
-  font:900 31px/1 "Barlow Condensed",Impact,sans-serif;
-  text-transform:uppercase;color:#fff;margin:10px 0;
+  margin:8px 0 9px;color:#302f31;
+  font:700 26px/1.1 "Barlow Condensed",Arial,sans-serif;
 }
 .robot-theater .theater-detail p{
-  color:#c1cad2;font:500 12px/1.6 "Barlow",sans-serif;margin:0 0 15px;
+  color:#5c5b5c;font:400 12px/1.65 "Barlow",Arial,sans-serif;
+  margin:0 0 15px;
 }
 .robot-theater .theater-read-more{
-  color:#ff8f9b;font:800 10px/1.3 "Barlow",sans-serif;
-  letter-spacing:.03em;display:inline-block;
+  color:#a32632;font:600 11px/1.3 "Barlow",Arial,sans-serif;
 }
-.robot-theater .theater-read-more:hover{color:#fff}
 .robot-theater .theater-action-panel{
-  margin:0 15px 16px;padding:15px;
-  border:1px solid #64404b;border-radius:5px;
-  background:linear-gradient(155deg,rgba(155,43,65,.23),rgba(29,36,50,.78));
+  border-top:1px solid var(--theater-line);
+  padding:18px 19px 19px;margin:0;
+  background:#fff;
 }
 .robot-theater .theater-action-panel>span{
-  color:#f29ba2;font:850 9px/1.4 "Barlow",sans-serif;letter-spacing:.105em;
+  display:block;color:#535153;
+  font:700 12px/1.3 "Barlow",Arial,sans-serif;
 }
 .robot-theater .theater-action-button{
-  display:block;width:100%;
-  padding:13px 10px;margin-top:11px;
-  background:#c53247;border:1px solid #ec7282;border-radius:3px;
-  color:white;cursor:pointer;
-  font:850 11px/1.3 "Barlow",sans-serif;letter-spacing:.07em;
-  box-shadow:0 8px 22px rgba(4,0,0,.2);
+  display:block;width:100%;margin-top:12px;
 }
-.robot-theater .theater-action-button:hover{background:#e5485b}
-.robot-theater .theater-action-button:disabled{opacity:.75;cursor:progress}
+.robot-theater .theater-action-button:disabled{opacity:.65;cursor:progress}
 .robot-theater .theater-action-panel p{
-  margin:10px 0 0;color:#b7adb8;
-  font:500 10px/1.5 "Barlow",sans-serif;
+  font:400 10px/1.5 "Barlow",Arial,sans-serif;
+  margin:11px 0 0;color:#898386;
+}
+.robot-theater .theater-aim-controls{
+  display:grid;grid-template-columns:1fr auto;
+  gap:8px 10px;align-items:center;margin-top:15px;
+}
+.robot-theater .theater-aim-controls[hidden]{display:none}
+.robot-theater .theater-aim-caption{
+  color:#444;font:600 11px/1.3 "Barlow",Arial,sans-serif;
+}
+.robot-theater .theater-aim-value{
+  color:#8a2833;font:700 12px/1.3 "Barlow",Arial,sans-serif;
+  text-align:right;
+}
+.robot-theater .theater-aim-slider{
+  grid-column:1/-1;width:100%;margin:3px 0 2px;
+  accent-color:#a32632;cursor:pointer;
 }
 .robot-theater .theater-footnote{
-  margin:13px 1px 0;
-  color:#796e6c;font:500 11px/1.55 "Barlow",sans-serif;
+  margin:11px 1px 0;color:#787577;
+  font:400 11px/1.5 "Barlow",Arial,sans-serif;
 }
-.robot-theater button:focus-visible,.robot-theater a:focus-visible{
-  outline:2px solid #ff8c97;outline-offset:3px;
+.robot-theater button:focus-visible,
+.robot-theater a:focus-visible,
+.robot-theater input:focus-visible{
+  outline:2px solid #a32632;outline-offset:2px;
 }
-@media(max-width:1120px){
-  .robot-theater .theater-shell{grid-template-columns:minmax(0,1fr) 257px}
-  .robot-theater .theater-controls-note{display:none}
+@media(max-width:970px){
+  .robot-theater .theater-shell{grid-template-columns:minmax(0,1fr) 250px}
 }
-@media(max-width:770px){
-  .robot-theater .theater-heading{padding:23px 0;gap:12px}
-  .robot-theater .theater-heading-mark{display:none}
+@media(max-width:750px){
   .robot-theater .theater-shell{display:flex;flex-direction:column}
-  .robot-theater .theater-viewport{min-height:clamp(340px,75vw,500px);flex:initial;height:clamp(340px,75vw,500px)}
-  .robot-theater .theater-controls{gap:7px}
-  .robot-theater .theater-tool{font-size:9px;padding:9px 8px}
+  .robot-theater .theater-viewport{height:clamp(330px,76vw,470px);min-height:330px;flex:none}
   .robot-theater .theater-hud-orbit{display:none}
-  .robot-theater .theater-side{border-left:0;border-top:1px solid #2c3846}
-  .robot-theater .theater-side-title{padding:16px}
-  .robot-theater .theater-side-title h3{font-size:25px;margin:6px 0}
+  .robot-theater .theater-side{border-left:0;border-top:1px solid var(--theater-line)}
+  .robot-theater .theater-side-title{padding:14px 16px}
+  .robot-theater .theater-side-title h3{font-size:22px}
   .robot-theater .theater-nav{
-    display:flex;overflow:auto hidden;max-height:none;white-space:nowrap;
-    border-bottom:1px solid #37414d;
+    display:flex;overflow-x:auto;overflow-y:hidden;
+    max-height:none;white-space:nowrap;
   }
   .robot-theater .theater-nav-button{
-    width:auto;flex:0 0 auto;padding:12px 14px;
-    border-bottom:0;border-right:1px solid #293441;
-    border-left:0;border-top:3px solid transparent;
+    width:auto;flex:0 0 auto;padding:11px 14px;
+    border-left:0;border-bottom:2px solid transparent;border-right:1px solid #efedeb;
   }
   .robot-theater .theater-nav-button.is-selected{
-    border-top-color:#f06071;border-left-color:transparent;
+    border-left:0;border-bottom-color:#a32632;
   }
-  .robot-theater .theater-detail{padding:18px}
-  .robot-theater .theater-detail h4{font-size:29px}
-  .robot-theater .theater-action-panel{margin:0 15px 15px}
-  .robot-theater .theater-hotspot em{display:none}
-  .robot-theater .theater-hotspot span{width:24px;height:24px;font-size:9px}
+  .robot-theater .theater-detail{padding:16px}
+  .robot-theater .theater-action-panel{padding:16px}
 }
 @media(prefers-reduced-motion:reduce){
-  .robot-theater .theater-poster,
-  .robot-theater .theater-nav-button{transition:none}
+  .robot-theater .theater-poster{transition:none}
   .robot-theater .theater-loading-bar{animation:none}
-}
-
-
-/* =============================================================
-   WHITE CAD STUDIO / IMMERSIVE ROBOT THEATER V4
-   True white surfaces with red technical annotations. This intentionally
-   overrides the previous dark-stage design without altering other pages.
-   ============================================================= */
-.robot-theater {
-  --th-ink:#24262b;
-  --th-panel:#ffffff;
-  --th-line:#e4e2e1;
-  --th-red:#a32632;
-}
-.robot-theater .theater-shell {
-  border-color:#ddd8d6;
-  background:#fff;
-  box-shadow:0 16px 45px rgba(75,60,56,.09);
-}
-.robot-theater .theater-stage {background:#fff;}
-.robot-theater .theater-viewport {
-  background:
-    radial-gradient(ellipse 53% 51% at 47% 47%,rgba(255,255,255,1) 6%,rgba(242,242,242,.92) 73%,transparent 100%),
-    radial-gradient(ellipse 50% 56% at 85% 60%,rgba(163,38,50,.07),transparent 85%),
-    linear-gradient(135deg,#ffffff 0%,#f8f8f8 55%,#f0f0f1 100%);
-}
-.robot-theater .theater-viewport::before {
-  background:linear-gradient(180deg,rgba(255,255,255,.38),transparent 32%,transparent 77%,rgba(232,231,230,.35));
-}
-.robot-theater .theater-visual-grid {
-  opacity:.9;
-  background-image:
-    linear-gradient(rgba(86,97,108,.063) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(86,97,108,.063) 1px,transparent 1px);
-}
-.robot-theater .theater-poster {
-  background:radial-gradient(ellipse at 51% 42%,#fff 12%,#f1efec 78%);
-}
-.robot-theater .theater-poster img {
-  filter:drop-shadow(0 19px 26px rgba(80,73,70,.13));
-}
-.robot-theater .theater-poster-word {color:#d1c5c3;}
-.robot-theater .theater-poster-shade {
-  background:linear-gradient(180deg,rgba(255,255,255,0) 30%,rgba(255,255,255,.15) 48%,rgba(255,255,255,.98) 100%);
-}
-.robot-theater .theater-poster-caption span {color:#a32632;}
-.robot-theater .theater-poster-caption strong {color:#30272a;}
-.robot-theater .theater-launch {
-  border-color:#a32632;
-  background:#a32632;
-  box-shadow:0 10px 22px rgba(163,38,50,.19);
-}
-.robot-theater .theater-launch:hover {background:#7f1d27;}
-.robot-theater .theater-live-tag {
-  background:rgba(255,255,255,.9);
-  border-color:rgba(163,38,50,.26);
-  color:#a32632;
-  box-shadow:0 4px 12px rgba(67,42,42,.04);
-}
-.robot-theater .theater-top-year {
-  color:#635a5b;
-  text-shadow:none;
-}
-.robot-theater .theater-hud-step {color:#a32632;}
-.robot-theater .theater-hud-label strong {
-  color:#28282c;
-  filter:none;
-}
-.robot-theater .theater-hud-orbit {color:#777174;}
-.robot-theater .theater-hotspot span {
-  background:#a32632;
-  border-color:#fff;
-  box-shadow:0 0 0 5px rgba(163,38,50,.10),0 4px 16px rgba(163,38,50,.15);
-}
-.robot-theater .theater-hotspot em {
-  background:rgba(255,255,255,.97);
-  border-color:#e9d8d8;
-  color:#752833;
-  box-shadow:0 5px 15px rgba(46,40,42,.07);
-}
-.robot-theater .theater-loading {
-  background:rgba(255,255,255,.96);
-  border-color:#e2d0ce;
-  color:#59484a;
-  box-shadow:0 8px 22px rgba(49,37,42,.09);
-}
-.robot-theater .theater-loading-bar {
-  border-color:#eddfdc;
-  border-top-color:#a32632;
-}
-.robot-theater .theater-demo-hud {
-  background:rgba(255,255,255,.96);
-  border-color:#d9b5ba;
-  box-shadow:0 10px 26px rgba(42,26,29,.1);
-}
-.robot-theater .theater-demo-hud>span {color:#a32632;}
-.robot-theater .theater-demo-hud strong {color:#292629;}
-.robot-theater .theater-demo-track {background:#efe6e4;}
-.robot-theater .theater-demo-track span {background:#a32632;}
-.robot-theater .theater-controls {
-  background:#fff;
-  border-top-color:#e5dfdb;
-}
-.robot-theater .theater-tool {
-  background:#faf9f8;
-  border-color:#e5ddda;
-  color:#524749;
-}
-.robot-theater .theater-tool:hover,
-.robot-theater .theater-tool.is-on {
-  background:#fae9eb;
-  border-color:#a32632;
-  color:#a32632;
-}
-.robot-theater .theater-controls-note {color:#918183;}
-.robot-theater .theater-side {
-  background:#fff;
-  color:#302b2b;
-  border-left-color:#e5dfdb;
-}
-.robot-theater .theater-side-title {border-bottom-color:#eee8e5;}
-.robot-theater .theater-side-title span {color:#a32632;}
-.robot-theater .theater-side-title h3 {color:#282526;}
-.robot-theater .theater-side-title p {color:#776c6b;}
-.robot-theater .theater-nav {
-  border-bottom-color:#eae2df;
-  scrollbar-color:#d9b7bc #f9f4f2;
-}
-.robot-theater .theater-nav-button {
-  color:#5e5655;
-  border-bottom-color:#f0ebe8;
-  border-left-color:transparent;
-}
-.robot-theater .theater-nav-button:hover {
-  background:#faf0f1;
-  color:#a32632;
-}
-.robot-theater .theater-nav-button.is-selected {
-  background:#f9eaec;
-  border-left-color:#a32632;
-  color:#8c1e2a;
-}
-.robot-theater .theater-detail-kicker {color:#a32632;}
-.robot-theater .theater-detail h4 {color:#302728;}
-.robot-theater .theater-detail p {color:#6c6462;}
-.robot-theater .theater-read-more {color:#a32632;}
-.robot-theater .theater-read-more:hover {color:#7b1d27;}
-.robot-theater .theater-action-panel {
-  background:linear-gradient(140deg,#fff6f6,#fbf3f1);
-  border-color:#ebd1d3;
-}
-.robot-theater .theater-action-panel>span {color:#9b3441;}
-.robot-theater .theater-action-button {
-  background:#a32632;
-  border-color:#a32632;
-  box-shadow:0 8px 20px rgba(163,38,50,.16);
-}
-.robot-theater .theater-action-button:hover {background:#7f1d27;}
-.robot-theater .theater-action-panel p {color:#7d6769;}
-.robot-theater .theater-footnote {color:#786b69;}
-@media(max-width:770px){
-  .robot-theater .theater-side {border-top-color:#e5dfdb;}
-  .robot-theater .theater-nav {border-bottom-color:#e5dfdb;}
-  .robot-theater .theater-nav-button {border-right-color:#eee4e2;}
-  .robot-theater .theater-nav-button.is-selected {
-    border-left-color:transparent;border-top-color:#a32632;
-  }
 }
