@@ -16,11 +16,11 @@ RICOCHET is the result of a season spent thinking about more than just scoring. 
   <div><span>DESIGN APPROACH</span><strong>MODULAR</strong></div>
 </div>
 
-## Explore the CAD
+## Explore RICOCHET / interactive workbench
 
-Explore RICOCHET with a guided 3D camera tour. The full assembly is a larger download, so tap its preview to load it. The smaller subsystem viewers further down the page load as you scroll, then move through four camera angles automatically. Drag to take control, or use **Guided tour** to restart the sequence. These tours show the actual CAD geometry; they do not simulate mechanism movement.
+Start with the entire robot, then select a subsystem to transition into its isolated CAD. The technical reasoning appears next to the viewer, with full engineering chapters below.
 
-{{model:robot-2026-assembly}}
+{{explorer:2026}}
 
 ## The robot at a glance
 
@@ -37,9 +37,7 @@ The drivetrain uses SDS MK5N swerve modules with R3 drive reduction, four-inch h
 
 We also designed custom bumper brackets for quicker swaps. Aluminum tube rails form the perimeter and inner structure, while the internal rails leave openings for wire routing and an aluminum belly pan supports the layout. That packaging helps other systems sit within a predictable frame.
 
-**Explore this subsystem in 3D**
-
-{{model:robot-2026-drivetrain}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="drivetrain">↑ Isolate drivetrain in the interactive workbench</a>
 
 ## Intake / built to work with the hopper
 
@@ -49,9 +47,7 @@ The intake wasn't finalized in one pass. Across prototypes, the team changed the
 
 The important lesson was that an intake doesn't operate independently. Small changes in roller position, compression, and pivot geometry affected how well it handed fuel off to the hopper.
 
-**Explore this subsystem in 3D**
-
-{{model:robot-2026-intake}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="intake">↑ Isolate intake in the interactive workbench</a>
 
 ## Hopper / making room when it matters
 
@@ -59,17 +55,13 @@ The hopper acts as an adjustable storage space between the intake and feeder. It
 
 The mechanism uses cabinet-style drawer slides and added bearings to reduce friction during movement. We paid particular attention to clearance between the hopper and intake, since both systems needed to move without interfering with one another.
 
-**Explore this subsystem in 3D**
-
-{{model:robot-2026-hopper}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="hopper">↑ Isolate hopper in the interactive workbench</a>
 
 ## Feeder / keeping fuel moving
 
 The feeder takes fuel from the robot's storage area and directs it into the scoring mechanism. Its layout uses multiple guide belts and a compact internal transfer path, with angled panels to help collect fuel. The feeder was designed with the overall robot package in mind, rather than as a separate oversized assembly.
 
-**Explore this subsystem in 3D**
-
-{{model:robot-2026-feeder-queuer}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="feeder-queuer">↑ Isolate feeder / queuer in the interactive workbench</a>
 
 ## Turret and vision / more flexibility
 
@@ -77,9 +69,7 @@ A rotating turret allows the scoring assembly to aim independently of the robot'
 
 This arrangement was part of the goal to give the drivers more flexibility during matches while still preserving a compact robot layout.
 
-**Explore this subsystem in 3D**
-
-{{model:robot-2026-turret}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="turret">↑ Isolate turret in the interactive workbench</a>
 
 ## Scoring mechanism / consistent performance
 
@@ -87,9 +77,7 @@ RICOCHET's scoring assembly uses a fixed-geometry hood and a high-inertia flywhe
 
 The design changed significantly during the season. Early versions were reworked to improve packaging and consistency, and the post-Arizona revision addressed fuel feeding behavior that had shown up in competition. These iterations show why testing a complete mechanism matters as much as testing individual components.
 
-**Explore this subsystem in 3D**
-
-{{model:robot-2026-shooter}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="shooter">↑ Isolate shooter in the interactive workbench</a>
 
 ## Climber / focused on the endgame
 
@@ -97,15 +85,13 @@ The climber extends upward to engage the endgame structure. The final design emp
 
 The team explored several concepts in CAD before settling on the version that fit the available space and matched the endgame strategy.
 
-**Explore this subsystem in 3D**
-
-{{model:robot-2026-climber}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="climber">↑ Isolate climber in the interactive workbench</a>
 
 ## Bumpers / protection and serviceability
 
 Our bumpers are separate from the main chassis in the CAD archive, so the assembly can be examined without the rest of the robot in the way.
 
-{{model:robot-2026-bumpers}}
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="bumpers">↑ Isolate bumpers in the interactive workbench</a>
 
 ## Robot positions
 
