@@ -648,120 +648,98 @@ function mount(host,year,models,loadPackedModel){
     return group;
   };
   const runFuel=()=>{
-    // The source 2026 shooter GLB contains THREE mesh nodes named exactly
-    // "Brass Wheels". Its flywheel meshes are cylindrical along their local X
-    // axes, so rotating those mesh transforms preserves the CAD assembly.
+    if(!active||year!=="2026")return;
+    const rig=ensureTurretRig();
+    if(!rig)return;
     const shooter=active.group;
-    const wheels=[];
+    const flywheels=[];
     shooter.traverse(node=>{
-      if(node.isMesh&&node.name.trim()==="Brass Wheels"){
-        wheels.push({node,rotation:node.rotation.clone()});
-      }
+      if(node.isMesh&&node.name.trim()==="Brass Wheels")
+        flywheels.push({mesh:node,initial:node.rotation.clone()});
     });
-    // A centered pivot allows a subtle yaw and short recoil without swinging
-    // the entire mechanism around the GLB's world origin.
-    const shot=new THREE.Box3().setFromObject(shooter).getCenter(new THREE.Vector3());
-    const shooterRig=new THREE.Group();
-    shooterRig.name="Illustrative shooter movement pivot";
-    shooterRig.position.copy(shot);
-    scene.add(shooterRig);
-    shooterRig.attach(shooter);
-    const start=shot.clone().add(new THREE.Vector3(.13,.05,-.10));
-    const end=start.clone().add(new THREE.Vector3(1.25,.88,-1.50));
+
+    // Axis comes from the real 2026 Top Turret Plate CAD. Rotation angles
+    // demonstrate the design intent, not a measured mechanical travel limit.
+    const pivot=new THREE.Vector3(...TURRET_PIVOT);
+    const initialYaw=rig.rotation.y;
+    const aimAngle=turretUserAdjusted
+      ? clamp(Number(aimInput.value)*Math.PI/180,-1.13,1.13)
+      : .79;
+    const overshoot=clamp(aimAngle+Math.sign(aimAngle||1)*.13,-1.13,1.13);
+    const centerAtCurrentYaw=new THREE.Box3().setFromObject(shooter).getCenter(new THREE.Vector3());
+    const centerAtZero=centerAtCurrentYaw.clone().sub(pivot)
+      .applyAxisAngle(new THREE.Vector3(0,1,0),-initialYaw).add(pivot);
+    const aimPoint=p=>p.clone().sub(pivot)
+      .applyAxisAngle(new THREE.Vector3(0,1,0),aimAngle).add(pivot);
+    const start=aimPoint(centerAtZero.clone().add(new THREE.Vector3(.13,.055,-.105)));
+    const end=start.clone().add(new THREE.Vector3(1.24,.90,-1.51)
+      .applyAxisAngle(new THREE.Vector3(0,1,0),aimAngle));
     const path=new THREE.CubicBezierCurve3(
       start,
-      start.clone().add(new THREE.Vector3(.18,.27,-.27)),
-      end.clone().add(new THREE.Vector3(-.20,.25,.32)),
+      start.clone().lerp(end,.33).add(new THREE.Vector3(0,.12,0)),
+      start.clone().lerp(end,.68).add(new THREE.Vector3(0,.16,0)),
       end
     );
-    const balls=[makeFuel(),makeFuel(),makeFuel()];
-    // Bright 3D persistence trails reinforce the direction and rhythm of each
-    // shot; these are rendered inside the WebGL scene, not CSS dots on top.
-    const trailShape=new THREE.SphereGeometry(.014,8,6);
-    const trails=balls.map(()=>Array.from({length:9},(_,j)=>{
-      const material=new THREE.MeshBasicMaterial({
-        color:j<3?0xffe799:0xffbc42,transparent:true,
-        opacity:Math.max(.06,.38-j*.036),depthWrite:false,
-        blending:THREE.AdditiveBlending
-      });
-      const dot=new THREE.Mesh(trailShape,material);
-      dot.scale.setScalar(Math.max(.28,1-j*.08));
-      scene.add(dot);
-      return dot;
-    }));
-    const target=makeTarget(end,false);
-    const guide=new THREE.Mesh(new THREE.TubeGeometry(path,50,.005,6,false),
-      new THREE.MeshBasicMaterial({color:0xffb83e,transparent:true,opacity:.25,depthWrite:false}));
-    scene.add(guide);
-    const startTime=performance.now();
-    const duration=4400;
-    const originalRigPosition=shooterRig.position.clone();
-    const launchDirection=end.clone().sub(start).normalize();
-    let lastWheelFrame=startTime;
-    let wheelAngle=0;
+    const balls=Array.from({length:3},makeFuel);
+    balls.forEach(ball=>ball.visible=false);
+    const startTime=performance.now(),duration=5100;
+    let previousTime=startTime,spin=0;
+    aimInput.disabled=true;
+    demoTitle.textContent="Turret tracking and FUEL launch";
     action={
       update(now){
-        const t=clamp((now-startTime)/duration,0,1);
         const elapsed=now-startTime;
-        const frameDt=clamp((now-lastWheelFrame)/1000,0,.05);
-        lastWheelFrame=now;
-        // Visual spin-up, sustained flywheel motion, and spin-down.
-        // This is not a claimed mechanical RPM.
-        const spinUp=ease(clamp(elapsed/850,0,1));
-        const spinDown=1-ease(clamp((elapsed-3650)/650,0,1));
-        wheelAngle+=frameDt*38*spinUp*spinDown;
-        wheels.forEach(({node,rotation})=>{
-          node.rotation.copy(rotation);
-          node.rotation.x+=wheelAngle;
+        const t=clamp(elapsed/duration,0,1);
+        const delta=clamp((now-previousTime)/1000,0,.06);
+        previousTime=now;
+
+        // A deliberate left/right aiming motion around the CAD turret axis.
+        let yaw;
+        if(elapsed<1050)
+          yaw=initialYaw+(overshoot-initialYaw)*ease(clamp(elapsed/1050,0,1));
+        else if(elapsed<1580)
+          yaw=overshoot+(aimAngle-overshoot)*ease(clamp((elapsed-1050)/530,0,1));
+        else yaw=aimAngle;
+        rig.rotation.y=yaw;
+        turretGoal=yaw;
+        const degrees=Math.round(yaw*180/Math.PI);
+        aimInput.value=String(degrees);
+        aimValue.textContent=degrees+"°";
+
+        // Spin the three actual Brass Wheels meshes independently of turret yaw.
+        const throttle=ease(clamp(elapsed/950,0,1))*
+          (1-ease(clamp((elapsed-4320)/720,0,1)));
+        spin+=delta*36*throttle;
+        flywheels.forEach(({mesh,initial})=>{
+          mesh.rotation.copy(initial);
+          mesh.rotation.x+=spin;
         });
-        // Three separate little recoil beats, synchronized to the fuel balls.
-        let recoil=0;
-        [380,1130,1880].forEach(shotTime=>{
-          const dt=(elapsed-shotTime-165)/145;
-          recoil=Math.max(recoil,Math.exp(-dt*dt));
-        });
-        shooterRig.position.copy(originalRigPosition)
-          .addScaledVector(launchDirection,-.025*recoil);
-        // A small aim adjustment before firing, then a gentle return.
-        shooterRig.rotation.y=.043*spinUp*(1-ease(clamp((elapsed-2850)/900,0,1)));
-        demoTitle.textContent="FUEL / FLYWHEELS IN MOTION";
+
         demoFill.style.width=(t*100).toFixed(1)+"%";
-        demoStep.textContent=t<.18?"01  /  LOADING FUEL":t<.45?"02  /  LAUNCHING":t<.81?"03  /  FUEL IN FLIGHT":"04  /  SCORING TARGET";
+        demoStep.textContent=elapsed<1050?"Aim":elapsed<1650?"Settle":elapsed<4400?"Launch":"Complete";
         balls.forEach((ball,i)=>{
-          const progress=(now-startTime-380-i*750)/1450;
+          const progress=(elapsed-1730-i*710)/1240;
           ball.visible=progress>=0&&progress<=1;
-          trails[i].forEach((tail,j)=>{
-            const previous=progress-(j+1)*.028;
-            tail.visible=previous>0&&previous<1&&ball.visible;
-            if(tail.visible)tail.position.copy(path.getPoint(previous));
-          });
           if(!ball.visible)return;
           ball.position.copy(path.getPoint(clamp(progress,0,1)));
-          ball.rotation.x=progress*13;ball.rotation.z=progress*7;
+          ball.rotation.set(progress*9,0,progress*6);
         });
-        target.rotation.y+=.004;
-        const scored=balls.some((_,i)=>{
-          const p=(now-startTime-380-i*750)/1450;
-          return p>.92&&p<1.08;
-        });
-        target.scale.setScalar(scored?1.16:1+.018*Math.sin(now*.007));
         if(t>=1)stopAction();
       },
       clean(){
-        // Restore the intact CAD hierarchy and wheel transforms on replay,
-        // isolation change, or interrupted demo.
-        wheels.forEach(({node,rotation})=>node.rotation.copy(rotation));
-        shooterRig.position.copy(originalRigPosition);
-        shooterRig.rotation.set(0,0,0);
-        shooterRig.updateMatrixWorld(true);
-        scene.attach(shooter);
-        scene.remove(shooterRig);
-        balls.forEach(b=>{scene.remove(b);b.traverse(o=>{o.geometry?.dispose();if(o.material&&Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material?.dispose();});});
-        trails.forEach(arr=>arr.forEach(dot=>{scene.remove(dot);dot.material.dispose();}));
-        trailShape.dispose();
-        scene.remove(target);scene.remove(guide);
-        guide.geometry.dispose();guide.material.dispose();
-        target.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});
+        flywheels.forEach(({mesh,initial})=>mesh.rotation.copy(initial));
+        rig.rotation.y=aimAngle;
+        turretGoal=aimAngle;
+        aimInput.value=String(Math.round(aimAngle*180/Math.PI));
+        aimValue.textContent=aimInput.value+"°";
+        balls.forEach(ball=>{
+          scene.remove(ball);
+          ball.traverse(o=>{
+            o.geometry?.dispose();
+            if(Array.isArray(o.material))o.material.forEach(m=>m.dispose());
+            else o.material?.dispose();
+          });
+        });
       }
     };
   };
@@ -874,7 +852,7 @@ function mount(host,year,models,loadPackedModel){
   btnSpin.addEventListener("click",()=>{
     autoSpin=!autoSpin;
     btnSpin.classList.toggle("is-on",autoSpin);
-    btnSpin.textContent=autoSpin?"Ⅱ PAUSE ORBIT":"↻ AUTO ORBIT";
+    btnSpin.textContent=autoSpin?"Pause rotation":"Rotate";
   });
   btnExpand.addEventListener("click",()=>{
     if(document.fullscreenElement)document.exitFullscreen?.();
