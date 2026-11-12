@@ -591,3 +591,28 @@ footer{font-size:11px;letter-spacing:.065em;line-height:1.7;color:#817772}
   .loader-die-back,.loader-die-front{animation:none;transform:rotate(8deg)}
   .loader-track span{animation:none;width:100%;}
 }
+
+/* Original Pair of Dice animation — gold elements recolored to team red.
+   When the MP4 is absent or cannot play, the CSS dice/skyline fallback remains. */
+.loader-content { width: min(900px,calc(100vw - 36px)); }
+.loader-video {
+  display:block;
+  width:100%;
+  max-height:min(64vh,520px);
+  height:auto;
+  object-fit:contain;
+  background:#000;
+  margin:0 auto;
+}
+.loader-video[hidden] { display:none !important; }
+.loader-has-video .loader-composition,
+.loader-has-video #loaderLogo {display:none !important;}
+.loader-has-video {background:#000 !important;}
+.loader-has-video .loader-content>p {color:#e4d8d4;}
+.loader-has-video .loader-track {background:#453134;}
+.loader-has-video .loader-track span {background:#a32632;}
+@media(prefers-reduced-motion:reduce) {
+  .loader-video {display:none !important;}
+  .loader-has-video {background:#f4f0ec !important;}
+  .loader-has-video .loader-composition {display:block !important;}
+}
