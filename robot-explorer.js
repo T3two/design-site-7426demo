@@ -18,7 +18,7 @@ const seasons={
       ["climber","Climber","The endgame climbing structure is packaged within a compact robot envelope."],
       ["bumpers","Bumpers","A separate protective structure with mounting interfaces for easier service."]
     ],
-    actionName:"Launch FUEL", actionSubsystem:"shooter", actionTitle:"FUEL / SCORING SEQUENCE"
+    actionName:"Watch RICOCHET drive & shoot", actionSubsystem:"shooter", actionTitle:"FUEL / SCORING SEQUENCE"
   },
   "2025":{
     name:"DEADPOOL", season:"REEFSCAPE", hero:"",
@@ -31,7 +31,7 @@ const seasons={
       ["climber","Climber","A dedicated endgame mechanism separated from the main assembly."],
       ["bumpers","Bumpers","Chassis-protection geometry and structural mounting interfaces."]
     ],
-    actionName:"Place CORAL",actionSubsystem:"claw",actionTitle:"CORAL / PLACEMENT SEQUENCE"
+    actionName:"Watch DEADPOOL place CORAL",actionSubsystem:"claw",actionTitle:"CORAL / PLACEMENT SEQUENCE"
   }
 };
 const e=(tag,className,text)=>{
@@ -158,7 +158,7 @@ function mount(host,year,models,loadPackedModel){
   const actionMeta=e("span",null,"Motion preview");
   const actionButton=e("button","theater-action-button",def.actionName);
   actionButton.type="button";
-  const actionDisclaimer=e("p",null,"Illustrative motion. Angles and timing are not measured.");
+  const actionDisclaimer=e("p",null,"Drive paths, joint movement and game-piece motion are illustrative, not measured match data.");
   const aimControls=e("div","theater-aim-controls");
   const aimCaption=e("label","theater-aim-caption","Turret angle");
   const aimValue=e("output","theater-aim-value","0°");
