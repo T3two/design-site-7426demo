@@ -616,3 +616,83 @@ footer{font-size:11px;letter-spacing:.065em;line-height:1.7;color:#817772}
   .loader-has-video {background:#f4f0ec !important;}
   .loader-has-video .loader-composition {display:block !important;}
 }
+
+
+/* RICOCHET / 2026 technical chapter */
+.ricochet-hero,
+.ricochet-inline{
+  margin:28px 0 32px;
+  background:#f8f5f2;
+  border:1px solid #e4dcd7;
+  overflow:hidden;
+}
+.ricochet-hero img{
+  width:100%;max-width:100%;
+  height:clamp(320px,45vw,600px);
+  object-fit:contain;
+  object-position:center;
+  background:#f8f5f2;
+  margin:0;border:0;
+  padding:16px;
+}
+.ricochet-inline{
+  max-width:750px;
+  margin:26px 0 31px;
+}
+.ricochet-inline img{
+  height:clamp(230px,35vw,410px);
+  width:100%;object-fit:contain;
+  margin:0;border:0;padding:18px;
+  background:#f8f5f2;
+}
+.ricochet-hero figcaption,
+.ricochet-inline figcaption{
+  border-top:1px solid #e4dcd7;
+  padding:12px 18px;
+  font:600 13px/1.5 "Barlow",Arial,sans-serif;
+  color:#6e635f;
+}
+.ricochet-facts{
+  max-width:940px;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  border-top:3px solid #a32632;
+  border-bottom:1px solid #dbd4cf;
+  margin:32px 0 48px;
+}
+.ricochet-facts > div{
+  border-right:1px solid #dbd4cf;
+  padding:16px 16px 19px;
+  min-width:0;
+}
+.ricochet-facts > div:last-child{border-right:0}
+.ricochet-facts span{
+  display:block;margin-bottom:7px;
+  font:750 10px/1.3 "Barlow",Arial,sans-serif;
+  letter-spacing:.11em;color:#8b7c76;
+}
+.ricochet-facts strong{
+  display:block;
+  font:800 clamp(22px,2.3vw,32px)/1.05 "Barlow Condensed","Arial Narrow",Impact,sans-serif;
+  color:#342c2a;
+}
+article:has(.ricochet-facts) > h1{
+  font-size:clamp(48px,7vw,93px);
+  line-height:.95;
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+article:has(.ricochet-facts) > h2{
+  padding-top:10px;
+  border-top:1px solid #e6ded9;
+}
+article:has(.ricochet-facts) table{min-width:570px}
+article:has(.ricochet-facts) .model-grid{max-width:900px}
+@media(max-width:680px){
+  .ricochet-facts{grid-template-columns:repeat(2,minmax(0,1fr));margin:25px 0 35px}
+  .ricochet-facts > div:nth-child(2){border-right:0}
+  .ricochet-facts > div:nth-child(-n+2){border-bottom:1px solid #dbd4cf}
+  .ricochet-facts strong{font-size:25px}
+  .ricochet-hero img{height:320px;padding:10px}
+  .ricochet-inline img{height:250px;padding:10px}
+}
