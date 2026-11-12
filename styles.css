@@ -905,3 +905,90 @@ article:has(.ricochet-facts) .model-grid{max-width:900px}
 @media(prefers-reduced-motion:reduce){
   .model-card-modern .mini-spinner{animation:none}
 }
+
+
+/* Robot CAD / cinematic inspection: views of real geometry, not invented motion. */
+.model-card-modern .viewer-tour-panel {
+  position:absolute;
+  left:18px;
+  bottom:18px;
+  z-index:3;
+  width:min(330px,calc(100% - 36px));
+  border:1px solid rgba(234,217,214,.85);
+  border-radius:7px;
+  background:rgba(255,253,251,.92);
+  color:#332827;
+  padding:14px 16px 13px;
+  backdrop-filter:blur(14px);
+  box-shadow:0 11px 32px rgba(49,30,28,.12);
+  pointer-events:none;
+}
+.model-card-modern .viewer-tour-panel[hidden]{display:none !important;}
+.model-card-modern .viewer-tour-overline {
+  font:800 10px/1.4 "Barlow",Arial,sans-serif;
+  letter-spacing:.17em;
+  color:#a32632;
+  margin-bottom:6px;
+}
+.model-card-modern .viewer-tour-panel strong{
+  display:block;
+  font:800 clamp(21px,2.7vw,29px)/1.05 "Barlow Condensed","Arial Narrow",Impact,sans-serif;
+  letter-spacing:.01em;
+}
+.model-card-modern .viewer-tour-panel p {
+  font:500 12px/1.4 "Barlow",Arial,sans-serif;
+  color:#6b5c58;
+  margin:7px 0 12px;
+}
+.model-card-modern .viewer-tour-progress{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:5px;
+}
+.model-card-modern .viewer-tour-progress span{
+  height:3px;
+  background:#dfd4d0;
+  border-radius:3px;
+  transition:background-color .22s ease;
+}
+.model-card-modern .viewer-tour-progress .is-active{background:#a32632;}
+.model-card-modern .model-tour-toggle{
+  background:#a32632;
+  border-color:#a32632;
+  color:#fff;
+}
+.model-card-modern .model-tour-toggle:hover,
+.model-card-modern .model-tour-toggle[aria-pressed="true"]{
+  background:#7f1d27;
+  color:#fff;
+  border-color:#7f1d27;
+}
+.model-card-modern .model-tour-step {
+  font-size:20px;
+  font-weight:700;
+  min-width:33px;
+  padding:2px 9px 6px;
+  line-height:1;
+}
+.model-card-modern .model-motion-toggle{
+  border-color:#c2a09f;
+}
+.model-card-modern .model-icon-control[hidden],
+.model-card-modern .model-motion-select[hidden]{display:none !important;}
+.model-card-modern .model-motion-select{
+  background:#f8f5f2;
+  color:#5b514d;
+  border:1px solid #e7e0da;
+  border-radius:4px;
+  padding:7px 10px;
+  font:600 12px/1.2 "Barlow",Arial,sans-serif;
+  max-width:150px;
+}
+@media(max-width:650px){
+  .model-card-modern .viewer-tour-panel{left:10px;bottom:10px;width:min(290px,calc(100% - 20px));padding:12px;}
+  .model-card-modern .viewer-tour-panel strong{font-size:24px;}
+  .model-card-modern .viewer-tour-panel p{font-size:11px;}
+}
+@media(prefers-reduced-motion:reduce){
+  .model-card-modern .viewer-tour-progress span{transition:none;}
+}
