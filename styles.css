@@ -696,3 +696,24 @@ article:has(.ricochet-facts) .model-grid{max-width:900px}
   .ricochet-hero img{height:320px;padding:10px}
   .ricochet-inline img{height:250px;padding:10px}
 }
+
+
+/* Optional original 2026 binder CAD photography gallery */
+.ricochet-photo-section{margin:62px 0 42px;padding-top:26px;border-top:3px solid #302927}
+.ricochet-photo-section .ricochet-gallery-kicker{
+  color:#a32632;font:800 11px/1.5 "Barlow",Arial,sans-serif;
+  letter-spacing:.15em;margin:0 0 8px
+}
+.ricochet-photo-section > h2{margin:0 0 14px;border:0;padding:0;font-size:clamp(32px,3vw,46px)}
+.ricochet-photo-section > p:not(.ricochet-gallery-kicker){max-width:730px;margin:0 0 22px;color:#6d625d}
+.ricochet-photo-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.ricochet-photo{margin:0;border:1px solid #e2d9d4;background:#faf8f6;overflow:hidden}
+.ricochet-photo img{
+  margin:0;border:0;width:100%;height:clamp(155px,18vw,230px);
+  display:block;object-fit:contain;background:#f9f7f4;padding:8px
+}
+.ricochet-photo figcaption{display:flex;flex-direction:column;gap:4px;padding:14px 16px;border-top:1px solid #e6dfdc}
+.ricochet-photo figcaption strong{color:#302927;font:800 21px/1.1 "Barlow Condensed","Arial Narrow",Impact,sans-serif}
+.ricochet-photo figcaption span{color:#756861;font:500 12px/1.45 "Barlow",Arial,sans-serif}
+@media(max-width:800px){.ricochet-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.ricochet-photo-grid{grid-template-columns:1fr}.ricochet-photo img{height:250px}}
