@@ -235,7 +235,7 @@ function mount(host,year,models,loadPackedModel){
         return unique.get(mat);
       };
       node.material=Array.isArray(node.material)?node.material.map(cloneMat):cloneMat(node.material);
-      node.frustumCulled=false;
+      // Preserve frustum culling; large GLBs can contain hundreds of parts.
     });
     return {group:root,alpha:1,materials:[...unique.values()].map(m=>({material:m,base:m.opacity,transparent:m.transparent}))};
   };
