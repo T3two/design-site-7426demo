@@ -364,11 +364,7 @@
     // loading of 50–250 MiB full assemblies or overwhelming mobile devices.
     const limit = 32 * 1024 * 1024;
     const automatic = model.hosted !== false && model.bytes > 0 && model.bytes <= limit && !model.packed;
-    if (automatic && !reducedMotion.matches) {
-      viewer.setAttribute("auto-rotate", "");
-      viewer.setAttribute("auto-rotate-delay", "3500");
-      viewer.setAttribute("rotation-per-second", "7deg");
-    }
+    // Guided camera scenes replace endless turntable rotation after loading.
 
     const status = document.createElement("div");
     status.className = "viewer-state";
@@ -513,6 +509,8 @@
     let tourIndex = 0;
     let tourPlaying = false;
     let tourRequested = false;
+    let tourManuallyPaused = false;
+    let tourVisible = false;
     let tourTimer = null;
     const tourPanel = document.createElement("div");
     tourPanel.className = "viewer-tour-panel";
@@ -564,8 +562,11 @@
       tourHeading.textContent = String(tourIndex + 1).padStart(2,"0") + " / " + shot.title;
       tourDetail.textContent = shot.detail;
       tourMarks.forEach((mark,index) => mark.classList.toggle("is-active",index === tourIndex));
+      rotate.textContent = "↻ Rotate";
+      rotate.setAttribute("aria-pressed","false");
     };
-    const pauseTour = () => {
+    const pauseTour = (manual = false) => {
+      if (manual) tourManuallyPaused = true;
       tourPlaying = false;
       tourRequested = false;
       if (tourTimer !== null) clearTimeout(tourTimer);
@@ -585,6 +586,7 @@
     };
     const playTour = () => {
       if (model.hosted === false) return;
+      tourManuallyPaused = false;
       if (!card.classList.contains("model-loaded")) {
         tourRequested = true;
         startLoad();
@@ -598,9 +600,9 @@
       applyTourStop();
       scheduleTour();
     };
-    tourToggle.addEventListener("click", () => tourPlaying ? pauseTour() : playTour());
+    tourToggle.addEventListener("click", () => tourPlaying ? pauseTour(true) : playTour());
     const stepTour = delta => {
-      pauseTour();
+      pauseTour(true);
       tourIndex = (tourIndex + delta + tourStops.length) % tourStops.length;
       if (!card.classList.contains("model-loaded")) startLoad();
       applyTourStop();
@@ -608,12 +610,12 @@
     tourPrevious.addEventListener("click", () => stepTour(-1));
     tourNext.addEventListener("click", () => stepTour(1));
     // Hands-on orbiting always wins over an automated camera move.
-    viewer.addEventListener("pointerdown", pauseTour);
-    viewer.addEventListener("wheel", pauseTour, {passive:true});
-    viewer.addEventListener("keydown", pauseTour);
+    viewer.addEventListener("pointerdown", () => pauseTour(true));
+    viewer.addEventListener("wheel", () => pauseTour(true), {passive:true});
+    viewer.addEventListener("keydown", () => pauseTour(true));
     viewer.addEventListener("error", pauseTour);
     viewer.addEventListener("load", () => {
-      if (tourRequested) playTour();
+      if (tourRequested || (tourVisible && !reducedMotion.matches && !tourManuallyPaused)) playTour();
       // GLB-native mechanism animation, if the asset author included it.
       const clips = Array.isArray(viewer.availableAnimations) ? viewer.availableAnimations : [];
       if (clips.length) {
@@ -648,7 +650,7 @@
     });
     nativeMotion.addEventListener("click", () => {
       if (viewer.paused) {
-        pauseTour();
+        pauseTour(true);
         if (clipPicker.value) viewer.animationName = clipPicker.value;
         viewer.play();
         nativeMotion.textContent = "Ⅱ Pause mechanism";
@@ -658,6 +660,17 @@
       }
     });
     controls.append(nativeMotion,clipPicker);
+    // Play camera scenes only while the model is visible. This keeps pages
+    // with many robot subsystems from animating in the background.
+    if ("IntersectionObserver" in window) {
+      const tourObserver = new IntersectionObserver(entries => {
+        tourVisible = entries.some(entry => entry.isIntersecting);
+        if (!tourVisible && tourPlaying) pauseTour();
+        else if (tourVisible && card.classList.contains("model-loaded") &&
+                 !tourPlaying && !tourManuallyPaused && !reducedMotion.matches) playTour();
+      }, {threshold:0.24});
+      tourObserver.observe(card);
+    }
 
     const reset = document.createElement("button");
     reset.type = "button";
@@ -665,7 +678,7 @@
     reset.textContent = "↺ Reset";
     reset.title = "Reset camera position";
     reset.addEventListener("click", () => {
-      pauseTour();
+      pauseTour(true);
       tourPanel.hidden = true;
       viewer.cameraOrbit = "35deg 68deg auto";
       viewer.cameraTarget = "auto auto auto";
@@ -677,10 +690,10 @@
     const rotate = document.createElement("button");
     rotate.type = "button";
     rotate.className = "model-icon-control";
-    rotate.textContent = automatic && !reducedMotion.matches ? "Ⅱ Pause spin" : "↻ Rotate";
-    rotate.setAttribute("aria-pressed", automatic && !reducedMotion.matches ? "true" : "false");
+    rotate.textContent = "↻ Rotate";
+    rotate.setAttribute("aria-pressed", "false");
     rotate.addEventListener("click", () => {
-      pauseTour();
+      pauseTour(true);
       tourPanel.hidden = true;
       const enabled = !viewer.hasAttribute("auto-rotate");
       if (enabled) viewer.setAttribute("auto-rotate", "");
