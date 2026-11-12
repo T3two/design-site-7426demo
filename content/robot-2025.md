@@ -16,19 +16,35 @@
 
 ## Drivetrain
 
-*Verified engineering documentation pending.*
+The drivetrain is available as its own CAD assembly. Detailed specifications and design decisions can be added once the team's 2025 engineering notes are available.
+
+{{model:robot-2025-drivetrain}}
 
 ## Intake
 
 *Verified engineering documentation pending.*
 
-## Manipulator / scoring
+## Elevator and scoring mechanism
 
-*Verified engineering documentation pending.*
+These independently viewable assemblies show how the elevator, carriage, and claw were packaged. The mechanisms' specifications and design reasoning still need to be verified against the team's 2025 documentation.
 
-## Climber (if applicable)
+### Elevator
 
-*Verified engineering documentation pending.*
+{{model:robot-2025-elevator}}
+
+### Carriage
+
+{{model:robot-2025-carriage}}
+
+### Claw
+
+{{model:robot-2025-claw}}
+
+## Climber
+
+The climbing assembly has been separated from the full robot for closer inspection.
+
+{{model:robot-2025-climber}}
 
 ## Electrical system
 
@@ -41,6 +57,12 @@
 ## CAD and engineering documentation
 
 *Verified engineering documentation pending.*
+
+## Bumpers and protection
+
+The bumper assembly can be inspected separately from the drivetrain and superstructure.
+
+{{model:robot-2025-bumpers}}
 
 ## Photos and diagrams
 
