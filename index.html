@@ -13,6 +13,7 @@
   <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+  <script src="robot-explorer.js"></script>
 </head>
 <body>
   <div class="site-loader" id="siteLoader" role="status" aria-label="Loading Pair of Dice Design">
@@ -986,18 +987,29 @@
       // Markdown files are stored in /content but rendered on index.html. Normalize paths
       // so the image paths work consistently on GitHub Pages project sites.
       markdown = markdown.replace(/\((?:\.\.\/)+assets\//g, "(assets/");
+      // Tokens for the interactive binder become one continuous full-robot workbench.
+      markdown = markdown.replace(/\{\{explorer:(2025|2026)\}\}/g,
+        '<section class="robot-explorer-slot" data-explorer-year="$1"></section>');
       // A model token becomes a viewer at the exact point where it appears in Markdown.
       markdown = markdown.replace(/\{\{model:([a-zA-Z0-9_-]+)\}\}/g,
         '<div class="model-slot" data-model-id="$1"></div>');
-      content.innerHTML = window.marked && window.DOMPurify ? DOMPurify.sanitize(marked.parse(markdown), {ADD_ATTR: ["data-model-id"]}) : "<pre></pre>";
+      content.innerHTML = window.marked && window.DOMPurify ? DOMPurify.sanitize(marked.parse(markdown), {ADD_ATTR: ["data-model-id","data-explorer-year","data-explore-system"]}) : "<pre></pre>";
       if (!window.marked || !window.DOMPurify) content.querySelector("pre").textContent = markdown;
 
       const placedIds = [...content.querySelectorAll('[data-model-id]')].map(node => node.dataset.modelId);
       renderModelPlaceholders(content);
 
+      const interactiveBinder = content.querySelector("[data-explorer-year]");
+      if (interactiveBinder && window.PairOfDiceExplorer) {
+        window.PairOfDiceExplorer.mount(interactiveBinder,interactiveBinder.dataset.explorerYear,modelCatalog,loadPackedModel);
+      }
+
       let pageModels = modelCatalog.filter(model => Array.isArray(model.pages) && model.pages.includes(meta.id));
       if (meta.modelType) pageModels = pageModels.filter(model => model.type === meta.modelType);
       pageModels = pageModels.filter(model => !placedIds.includes(model.id));
+      if (interactiveBinder) {
+        pageModels = pageModels.filter(model => model.year !== Number(interactiveBinder.dataset.explorerYear));
+      }
       if (meta.showAllModels) pageModels = modelCatalog.slice().filter(model => !placedIds.includes(model.id));
 
       if (pageModels.length) {
