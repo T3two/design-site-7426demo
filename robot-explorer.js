@@ -51,7 +51,8 @@ function getEngine(){
       import("three"),
       import("three/addons/loaders/GLTFLoader.js"),
       import("three/addons/controls/OrbitControls.js")
-    ]).then(([THREE,loader,orbit])=>({THREE,GLTFLoader:loader.GLTFLoader,OrbitControls:orbit.OrbitControls}));
+    ]).then(([THREE,loader,orbit])=>({THREE,GLTFLoader:loader.GLTFLoader,OrbitControls:orbit.OrbitControls}))
+      .catch(err=>{enginePromise=null;throw err;});
   }
   return enginePromise;
 }
@@ -446,6 +447,24 @@ function mount(host,year,models,loadPackedModel){
     subsystemLoading.set(key,task);
     return task;
   };
+  // Bound GPU memory while readers explore multiple heavy CAD subsystems.
+  // The full assembly stays resident so returning home is instantaneous.
+  const trimCache=(protectedKey)=>{
+    const maxCount=year==="2025"?3:4;
+    if(subsystemCache.size<=maxCount)return;
+    for(const [key,item] of subsystemCache){
+      if(subsystemCache.size<=maxCount)break;
+      if(key===protectedKey||item===active)continue;
+      scene.remove(item.group);
+      item.group.traverse(obj=>{
+        if(!obj.isMesh)return;
+        obj.geometry?.dispose();
+        if(Array.isArray(obj.material))obj.material.forEach(m=>m.dispose());
+        else obj.material?.dispose();
+      });
+      subsystemCache.delete(key);
+    }
+  };
   const stopAction=()=>{
     if(!action)return;
     action.clean();
@@ -504,6 +523,7 @@ function mount(host,year,models,loadPackedModel){
     ]);
     if(ticket!==seq)return;
     showSelection(key);
+    trimCache(key);
   };
   // Construct believable game pieces as actual meshes inside the 3D scene.
   const makeFuel=()=>{
