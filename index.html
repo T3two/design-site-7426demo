@@ -285,202 +285,250 @@
     return URL.createObjectURL(new Blob([blob], { type: "model/gltf-binary" }));
   }
 
+  // Keep the GPU and network responsive when a page contains many CAD viewers.
+  // Small assemblies appear automatically as they enter the viewport; large ones
+  // stay explicit because a single full robot can exceed 250 MiB.
+  const modelLoadQueue = [];
+  let activeModelLoads = 0;
+  const MODEL_LOAD_CONCURRENCY = 2;
+  function queueModelLoad(task) {
+    return new Promise((resolve, reject) => {
+      modelLoadQueue.push({task, resolve, reject});
+      drainModelQueue();
+    });
+  }
+  function drainModelQueue() {
+    while (activeModelLoads < MODEL_LOAD_CONCURRENCY && modelLoadQueue.length) {
+      const entry = modelLoadQueue.shift();
+      activeModelLoads++;
+      Promise.resolve().then(entry.task).then(entry.resolve, entry.reject).finally(() => {
+        activeModelLoads--;
+        drainModelQueue();
+      });
+    }
+  }
+
   function makeModelCard(model) {
     const card = document.createElement("article");
-    card.className = "model-card";
-
+    card.className = "model-card model-card-modern";
     const viewerWrap = document.createElement("div");
-    viewerWrap.className = "viewer-wrap";
+    viewerWrap.className = "viewer-wrap viewer-studio";
 
     const viewer = document.createElement("model-viewer");
-    // Load only on request to avoid eager downloads of large CAD files.
     viewer.alt = model.name || "Interactive CAD model";
     viewer.setAttribute("camera-controls", "");
     viewer.setAttribute("touch-action", "pan-y");
-    viewer.setAttribute("shadow-intensity", "0.7");
     viewer.setAttribute("loading", "lazy");
-    viewer.setAttribute("interaction-prompt", "auto");
+    viewer.setAttribute("reveal", "auto");
     viewer.setAttribute("environment-image", "neutral");
-    viewer.setAttribute("exposure", "1");
-    // In-page CAD viewing only.
+    viewer.setAttribute("tone-mapping", "agx");
+    viewer.setAttribute("exposure", "1.13");
+    viewer.setAttribute("shadow-intensity", "0.85");
+    viewer.setAttribute("shadow-softness", "0.92");
+    viewer.setAttribute("interaction-prompt", "none");
+    viewer.setAttribute("orbit-sensitivity", "0.9");
+    viewer.setAttribute("zoom-sensitivity", "0.9");
+    viewer.setAttribute("camera-orbit", "35deg 68deg auto");
     if (model.thumbnail) viewer.setAttribute("poster", safeImagePath(model.thumbnail));
 
-    const loading = document.createElement("div");
-    loading.className = "viewer-loading";
-    loading.innerHTML = '<span class="mini-spinner"></span><span>Preparing model… 0%</span>';
+    const media = window.matchMedia ? window.matchMedia("(max-width: 700px)") : {matches:false};
+    const reducedMotion = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : {matches:false};
+    // Smaller models are automatically prefetched once in view; avoid automatic
+    // loading of 50–250 MiB full assemblies or overwhelming mobile devices.
+    const limit = media.matches ? 12 * 1024 * 1024 : 32 * 1024 * 1024;
+    const automatic = model.hosted !== false && model.bytes > 0 && model.bytes <= limit && !model.packed;
+    if (automatic && !reducedMotion.matches) {
+      viewer.setAttribute("auto-rotate", "");
+      viewer.setAttribute("auto-rotate-delay", "3500");
+      viewer.setAttribute("rotation-per-second", "7deg");
+    }
+
+    const status = document.createElement("div");
+    status.className = "viewer-state";
+    const statusText = document.createElement("span");
+    statusText.textContent = automatic ? "3D ready as you scroll" : "Explore the 3D assembly";
+    status.appendChild(statusText);
 
     const error = document.createElement("div");
     error.className = "viewer-error";
     error.hidden = true;
-    error.textContent = "This model could not load. Check the file path and GLB file.";
+    error.textContent = "Unable to display this model.";
 
-    viewer.addEventListener("load", () => {
-      loading.hidden = true;
-      error.hidden = true;
-    });
-    viewer.addEventListener("progress", event => {
-      const progress = Math.max(0, Math.min(100, (event.detail?.totalProgress || 0) * 100));
-      loading.style.setProperty("--progress", progress + "%");
-      loading.querySelector("span:last-child").textContent = "Preparing model… " + Math.round(progress) + "%";
-    });
-    viewer.addEventListener("error", () => {
-      loading.hidden = true;
-      error.hidden = false;
-      error.textContent = "The 3D engine could not render this assembly. Try a different browser or the original download.";
-    });
-
-    let temporaryModelUrl = null;
-    const releaseModelUrl = () => { if (temporaryModelUrl) { URL.revokeObjectURL(temporaryModelUrl); temporaryModelUrl = null; } };
+    const actions = document.createElement("div");
+    actions.className = "viewer-overlay-actions";
     const loadButton = document.createElement("button");
     loadButton.type = "button";
-    loadButton.className = "small-button";
-    loadButton.textContent = "▶ LOAD INTERACTIVE 3D";
-    loading.hidden = true;
-    loadButton.addEventListener("click", async () => {
+    loadButton.className = "viewer-start";
+    loadButton.textContent = automatic ? "Loading model…" : "View 3D model";
+    loadButton.hidden = automatic;
+    actions.appendChild(loadButton);
+
+    const busy = document.createElement("div");
+    busy.className = "viewer-busy";
+    busy.hidden = true;
+    busy.innerHTML = '<span class="mini-spinner" aria-hidden="true"></span><span>Loading CAD…</span>';
+
+    let temporaryModelUrl = null;
+    let started = false;
+    let loadTimeout = null;
+    const releaseModelUrl = () => {
+      if (temporaryModelUrl) { URL.revokeObjectURL(temporaryModelUrl); temporaryModelUrl = null; }
+    };
+    const setError = message => {
+      busy.hidden = true;
+      status.hidden = true;
+      error.textContent = message;
+      error.hidden = false;
+      loadButton.hidden = false;
+      loadButton.disabled = false;
+      loadButton.textContent = "Retry 3D";
+      started = false;
+    };
+    const startLoad = () => {
+      if (started || model.hosted === false) return;
+      started = true;
       error.hidden = true;
-      loading.hidden = false;
-      loadButton.disabled = true;
+      status.hidden = true;
+      loadButton.hidden = true;
+      busy.hidden = false;
       if (!customElements.get("model-viewer")) {
-        loading.hidden = true;
-        error.hidden = false;
-        error.textContent = "3D engine unavailable. Check whether your network allows the model-viewer library.";
-        loadButton.disabled = false;
-        return;
-      }
-      let timeout = null;
+        customElements.whenDefined("model-viewer").then(() => {
+          if (!card.isConnected) return;
+          loadModel();
+        }).catch(() => setError("3D renderer unavailable."));
+      } else loadModel();
+    };
+    const loadModel = async () => {
+      loadTimeout = setTimeout(() => setError("The assembly is taking longer than expected. Try again on a desktop."), 120000);
       try {
-        releaseModelUrl();
-        if (model.packed) {
-          temporaryModelUrl = await loadPackedModel(model, loading.querySelector("span:last-child"));
-          viewer.src = temporaryModelUrl;
-        } else {
-          viewer.src = model.file;
-        }
-        timeout = setTimeout(() => {
-          if (!loading.hidden) {
-            loading.hidden = true;
-            error.hidden = false;
-            error.textContent = "This large assembly is still preparing. Check memory usage or try again on a stronger computer.";
-            loadButton.disabled = false;
+        await queueModelLoad(async () => {
+          if (!card.isConnected) return;
+          if (model.packed) {
+            releaseModelUrl();
+            temporaryModelUrl = await loadPackedModel(model, busy.lastChild);
+            viewer.src = temporaryModelUrl;
+          } else {
+            const response = await fetch(model.file, {cache:"force-cache"});
+            if (!response.ok) throw new Error("Model file not found (HTTP " + response.status + ")");
+            // The browser's own fetch/model cache handles the final GLB download.
+            viewer.src = model.file;
           }
-        }, 180000);
-        viewer.addEventListener("load", () => clearTimeout(timeout), { once: true });
-        viewer.addEventListener("error", () => clearTimeout(timeout), { once: true });
+        });
       } catch (err) {
-        console.error("3D model load failed", err);
-        loading.hidden = true;
-        error.hidden = false;
-        error.textContent = "Could not load this model: " + (err?.message || String(err));
-        loadButton.disabled = false;
-        releaseModelUrl();
+        console.error("Model loading failed", model.id, err);
+        clearTimeout(loadTimeout);
+        setError("Could not open this model: " + (err?.message || String(err)));
       }
+    };
+
+    viewer.addEventListener("load", () => {
+      clearTimeout(loadTimeout);
+      busy.hidden = true;
+      error.hidden = true;
+      card.classList.add("model-loaded");
+      releaseModelUrl();
     });
-    viewer.addEventListener("load", () => { loadButton.disabled = false; setTimeout(releaseModelUrl, 1000); });
-    viewer.addEventListener("error", () => { loadButton.disabled = false; releaseModelUrl(); });
-    if (model.bytes && model.bytes > 100 * 1024 * 1024) {
-      const sizeWarning = document.createElement("div");
-      sizeWarning.className = "model-size-warning";
-      sizeWarning.textContent = "Large CAD assembly (" + Math.round(model.bytes / (1024 * 1024)) + " MiB). Loading may be slow on school computers.";
-      viewerWrap.append(sizeWarning);
-    }
+    viewer.addEventListener("progress", e => {
+      const progress = Math.max(0, Math.min(100, Math.round((e.detail?.totalProgress || 0) * 100)));
+      busy.lastChild.textContent = "Loading CAD… " + progress + "%";
+    });
+    viewer.addEventListener("error", () => {
+      clearTimeout(loadTimeout);
+      setError("This CAD file could not be rendered. Try a different browser.");
+    });
+    loadButton.addEventListener("click", startLoad);
+
     if (model.hosted === false) {
       loadButton.disabled = true;
-      loadButton.textContent = "MODEL HOSTING REQUIRED";
-      error.hidden = false;
-      error.textContent = "This CAD file is not hosted on the public site yet. Download the complete archive ZIP or use a configured HTTPS asset host.";
+      loadButton.hidden = false;
+      loadButton.textContent = "Model not uploaded";
+      statusText.textContent = "CAD hosting required";
     }
-    viewerWrap.append(viewer, loading, loadButton, error);
+    viewerWrap.append(viewer, status, actions, busy, error);
 
     const info = document.createElement("div");
     info.className = "model-info";
-
-    const tag = document.createElement("span");
-    tag.className = "model-tag";
-    tag.textContent = model.type === "assembly" ? "ASSEMBLY" : "PART";
-
+    const eyebrow = document.createElement("span");
+    eyebrow.className = "model-tag";
+    eyebrow.textContent = model.category === "Robot Subsystems" ? "SUBSYSTEM / 3D" : "ASSEMBLY / 3D";
     const title = document.createElement("h3");
     title.textContent = model.name || model.id;
-
     const description = document.createElement("p");
     description.textContent = model.description || "";
-
     const controls = document.createElement("div");
-    controls.className = "model-actions";
+    controls.className = "model-actions model-actions-modern";
 
-    const modelFile = document.createElement("a");
-    modelFile.className = "text-link";
-    modelFile.href = model.file;
-    modelFile.textContent = "GLB file ↗";
-    modelFile.setAttribute("download", "");
-    if (model.hosted !== false && !model.packed) controls.appendChild(modelFile);
     const reset = document.createElement("button");
     reset.type = "button";
-    reset.className = "small-button";
-    reset.textContent = "Reset view";
+    reset.className = "model-icon-control";
+    reset.textContent = "↺ Reset";
+    reset.title = "Reset camera position";
     reset.addEventListener("click", () => {
-      viewer.cameraOrbit = "auto auto auto";
+      viewer.cameraOrbit = "35deg 68deg auto";
       viewer.cameraTarget = "auto auto auto";
+      viewer.fieldOfView = "auto";
       if (typeof viewer.jumpCameraToGoal === "function") viewer.jumpCameraToGoal();
     });
     controls.appendChild(reset);
 
+    const rotate = document.createElement("button");
+    rotate.type = "button";
+    rotate.className = "model-icon-control";
+    rotate.textContent = automatic && !reducedMotion.matches ? "Ⅱ Pause spin" : "↻ Rotate";
+    rotate.setAttribute("aria-pressed", automatic && !reducedMotion.matches ? "true" : "false");
+    rotate.addEventListener("click", () => {
+      const enabled = !viewer.hasAttribute("auto-rotate");
+      if (enabled) viewer.setAttribute("auto-rotate", "");
+      else viewer.removeAttribute("auto-rotate");
+      rotate.textContent = enabled ? "Ⅱ Pause spin" : "↻ Rotate";
+      rotate.setAttribute("aria-pressed", String(enabled));
+    });
+    controls.appendChild(rotate);
+
     const fullscreen = document.createElement("button");
     fullscreen.type = "button";
-    fullscreen.className = "small-button";
-    fullscreen.textContent = "Full screen";
+    fullscreen.className = "model-icon-control";
+    fullscreen.textContent = "⛶ Expand";
     fullscreen.addEventListener("click", async () => {
-      try {
-        if (viewerWrap.requestFullscreen) await viewerWrap.requestFullscreen();
-        else if (viewer.requestFullscreen) await viewer.requestFullscreen();
-      } catch (err) {
-        console.warn("Fullscreen is unavailable in this browser.", err);
-      }
+      try { if (viewerWrap.requestFullscreen) await viewerWrap.requestFullscreen(); }
+      catch (e) { console.warn("Fullscreen unavailable", e); }
     });
     controls.appendChild(fullscreen);
 
+    if (model.hosted !== false && !model.packed) {
+      const download = document.createElement("a");
+      download.href = model.file;
+      download.className = "model-file-link";
+      download.textContent = "↓ GLB";
+      download.setAttribute("download", "");
+      controls.appendChild(download);
+    }
     if (model.onshapeUrl) {
-      const onshape = document.createElement("a");
-      onshape.className = "text-link";
-      onshape.href = model.onshapeUrl;
-      onshape.target = "_blank";
-      onshape.rel = "noopener noreferrer";
-      onshape.textContent = "Open Onshape ↗";
-      controls.appendChild(onshape);
+      const link = document.createElement("a");
+      link.href = model.onshapeUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.className = "model-file-link";
+      link.textContent = "Onshape ↗";
+      controls.appendChild(link);
     }
-
-    info.append(tag, title, description, controls);
-
-    if (Array.isArray(model.downloads) && model.downloads.length) {
-      const downloads = document.createElement("div");
-      downloads.className = "model-downloads";
-      model.downloads.forEach(download => {
-        if (!download.file) return;
-        const a = document.createElement("a");
-        a.href = download.file;
-        a.textContent = "Download " + (download.label || "file");
-        a.className = "text-link";
-        a.setAttribute("download", "");
-        downloads.appendChild(a);
-      });
-      info.appendChild(downloads);
-    }
-
+    info.append(eyebrow, title, description, controls);
     card.append(viewerWrap, info);
 
-    // If the custom element script is blocked or fails, give a visible explanation.
-    setTimeout(() => {
-      if (model.hosted === false) return;
-      if (!customElements.get("model-viewer") && !error.hidden) {
-        loading.hidden = true;
-        error.hidden = false;
-        error.textContent = "The 3D viewer library did not load. Check whether the network allows the model-viewer CDN.";
-      } else if (!customElements.get("model-viewer")) {
-        loading.hidden = true;
-        error.hidden = false;
-        error.textContent = "The 3D viewer library did not load. Check whether the network allows the model-viewer CDN.";
+    if (automatic) {
+      if ("IntersectionObserver" in window) {
+        const observer = new IntersectionObserver(entries => {
+          if (entries.some(e => e.isIntersecting)) {
+            observer.disconnect();
+            startLoad();
+          }
+        }, {rootMargin:"220px 0px", threshold:0.01});
+        observer.observe(card);
+      } else {
+        loadButton.hidden = false;
+        loadButton.textContent = "View 3D model";
       }
-    }, 12000);
-
+    }
     return card;
   }
 
