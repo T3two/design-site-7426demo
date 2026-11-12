@@ -17,8 +17,8 @@
 <body>
   <div class="site-loader" id="siteLoader" role="status" aria-live="polite">
     <div class="loader-content">
-      <video id="loaderVideo" class="loader-video" autoplay muted loop playsinline preload="metadata" aria-hidden="true" hidden>
-        <source src="assets/loading/pair-of-dice-red.mp4" type="video/mp4">
+      <video id="loaderVideo" class="loader-video" autoplay muted loop playsinline preload="auto" aria-hidden="true" hidden>
+        <source src="assets/loading/pair-of-dice-original-red-outline.mp4" type="video/mp4">
       </video>
       <img id="loaderLogo" class="loader-logo" alt="" hidden>
       <div class="loader-mark loader-composition" id="loaderMark" aria-hidden="true">
@@ -161,6 +161,7 @@
         });
       };
       video.addEventListener("canplay", showVideo, { once: true });
+      video.load();
       video.addEventListener("error", () => {
         video.hidden = true;
         $("siteLoader").classList.remove("loader-has-video");
