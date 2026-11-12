@@ -357,6 +357,11 @@
     viewer.setAttribute("orbit-sensitivity", "0.9");
     viewer.setAttribute("zoom-sensitivity", "0.9");
     viewer.setAttribute("camera-orbit", "35deg 68deg auto");
+    // Team robot CAD exports use Z-up; rotate before framing so all archive
+    // robots stand upright in model-viewer (which assumes Y-up).
+    if (model.year && (model.category === "Season Robots" || model.category === "Robot Subsystems")) {
+      viewer.setAttribute("orientation", "0deg -90deg 0deg");
+    }
     if (model.thumbnail) viewer.setAttribute("poster", safeImagePath(model.thumbnail));
 
     const media = window.matchMedia ? window.matchMedia("(max-width: 700px)") : {matches:false};
