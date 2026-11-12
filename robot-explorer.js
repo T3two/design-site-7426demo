@@ -644,6 +644,80 @@ function mount(host,year,models,loadPackedModel){
     scene.add(group);
     return group;
   };
+  // Whole-robot choreography uses the full CAD assembly, not a miniature
+  // proxy. A ground-level pivot moves the drivetrain and every mechanism
+  // together. Named children are articulated and restored without changing
+  // the source GLBs.
+  const stageRobot=()=>{
+    if(!full?.group||!fullBounds)throw Error("Full robot CAD not loaded");
+    const root=full.group;
+    const home={
+      position:root.position.clone(),
+      quaternion:root.quaternion.clone(),
+      scale:root.scale.clone()
+    };
+    const base=fullBounds.getCenter(new THREE.Vector3());
+    base.y=0;
+    const chassis=new THREE.Group();
+    chassis.name="Whole robot - driving and turning";
+    chassis.position.copy(base);
+    scene.add(chassis);
+    chassis.attach(root);
+    const connections=[];
+    const articulate=(names,pivot)=>{
+      const nodes=names.map(name=>root.getObjectByName(name)).filter(Boolean);
+      if(!nodes.length)return null;
+      chassis.updateMatrixWorld(true);
+      const joint=new THREE.Group();
+      joint.name=names.join(" / ")+" motion joint";
+      chassis.add(joint);
+      joint.position.copy(chassis.worldToLocal(pivot.clone()));
+      joint.updateMatrixWorld(true);
+      nodes.forEach(node=>{
+        connections.push({
+          node,parent:node.parent,position:node.position.clone(),
+          quaternion:node.quaternion.clone(),scale:node.scale.clone()
+        });
+        joint.attach(node);
+      });
+      return joint;
+    };
+    const restore=()=>{
+      chassis.position.copy(base);
+      chassis.rotation.set(0,0,0);
+      chassis.updateMatrixWorld(true);
+      for(const link of connections){
+        link.parent.add(link.node);
+        link.node.position.copy(link.position);
+        link.node.quaternion.copy(link.quaternion);
+        link.node.scale.copy(link.scale);
+      }
+      scene.add(root);
+      root.position.copy(home.position);
+      root.quaternion.copy(home.quaternion);
+      root.scale.copy(home.scale);
+      scene.remove(chassis);
+      root.updateMatrixWorld(true);
+    };
+    return {chassis,base,root,articulate,restore};
+  };
+  const removeProp=prop=>{
+    if(!prop)return;
+    scene.remove(prop);
+    prop.traverse(node=>{
+      node.geometry?.dispose();
+      if(Array.isArray(node.material))node.material.forEach(m=>m.dispose());
+      else node.material?.dispose();
+    });
+  };
+  const followRobot=(center,forward=.0)=>{
+    if(!camera||!orbit)return;
+    const aim=center.clone().add(new THREE.Vector3(0,.37,forward));
+    const eye=aim.clone().add(new THREE.Vector3(2.35,1.63,2.9));
+    camera.position.lerp(eye,.048);
+    orbit.target.lerp(aim,.055);
+  };
+
   const runFuel=()=>{
     if(!active||year!=="2026")return;
     const rig=ensureTurretRig();
