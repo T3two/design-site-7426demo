@@ -2,42 +2,42 @@
 
 **Pair of Dice · FRC 7426 · REBUILT**
 
-The team's uploaded *2025–2026 RICOCHET Technical Binder* documents this robot. Original PDF is included in the downloadable full-project ZIP; it has not yet been uploaded to the GitHub review branch.
+RICOCHET was designed around moving fuel quickly and keeping the robot adaptable. Its main systems include a swerve drivetrain, over-bumper intake, extendable hopper, feeder, turret shooter, and climber.
 
 {{model:robot-2026-assembly}}
 
-## Overview and strategy
+## Strategy and packaging
 
-The binder describes a swerve-drive robot with over-bumper intake, extendable hopper, feeder, turret shooter, and climber. The hopper is designed to retract for passing under the trench while holding fuel (binder pp. 4–11).
+The extendable hopper was designed to retract so RICOCHET could travel beneath the trench while still carrying fuel. Several mechanisms were developed as modules, making it easier to work on a subsystem without rebuilding the whole robot.
 
 ## Drivetrain
 
-SDS MK5N swerve modules with R3 reduction, 4-inch wheels, Kraken X60 drive and X44 steering motors, and a 27 × 27-inch chassis (p. 5).
+RICOCHET uses SDS MK5N swerve modules with an R3 reduction and 4-inch wheels. Kraken X60 motors handle drive, while X44 motors handle steering. The chassis measures 27 × 27 inches.
 
 ## Intake and hopper
 
-The intake uses a Kraken X60-driven 1.5-inch polycarbonate roller and two X60 pivot motors. The extendable hopper uses cabinet drawer slides and bearings to reduce friction (pp. 6–7).
+The over-bumper intake uses a Kraken X60-driven, 1.5-inch polycarbonate roller and two X60 pivot motors. The hopper extends on cabinet drawer slides, with bearings to reduce friction as it moves.
 
 ## Feeder
 
-Five guide belts and spinning blades feed fuel toward the shooter (p. 8).
+Five guide belts and spinning blades move fuel toward the shooter.
 
 ## Turret and shooter
 
-A 370-degree turret, three Limelights, and a 40.125-degree fixed shooter hood are documented. The flywheel is described as an 8 lb, 4-inch brass wheel (pp. 9–10).
+A 370-degree turret works with three Limelight cameras. The shooter has a fixed 40.125-degree hood and an 8-pound, 4-inch brass flywheel.
 
 ## Climber
 
-30-inch maximum extension and an X60 motor with 45:1 gearing (p. 11).
+The climber reaches up to 30 inches of extension, driven by a Kraken X60 motor through 45:1 gearing.
 
-## Electrical system and software
+## Electrical and software
 
-*Full wiring diagram and source-code documentation pending.*
+The wiring layout, control architecture, and autonomous routines will be added as those details are prepared for the archive.
 
-## Design decisions and lessons learned
+## What we changed
 
-The binder details modular prototyping, changing shooter compression, removing pulleys, improving intake stability, and adding backrollers after an Arizona event (pp. 14–18).
+RICOCHET went through several rounds of prototyping and testing. The team adjusted shooter compression, removed pulleys, strengthened the intake, and added backrollers after a competition in Arizona. Those revisions shaped how the mechanisms came together.
 
-## Binder and photos
+## What we'd document next
 
-The complete 19-page technical binder, including its original diagrams, is included in the downloadable project ZIP. Its upload to the public repository is still pending.
+More close-up CAD views, build photos, manufacturing notes, and the testing behind each major design decision would help show how RICOCHET evolved.
