@@ -588,6 +588,20 @@ function mount(host,year,models,loadPackedModel){
       end
     );
     const balls=[makeFuel(),makeFuel(),makeFuel()];
+    // Bright 3D persistence trails reinforce the direction and rhythm of each
+    // shot; these are rendered inside the WebGL scene, not CSS dots on top.
+    const trailShape=new THREE.SphereGeometry(.014,8,6);
+    const trails=balls.map(()=>Array.from({length:9},(_,j)=>{
+      const material=new THREE.MeshBasicMaterial({
+        color:j<3?0xffe799:0xffbc42,transparent:true,
+        opacity:Math.max(.06,.38-j*.036),depthWrite:false,
+        blending:THREE.AdditiveBlending
+      });
+      const dot=new THREE.Mesh(trailShape,material);
+      dot.scale.setScalar(Math.max(.28,1-j*.08));
+      scene.add(dot);
+      return dot;
+    }));
     const target=makeTarget(end,false);
     const guide=new THREE.Mesh(new THREE.TubeGeometry(path,50,.005,6,false),
       new THREE.MeshBasicMaterial({color:0xffb83e,transparent:true,opacity:.25,depthWrite:false}));
@@ -598,18 +612,31 @@ function mount(host,year,models,loadPackedModel){
       update(now){
         const t=clamp((now-startTime)/duration,0,1);
         demoFill.style.width=(t*100).toFixed(1)+"%";
+        demoStep.textContent=t<.18?"01  /  LOADING FUEL":t<.45?"02  /  LAUNCHING":t<.81?"03  /  FUEL IN FLIGHT":"04  /  SCORING TARGET";
         balls.forEach((ball,i)=>{
           const progress=(now-startTime-380-i*750)/1450;
           ball.visible=progress>=0&&progress<=1;
+          trails[i].forEach((tail,j)=>{
+            const previous=progress-(j+1)*.028;
+            tail.visible=previous>0&&previous<1&&ball.visible;
+            if(tail.visible)tail.position.copy(path.getPoint(previous));
+          });
           if(!ball.visible)return;
           ball.position.copy(path.getPoint(clamp(progress,0,1)));
           ball.rotation.x=progress*13;ball.rotation.z=progress*7;
         });
         target.rotation.y+=.004;
+        const scored=balls.some((_,i)=>{
+          const p=(now-startTime-380-i*750)/1450;
+          return p>.92&&p<1.08;
+        });
+        target.scale.setScalar(scored?1.16:1+.018*Math.sin(now*.007));
         if(t>=1)stopAction();
       },
       clean(){
         balls.forEach(b=>{scene.remove(b);b.traverse(o=>{o.geometry?.dispose();if(o.material&&Array.isArray(o.material))o.material.forEach(m=>m.dispose());else o.material?.dispose();});});
+        trails.forEach(arr=>arr.forEach(dot=>{scene.remove(dot);dot.material.dispose();}));
+        trailShape.dispose();
         scene.remove(target);scene.remove(guide);
         guide.geometry.dispose();guide.material.dispose();
         target.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});
@@ -635,6 +662,7 @@ function mount(host,year,models,loadPackedModel){
       update(now){
         const t=clamp((now-started)/duration,0,1);
         demoFill.style.width=(t*100).toFixed(1)+"%";
+        demoStep.textContent=t<.16?"01  /  ACQUIRE CORAL":t<.46?"02  /  LIFT & TRANSPORT":t<.77?"03  /  ALIGN WITH REEF":"04  /  PLACE & RETRACT";
         const travel=ease(clamp((t-.10)/.72,0,1));
         coral.visible=true;
         coral.position.copy(curve.getPoint(travel));
@@ -664,6 +692,7 @@ function mount(host,year,models,loadPackedModel){
     const direction=new THREE.Vector3(1.45,.90,1.75).normalize();
     await cameraTo(center.clone().add(direction.multiplyScalar(year==="2026"?2.85:2.75)),center.clone().add(new THREE.Vector3(.25,.1,-.25)),650);
     demoHud.hidden=false;
+    demoStep.textContent="00  /  SEQUENCE START";
     demoFill.style.width="0%";
     actionButton.disabled=true;
     actionButton.textContent="●  PLAYING 3D SEQUENCE";
