@@ -870,7 +870,7 @@ function mount(host,year,models,loadPackedModel){
           ball.position.y=p.origin.y+p.slope*p.length*u-
             p.gravityFall*u*u;
           // Drop into the opening after crossing the rim.
-          if(progress>1)ball.position.y-=(progress-1)*.8;
+          if(progress>1)ball.position.y-=(progress-1)*2.2;
           ball.rotation.set(progress*7,progress*3,progress*5);
         });
 
