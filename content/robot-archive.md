@@ -1,7 +1,9 @@
-# Seven seasons. One engineering archive.
+# Our robots, year by year
 
-The supplied archive includes CAD for **2019, 2020, 2022, 2023, 2024, 2025, and 2026**. Each year now has a dedicated tab. The **T-shirt Cannon** is separate.
+We started competing in 2019. This archive collects the CAD we have for seven competition seasons: 2019, 2020, 2022, 2023, 2024, 2025, and 2026.
 
-The complete downloaded ZIP contains optimized 3D models for every supplied season. The GitHub review branch cannot display them until the model files are uploaded to a compatible asset host.
+Open a year below to explore its assembly. For 2026, we also have detailed subsystem notes from our RICOCHET technical binder. Other years have editable sections where the team can add photos, tradeoffs, and lessons as they're verified.
 
-## Choose a year
+The **T-shirt Cannon** is an offseason project and has its own page, separate from the competition archive.
+
+> Large CAD assemblies are downloaded only when you choose to open the viewer. On school computers, some models may need extra time or memory to render.

@@ -27,14 +27,14 @@
   <header class="topbar">
     <a class="brand" href="./" aria-label="Pair of Dice Design home">
       <span class="brand-mark" aria-hidden="true"><span class="dice-face dice-one"></span><span class="dice-face dice-two"></span></span>
-      <span class="brand-copy"><strong id="brandName">PAIR OF DICE DESIGN</strong><small id="brandLabel">FRC TEAM 7426</small></span>
+      <span class="brand-copy"><strong id="brandName">PAIR OF DICE DESIGN</strong><small id="brandLabel">FRC TEAM 7426</small></span><span class="brand-division" aria-hidden="true">ENGINEERING ARCHIVE</span>
     </a>
     <button class="menu-button" id="menuButton" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
   </header>
 
   <div class="layout">
     <aside class="sidebar" id="sidebar">
-      <div class="side-label">ENGINEERING INDEX <span class="side-number">/ 7426</span></div>
+      <div class="side-label"><span>ENGINEERING INDEX</span><span class="side-number">ISSUE / 01</span></div>
       <nav id="navigation" aria-label="Main navigation"></nav>
       <div class="sidebar-note"><strong>PAIR OF DICE / 7426</strong><span>Built to document the decisions behind the machines.</span><a href="https://pairofdice.vegas/" target="_blank" rel="noopener noreferrer">TEAM WEBSITE ↗</a></div>
     </aside>
@@ -44,7 +44,7 @@
         <div class="eyebrow" id="pageEyebrow">PAIR OF DICE ROBOTICS · DESIGN RESOURCES</div>
         <h1 id="pageTitle">Pair of Dice Design</h1>
         <p id="pageDescription">Engineering education, design reasoning, and interactive CAD.</p>
-        <div class="intro-rule"></div><div class="intro-stamp">LAS VEGAS, NV <span>✦</span> FIRST ROBOTICS COMPETITION <span>✦</span> EST. 2019</div>
+        <div class="intro-rule"></div><div class="intro-stamp"><span class="stamp-number">7426 / LAS VEGAS</span><span class="stamp-separator"></span><span>DESIGN • BUILD • DOCUMENT</span></div>
       </section>
 
       <div class="content-shell">
@@ -56,7 +56,7 @@
         </section>
         <footer>
           <div><strong id="footerBrand">PAIR OF DICE ROBOTICS</strong><span> · </span><span>TEAM 7426</span></div>
-          <div class="footer-links"><a href="builder.html">Site Builder (export)</a><a href="?page=sponsors">Sponsors</a><a href="https://pairofdice.vegas/" target="_blank" rel="noopener noreferrer">Team website ↗</a></div>
+          <div class="footer-links"><a href="builder.html">Edit this archive</a><a href="?page=sponsors">Sponsors</a><a href="https://pairofdice.vegas/" target="_blank" rel="noopener noreferrer">Team website ↗</a></div>
         </footer>
       </div>
     </main>
@@ -494,9 +494,72 @@
     });
   }
 
+
+  function renderHomeShowcase(article) {
+    const section = document.createElement("section");
+    section.className = "home-showcase";
+    const heading = document.createElement("div");
+    heading.className = "section-heading";
+    const kicker = document.createElement("span");
+    kicker.textContent = "01 / START EXPLORING";
+    const title = document.createElement("h2");
+    title.textContent = "Inside the workshop";
+    heading.append(kicker, title);
+    section.appendChild(heading);
+
+    const links = [
+      {href: "?page=robot-2026", index: "01", title: "Meet RICOCHET", detail: "2026 / REBUILT — CAD and subsystem notes"},
+      {href: "?page=robot-archive", index: "02", title: "Robot archive", detail: "Seven competition seasons, one evolving record"},
+      {href: "?page=cad-library", index: "03", title: "Explore the CAD", detail: "Assemblies you can rotate, zoom and inspect"},
+      {href: "?page=design-philosophy", index: "04", title: "How we approach design", detail: "Tradeoffs, iteration and practical engineering"}
+    ];
+    const list = document.createElement("div");
+    list.className = "home-link-grid";
+    links.forEach(item => {
+      const link = document.createElement("a"); link.href = item.href; link.className = "home-link";
+      const number = document.createElement("span"); number.className = "home-link-number"; number.textContent = item.index;
+      const name = document.createElement("strong"); name.textContent = item.title;
+      const detail = document.createElement("span"); detail.className = "home-link-detail"; detail.textContent = item.detail;
+      const arrow = document.createElement("span"); arrow.className = "home-link-arrow"; arrow.setAttribute("aria-hidden","true"); arrow.textContent = "↗";
+      link.append(number, name, detail, arrow); list.appendChild(link);
+    });
+    section.appendChild(list);
+    const note = document.createElement("div");
+    note.className = "home-notebook";
+    const accent = document.createElement("span"); accent.className = "notebook-tag"; accent.textContent = "FROM THE DESIGN TABLE";
+    const para = document.createElement("p");
+    para.textContent = "A good robot is more than a finished assembly. It's the sketches, conversations, prototypes and fixes that got it there. This archive is where we keep that story.";
+    note.append(accent, para); section.appendChild(note);
+    article.appendChild(section);
+  }
+
+  function addArticleOutline(article) {
+    const heads = [...article.querySelectorAll("h2")].filter(h => !h.closest(".page-models,.home-showcase,.sponsor-grid"));
+    if (heads.length < 3) return;
+    const outline = document.createElement("nav"); outline.className = "article-outline";
+    outline.setAttribute("aria-label", "On this page");
+    const label = document.createElement("span"); label.textContent = "ON THIS PAGE";
+    label.className = "outline-label"; outline.appendChild(label);
+    const list = document.createElement("div"); list.className = "outline-links";
+    heads.forEach((h,i) => {
+      const id = "section-" + (i+1);
+      h.id = id;
+      const anchor = document.createElement("a"); anchor.href = "#" + id;
+      anchor.textContent = h.textContent.trim(); list.appendChild(anchor);
+    });
+    outline.appendChild(list);
+    const first = article.querySelector("h1");
+    if (first) first.insertAdjacentElement("afterend", outline);
+    else article.prepend(outline);
+  }
+
   function renderRobotsPage(article) {
     const section = document.createElement("section");
     section.className = "robot-directory";
+    const intro = document.createElement("p");
+    intro.className = "directory-caption";
+    intro.textContent = "A record of what we built. Choose a season to explore its CAD assembly and engineering notes.";
+    section.appendChild(intro);
     for (const robot of robots) {
       const row = document.createElement("a");
       row.className = "robot-directory-item";
@@ -505,7 +568,8 @@
       const year = document.createElement("span"); year.textContent = robot.season || "SEASON";
       const name = document.createElement("strong"); name.textContent = robot.name || "Robot documentation";
       const status = document.createElement("small"); status.textContent = robot.status || "Documentation in progress";
-      row.append(year, name, status); section.appendChild(row);
+      const arrow = document.createElement("span"); arrow.className = "directory-arrow"; arrow.setAttribute("aria-hidden", "true"); arrow.textContent = "↗";
+      row.append(year, name, status, arrow); section.appendChild(row);
     }
     if (!robots.length) {
       const p = document.createElement("p"); p.className = "empty-note";
@@ -624,7 +688,10 @@
       }
 
       if (meta.id === "sponsors") renderSponsorsPage(content);
+      if (meta.id === "home") renderHomeShowcase(content);
+      if (meta.id.startsWith("robot-") && meta.id !== "robot-archive") addArticleOutline(content);
       if (meta.id === "robot-archive") renderRobotsPage(content);
+      if (meta.id !== "home" && !meta.id.startsWith("robot-")) addArticleOutline(content);
       if (meta.id === "home" && sponsors.length) renderFooterSponsors();
     } catch (error) {
       console.error(error);

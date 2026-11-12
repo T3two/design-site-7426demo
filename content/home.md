@@ -1,22 +1,13 @@
-# Built to build better
+# A notebook for the next build
 
-**The design notebook of Pair of Dice Robotics · FRC 7426 · Las Vegas, Nevada.**
+Pair of Dice Design is the engineering side of Team 7426. It's where we share the ideas behind our robots—not just what the finished machine looks like, but how our designs take shape and change along the way.
 
-Every robot starts with a decision. Explore the engineering principles, CAD assemblies, and documentation behind the machines.
+We're students at Southeast Career Technical Academy in Las Vegas. We build, test, break things, rethink them, and use what we learn on the next iteration.
 
-## Explore the engineering archive
+Some years are documented more thoroughly than others. We'll keep adding CAD, photos, and technical notes as they're verified.
 
-- [Robot technical binders](?page=robot-archive) — season-by-season notebooks and subsystem documentation.
-- [CAD Library](?page=cad-library) — inspect interactive parts and assemblies.
-- [Design Philosophy](?page=design-philosophy) — how we approach tradeoffs.
-- [CAD & FeatureScript](?page=cad-featurescript) — digital design.
-- [Power Transmission](?page=power-transmission) — mechanisms and motion.
-- [Sponsors](?page=sponsors) — supporting student engineering.
+## What you'll find here
 
-## META design principles
+The **robot archive** brings together our competition seasons. Open a year to inspect its interactive CAD and read what we know about the mechanisms. The **design resources** go deeper into CAD, power transmission, motors, and the details that make a mechanism work.
 
-**Manufacturable · Efficient · Thoughtful · Adaptable**
-
-A strong design tells the story behind its constraints, tests, and iterations.
-
-> This technical archive is a student resource. Missing robot-specific documentation is labeled until verified source files are supplied.
+Nothing here is meant to be the one right way to design a robot. It's a record of how our team approaches the problems in front of us.

@@ -4,29 +4,91 @@
     "items": [
       {
         "id": "home",
-        "label": "Overview",
+        "label": "Welcome",
         "file": "home.md",
         "eyebrow": "PAIR OF DICE ROBOTICS · DESIGN RESOURCES",
-        "description": "Engineering education, design reasoning, and interactive CAD.",
-        "title": "Pair of Dice Design"
+        "description": "Our robots, our ideas, and what we learned making them.",
+        "title": "Design starts here"
       }
     ]
   },
   {
-    "label": "DESIGN PRINCIPLES",
+    "label": "THE ROBOT ARCHIVE",
     "items": [
       {
-        "id": "design-philosophy",
-        "label": "Design Philosophy",
-        "file": "design-philosophy.md",
-        "eyebrow": "HOW WE THINK",
-        "description": "The principles behind practical, effective engineering.",
-        "title": "Design Philosophy"
+        "id": "robot-archive",
+        "label": "All seasons",
+        "file": "robot-archive.md",
+        "title": "Robot Archive",
+        "description": "A year-by-year look at the robots we built and the CAD behind them."
+      },
+      {
+        "id": "robot-2026",
+        "label": "2026 — REBUILT",
+        "file": "robot-2026.md",
+        "title": "2026 / REBUILT",
+        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
+        "description": "Interactive CAD assembly and technical documentation."
+      },
+      {
+        "id": "robot-2025",
+        "label": "2025 — REEFSCAPE",
+        "file": "robot-2025.md",
+        "title": "2025 / REEFSCAPE",
+        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
+        "description": "Interactive CAD assembly and technical documentation."
+      },
+      {
+        "id": "robot-2024",
+        "label": "2024 — CRESCENDO",
+        "file": "robot-2024.md",
+        "title": "2024 / CRESCENDO",
+        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
+        "description": "Interactive CAD assembly and technical documentation."
+      },
+      {
+        "id": "robot-2023",
+        "label": "2023 — CHARGED UP",
+        "file": "robot-2023.md",
+        "title": "2023 / CHARGED UP",
+        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
+        "description": "Interactive CAD assembly and technical documentation."
+      },
+      {
+        "id": "robot-2022",
+        "label": "2022 — RAPID REACT",
+        "file": "robot-2022.md",
+        "title": "2022 / RAPID REACT",
+        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
+        "description": "Interactive CAD assembly and technical documentation."
+      },
+      {
+        "id": "robot-2020",
+        "label": "2020 — INFINITE RECHARGE",
+        "file": "robot-2020.md",
+        "title": "2020 / INFINITE RECHARGE",
+        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
+        "description": "Interactive CAD assembly and technical documentation."
+      },
+      {
+        "id": "robot-2019",
+        "label": "2019 — DESTINATION: DEEP SPACE",
+        "file": "robot-2019.md",
+        "title": "2019 / DESTINATION: DEEP SPACE",
+        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
+        "description": "Interactive CAD assembly and technical documentation."
+      },
+      {
+        "id": "tshirt-cannon",
+        "label": "T-shirt Cannon / Offseason",
+        "file": "tshirt-cannon.md",
+        "title": "T-shirt Cannon",
+        "description": "A separate offseason CAD project."
       }
     ]
   },
   {
-    "label": "CAD RESOURCES",
+    "label": "CAD & TOOLS",
     "items": [
       {
         "id": "cad-featurescript",
@@ -68,7 +130,20 @@
     ]
   },
   {
-    "label": "MECHANICAL DESIGN",
+    "label": "HOW WE DESIGN",
+    "items": [
+      {
+        "id": "design-philosophy",
+        "label": "Design Philosophy",
+        "file": "design-philosophy.md",
+        "eyebrow": "HOW WE THINK",
+        "description": "The principles behind practical, effective engineering.",
+        "title": "Design Philosophy"
+      }
+    ]
+  },
+  {
+    "label": "DESIGN REFERENCE",
     "items": [
       {
         "id": "power-transmission",
@@ -93,81 +168,6 @@
         "eyebrow": "MACHINE ELEMENTS",
         "description": "Interfaces, geometry, and mechanical design details.",
         "title": "Gears & Shafts"
-      }
-    ]
-  },
-  {
-    "label": "ROBOT TECHNICAL BINDERS",
-    "items": [
-      {
-        "id": "robot-archive",
-        "label": "All Robot Years",
-        "file": "robot-archive.md",
-        "title": "Robot Archive",
-        "description": "Seven robot CAD models and verified technical documentation."
-      },
-      {
-        "id": "robot-2026",
-        "label": "2026 / REBUILT",
-        "file": "robot-2026.md",
-        "title": "2026 / REBUILT",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "robot-2025",
-        "label": "2025 / REEFSCAPE",
-        "file": "robot-2025.md",
-        "title": "2025 / REEFSCAPE",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "robot-2024",
-        "label": "2024 / CRESCENDO",
-        "file": "robot-2024.md",
-        "title": "2024 / CRESCENDO",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "robot-2023",
-        "label": "2023 / CHARGED UP",
-        "file": "robot-2023.md",
-        "title": "2023 / CHARGED UP",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "robot-2022",
-        "label": "2022 / RAPID REACT",
-        "file": "robot-2022.md",
-        "title": "2022 / RAPID REACT",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "robot-2020",
-        "label": "2020 / INFINITE RECHARGE",
-        "file": "robot-2020.md",
-        "title": "2020 / INFINITE RECHARGE",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "robot-2019",
-        "label": "2019 / DESTINATION: DEEP SPACE",
-        "file": "robot-2019.md",
-        "title": "2019 / DESTINATION: DEEP SPACE",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "tshirt-cannon",
-        "label": "T-shirt Cannon / Offseason",
-        "file": "tshirt-cannon.md",
-        "title": "T-shirt Cannon",
-        "description": "A separate offseason CAD project."
       }
     ]
   },
