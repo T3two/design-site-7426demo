@@ -668,7 +668,7 @@ function mount(host,year,models,loadPackedModel){
     };
     const centerZ=tip.z+.30*Math.cos(35*Math.PI/180);
     const baseY=0;
-    for(const lateral of [-.165,.165]){
+    for(const lateral of [0,.33]){
       const x=tip.x+lateral;
       const stemZ=centerZ;
       tube(new THREE.Vector3(x,baseY,stemZ),
@@ -682,9 +682,9 @@ function mount(host,year,models,loadPackedModel){
       tube(new THREE.Vector3(x,1.55,stemZ),
         new THREE.Vector3(x,1.83,stemZ),.018,steel);
     }
-    // The active branch is centered on the claw, between the two support posts.
+    // The first L3 branch is directly opposite the robot's claw. Both
+    // posts are spaced 33 cm, matching a real REEF face.
     const root=new THREE.Vector3(tip.x,tip.y-.30*direction.y,centerZ);
-    tube(root,tip,.019,steel);
     scene.add(face);
     return {face,base:root,tip:tip.clone(),direction,
       seat:root.clone().addScaledVector(direction,.165)};
