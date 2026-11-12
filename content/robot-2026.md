@@ -18,7 +18,7 @@ RICOCHET is the result of a season spent thinking about more than just scoring. 
 
 ## Explore the CAD
 
-The complete assembly is available below. Select **Load interactive 3D** to inspect the robot from any angle. The site downloads the large assembly only after you request it.
+Explore RICOCHET with a guided 3D camera tour. The full assembly is a larger download, so tap its preview to load it. The smaller subsystem viewers further down the page load as you scroll, then move through four camera angles automatically. Drag to take control, or use **Guided tour** to restart the sequence. These tours show the actual CAD geometry; they do not simulate mechanism movement.
 
 {{model:robot-2026-assembly}}
 
