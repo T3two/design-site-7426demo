@@ -24,11 +24,11 @@
       },
       {
         "id": "robot-2026",
-        "label": "2026 — REBUILT",
+        "label": "2026 — RICOCHET",
         "file": "robot-2026.md",
-        "title": "2026 / REBUILT",
+        "title": "2026 / RICOCHET",
         "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
+        "description": "RICOCHET's subsystems, CAD, strategy, and design iterations."
       },
       {
         "id": "robot-2025",
