@@ -7,7 +7,7 @@
       "markdown": "robot-2026.md",
       "modelId": "robot-2026-assembly",
       "binderPdf": "binders/2026-ricochet-technical-binder.pdf",
-      "status": "CAD and binder supplied; hosting pending"
+      "status": "CAD available · detailed binder notes"
     },
     {
       "season": "2025",
@@ -16,7 +16,7 @@
       "markdown": "robot-2025.md",
       "modelId": "robot-2025-assembly",
       "binderPdf": null,
-      "status": "CAD supplied; hosting pending"
+      "status": "CAD available · notes in progress"
     },
     {
       "season": "2024",
@@ -25,7 +25,7 @@
       "markdown": "robot-2024.md",
       "modelId": "robot-2024-assembly",
       "binderPdf": null,
-      "status": "CAD supplied; hosting pending"
+      "status": "CAD available · notes in progress"
     },
     {
       "season": "2023",
@@ -34,7 +34,7 @@
       "markdown": "robot-2023.md",
       "modelId": "robot-2023-assembly",
       "binderPdf": null,
-      "status": "CAD supplied; hosting pending"
+      "status": "CAD available · notes in progress"
     },
     {
       "season": "2022",
@@ -43,7 +43,7 @@
       "markdown": "robot-2022.md",
       "modelId": "robot-2022-assembly",
       "binderPdf": null,
-      "status": "CAD supplied; hosting pending"
+      "status": "CAD available · notes in progress"
     },
     {
       "season": "2020",
@@ -52,7 +52,7 @@
       "markdown": "robot-2020.md",
       "modelId": "robot-2020-assembly",
       "binderPdf": null,
-      "status": "CAD supplied; hosting pending"
+      "status": "CAD available · notes in progress"
     },
     {
       "season": "2019",
@@ -61,7 +61,7 @@
       "markdown": "robot-2019.md",
       "modelId": "robot-2019-assembly",
       "binderPdf": null,
-      "status": "CAD supplied; hosting pending"
+      "status": "CAD available · notes in progress"
     }
   ]
 }
