@@ -31,6 +31,42 @@
       ]
     }
   };
+  // Bounds measured from the uploaded GLBs (meters, Z-up). Their centers
+  // are in the same robot coordinate frame as the complete CAD.
+  const PART_BOUNDS = {
+    "2026": {
+      drivetrain:[[0,0,.0348],[.6985,.6985,.1585]],
+      intake:[[0,-.2174,.2479],[.6985,.2857,.4957]],
+      hopper:[[0,-.1986,.2727],[.6858,.3214,.4333]],
+      "feeder-queuer":[[.0006,0,.2057],[.6923,.635,.4752]],
+      turret:[[-.0486,.1528,.3437],[.4477,.3755,.3413]],
+      shooter:[[-.0017,.1821,.4049],[.2832,.3224,.2002]],
+      climber:[[.2627,.1588,.2484],[.1731,.3682,.4968]],
+      bumpers:[[0,0,.0603],[.8668,.8699,.127]]
+    },
+    "2025": {
+      drivetrain:[[.2477,-.3556,.0936],[.7239,.7239,.2763]],
+      elevator:[[.2476,-.2252,.4983],[.5476,.2353,.9967]],
+      carriage:[[.3047,-.3746,.889],[.232,.254,.1524]],
+      claw:[[.2477,-.7162,.9903],[.5684,.5643,.2313]],
+      climber:[[-.1145,-.3548,.2984],[.4251,.4714,.5969]],
+      bumpers:[[.2476,-.3556,.0603],[.8922,.889,.127]]
+    }
+  };
+  // Exported GLBs are Z-up. X-axis pitch -90 degrees makes them upright.
+  // Camera targets use world Y-up, so source [x,y,z] becomes [x,z,-y].
+  const pointFor=(year,system)=>{
+    const bounds=PART_BOUNDS[String(year)]?.[system];
+    const p=bounds?.[0] || [0,0,0];
+    return [p[0],p[2],-p[1]];
+  };
+  const targetFor=point=>point.map(n=>Number(n).toFixed(4)+"m").join(" ");
+  const radiusFor=(year,system)=>{
+    const ext=PART_BOUNDS[String(year)]?.[system]?.[1] || [1,1,1];
+    return Math.max(.58,Math.min(1.65,Math.max(...ext)*1.95));
+  };
+  const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+
   const make = (tag,cls,text) => {
     const node=document.createElement(tag);
     if(cls)node.className=cls;
@@ -53,6 +89,8 @@
     let fullBusy=false;
     let fullObjectUrl=null;
     let demoTimer=null;
+    let fullPromise=null;
+    let transitionBusy=false;
 
     root.className="robot-workbench";
     root.id="robot-explorer";
@@ -91,6 +129,8 @@
       v.setAttribute("exposure","1.1");
       v.setAttribute("interaction-prompt","none");
       v.setAttribute("camera-orbit","40deg 65deg auto");
+      v.setAttribute("orientation","0deg -90deg 0deg");
+      v.setAttribute("interpolation-decay","110");
       v.setAttribute("interaction-prompt-style","basic");
       v.setAttribute("loading","eager");
     });
@@ -233,90 +273,187 @@
       if(customElements.get("model-viewer"))return;
       await Promise.race([customElements.whenDefined("model-viewer"),new Promise((_,reject)=>setTimeout(()=>reject(new Error("3D viewer library unavailable.")),12000))]);
     };
+    // Load the complete CAD once. Keep it in memory when browsing subassemblies.
+    const ensureFull=()=>{
+      if(fullReady)return Promise.resolve();
+      if(fullPromise)return fullPromise;
+      fullBusy=true;
+      fullPromise=(async()=>{
+        await ensureElement();
+        const url=assembly.packed
+          ? await loadPackedModel(assembly,state.lastChild)
+          : assembly.file;
+        if(assembly.packed)fullObjectUrl=url;
+        const waiting=waitForModel(fullView);
+        fullView.src=url;
+        await waiting;
+        fullReady=true;
+        fullView.cameraOrbit="40deg 65deg auto";
+        fullView.cameraTarget="auto auto auto";
+      })().finally(()=>{
+        fullBusy=false;
+        if(!fullReady)fullPromise=null;
+      });
+      return fullPromise;
+    };
+
+    // The selected mechanism occupies its original location in the complete
+    // robot coordinate system. Dolly toward that real 3D point before fading.
+    const focusCamera=(viewer,system,near=false)=>{
+      const point=pointFor(year,system);
+      viewer.cameraTarget=targetFor(point);
+      const radius=radiusFor(year,system)*(near?.80:1.22);
+      viewer.cameraOrbit="40deg 63deg "+radius.toFixed(3)+"m";
+    };
+
+    const revealFull=()=>{
+      overlay.hidden=true;
+      root.classList.add("show-full");
+      root.classList.remove("show-isolated");
+      clearBusy();
+    };
+
     const openFull=async()=>{
-      // Repeated taps during a long full-robot download should not cancel the
-      // in-flight request without creating a replacement.
-      if(fullBusy && current==="full") return;
       const token=++seq;
+      const from=current;
       current="full";
       setActive("full");
       updateDetail("full");
       stopDemo();
-      if(fullReady){
-        root.classList.remove("show-isolated");
-        root.classList.add("show-full");
-        clearBusy();
-        overlay.hidden=true;
-        return;
-      }
-      if(fullBusy){
-        showBusy("Finishing full-robot CAD download…");
-        const retry=()=>{
+      if(!fullReady){
+        showBusy("Preparing full robot CAD…");
+        try{
+          await ensureFull();
           if(token!==seq)return;
-          if(fullReady){root.classList.remove("show-isolated");root.classList.add("show-full");overlay.hidden=true;clearBusy();}
-          else if(!fullBusy)openFull();
-          else setTimeout(retry,250);
-        };
-        retry();
-        return;
-      }
-      fullBusy=true;
-      showBusy("Preparing full robot CAD…");
-      try {
-        await ensureElement();
-        const url=assembly.packed?await loadPackedModel(assembly,state.lastChild):assembly.file;
-        if(assembly.packed)fullObjectUrl=url;
-        const result=waitForModel(fullView);
-        fullView.src=url;
-        await result;
-        fullReady=true;
-        if(token===seq){
-          overlay.hidden=true;
-          root.classList.add("show-full");
-          root.classList.remove("show-isolated");
+          revealFull();
+          status.textContent="Drag to rotate · scroll or pinch to zoom";
+        }catch(error){
+          if(token!==seq)return;
           clearBusy();
-          status.textContent="Drag to rotate · pinch or scroll to zoom";
-        }
-      }catch(error){
-        if(token===seq){
-          status.textContent="Unable to open full CAD: "+error.message;
-          overlay.querySelector("p").textContent="The assembly couldn't be loaded: "+error.message;
+          status.textContent="Unable to open CAD: "+error.message;
+          overlay.querySelector("p").textContent="The complete model could not load: "+error.message;
           enter.textContent="Retry complete assembly";
           overlay.hidden=false;
         }
-      }finally{fullBusy=false;if(token===seq)clearBusy();}
+        return;
+      }
+      if(from==="full"){revealFull();return;}
+      // Returning to the entire robot: match the isolated camera first, fade
+      // the parent assembly back in, then pull the camera out to its overview.
+      const sameOrbit=isoView.getCameraOrbit?.();
+      if(sameOrbit){
+        fullView.cameraOrbit=[sameOrbit.theta+"rad",sameOrbit.phi+"rad",sameOrbit.radius+"m"].join(" ");
+        const point=pointFor(year,from);
+        fullView.cameraTarget=targetFor(point);
+        fullView.jumpCameraToGoal?.();
+      }
+      root.classList.remove("is-transitioning");
+      root.classList.add("is-returning");
+      revealFull();
+      status.textContent="Returning to the complete robot…";
+      if(!reduce())await delay(650);
+      if(token!==seq)return;
+      fullView.cameraTarget="auto auto auto";
+      fullView.cameraOrbit="40deg 65deg auto";
+      if(!reduce())await delay(1100);
+      if(token!==seq)return;
+      root.classList.remove("is-returning");
+      status.textContent="Drag to rotate · scroll or pinch to zoom";
     };
+
     const openSubsystem=async(system)=>{
       const item=config.components.find(row=>row[0]===system);
       if(!item)return;
       const model=lookup.get("robot-"+year+"-"+system);
-      if(!model){status.textContent="This isolated GLB is not yet available.";return;}
+      if(!model){
+        status.textContent="This subsystem CAD is not yet available.";
+        return;
+      }
       const token=++seq;
+      const from=current;
       current=system;
       setActive(system);
       updateDetail(system);
       overlay.hidden=true;
-      showBusy("Isolating "+item[1]+"…");
-      root.classList.add("is-transitioning");
-      try{
-        await ensureElement();
-        // Existing full model remains in memory for an instant return.
-        const result=waitForModel(isoView);
-        isoView.src=model.file;
-        await result;
-        if(token!==seq)return;
-        isoView.cameraOrbit="40deg 65deg auto";
-        isoView.cameraTarget="auto auto auto";
-        root.classList.add("show-isolated");
-        root.classList.remove("show-full");
-        status.textContent=item[1]+" isolated · drag to inspect";
-        clearBusy();
-      }catch(error){
-        if(token===seq){
+      stopDemo();
+
+      // For the first selection, materialize the full assembly before
+      // isolating anything. This avoids an abrupt jump from a blank stage.
+      if(!fullReady){
+        showBusy("Preparing complete robot for transition…");
+        try{
+          await ensureFull();
+          if(token!==seq)return;
+          revealFull();
+          await delay(reduce()?0:300);
+        }catch(error){
+          if(token!==seq)return;
           clearBusy();
-          status.textContent="Could not isolate "+item[1]+": "+error.message;
+          status.textContent="Unable to open the full robot: "+error.message;
+          overlay.hidden=false;
+          return;
         }
-      }finally{if(token===seq)root.classList.remove("is-transitioning");}
+      }
+
+      if(token!==seq)return;
+      root.classList.remove("is-returning");
+      // When selecting another subsystem, restore a wide view first: visitors
+      // see where the new mechanism sits on the robot.
+      if(from!=="full" && from!==system){
+        root.classList.add("show-full");
+        root.classList.remove("show-isolated");
+        fullView.cameraTarget="auto auto auto";
+        fullView.cameraOrbit="40deg 65deg auto";
+        if(!reduce())await delay(700);
+      }
+
+      if(token!==seq)return;
+      status.textContent="Locating "+item[1].toLowerCase()+" in the full robot…";
+      root.classList.add("is-transitioning");
+      const focus=pointFor(year,system);
+      const firstOrbit="40deg 63deg "+(radiusFor(year,system)*1.22).toFixed(3)+"m";
+      // Simultaneously download the isolated asset while the camera moves.
+      let fetchError=null;
+      const isolation=(async()=>{
+        await ensureElement();
+        const waiting=waitForModel(isoView);
+        isoView.src=model.file;
+        await waiting;
+      })().catch(err=>{fetchError=err;});
+      if(!reduce()){
+        focusCamera(fullView,system,false);
+        await delay(1100);
+      }else{
+        fullView.cameraTarget=targetFor(focus);
+        fullView.cameraOrbit=firstOrbit;
+        fullView.jumpCameraToGoal?.();
+      }
+
+      await isolation;
+      if(token!==seq)return;
+      if(fetchError){
+        root.classList.remove("is-transitioning");
+        fullView.cameraTarget="auto auto auto";
+        fullView.cameraOrbit="40deg 65deg auto";
+        status.textContent="Could not isolate "+item[1]+": "+fetchError.message;
+        return;
+      }
+      // Both canvases now look at exactly the same world-space location, with
+      // identical camera pose. The fade makes the surrounding robot disappear
+      // while the selected assembly stays visually anchored.
+      isoView.cameraTarget=targetFor(focus);
+      isoView.cameraOrbit=firstOrbit;
+      isoView.jumpCameraToGoal?.();
+      root.classList.add("show-isolated");
+      root.classList.remove("show-full");
+      status.textContent=item[1]+" / isolating assembly";
+      if(!reduce())await delay(860);
+      if(token!==seq)return;
+      focusCamera(isoView,system,true);
+      if(!reduce())await delay(650);
+      if(token!==seq)return;
+      root.classList.remove("is-transitioning");
+      status.textContent=item[1]+" isolated · drag to explore";
     };
     enter.addEventListener("click",openFull);
     back.addEventListener("click",openFull);
@@ -324,8 +461,12 @@
     buttons.forEach((btn,system)=>btn.addEventListener("click",()=>openSubsystem(system)));
     reset.addEventListener("click",()=>{
       const viewer=current==="full"?fullView:isoView;
-      viewer.cameraOrbit="40deg 65deg auto";
-      viewer.cameraTarget="auto auto auto";
+      if(current==="full"){
+        viewer.cameraOrbit="40deg 65deg auto";
+        viewer.cameraTarget="auto auto auto";
+      }else{
+        focusCamera(viewer,current,true);
+      }
       if(viewer.jumpCameraToGoal)viewer.jumpCameraToGoal();
     });
     // The reader may jump from a written section straight to the corresponding CAD.
