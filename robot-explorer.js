@@ -809,7 +809,7 @@ function mount(host,year,models,loadPackedModel){
     hubCenter.y=1.83;
     const hub=makeHub(hubCenter);
     const hubTarget=hubCenter.clone();
-    hubTarget.y=1.91;
+    hubTarget.y=1.94;
 
     motion.chassis.position.copy(motion.base).add(startOffset);
     motion.chassis.rotation.y=initialChassisYaw;
@@ -1042,12 +1042,14 @@ function mount(host,year,models,loadPackedModel){
       demoFill.style.width="0%";
       actionButton.disabled=true;
       actionButton.textContent="Playing…";
-      if(year==="2026")runFuel(requestedAim);
-      else runCoral();
       await Promise.all([
         fadeTo(full,1,reduced()?0:650),
         fadeTo(active,0,reduced()?0:520)
       ]);
+      if(ticket!==seq||destroyed)return;
+      // Let the full robot resolve into view before any driving or scoring.
+      if(year==="2026")runFuel(requestedAim);
+      else runCoral();
     }catch(error){
       console.error("Robot scoring demonstration failed:",error);
       if(action)stopAction();
