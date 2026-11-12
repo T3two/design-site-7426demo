@@ -17,6 +17,9 @@
 <body>
   <div class="site-loader" id="siteLoader" role="status" aria-live="polite">
     <div class="loader-content">
+      <video id="loaderVideo" class="loader-video" autoplay muted loop playsinline preload="metadata" aria-hidden="true" hidden>
+        <source src="assets/loading/pair-of-dice-red.mp4" type="video/mp4">
+      </video>
       <img id="loaderLogo" class="loader-logo" alt="" hidden>
       <div class="loader-mark loader-composition" id="loaderMark" aria-hidden="true">
         <div class="loader-wordmark">PAIR OF <span>DICE</span></div>
@@ -145,6 +148,24 @@
       $("loaderLogo").hidden = false;
       $("loaderMark").hidden = true;
       $("loaderLogo").onerror = () => { $("loaderLogo").hidden = true; $("loaderMark").hidden = false; };
+    }
+    const video = $("loaderVideo");
+    if (video) {
+      const showVideo = () => {
+        if (video.readyState < 2) return;
+        video.hidden = false;
+        $("siteLoader").classList.add("loader-has-video");
+        video.play().catch(() => {
+          video.hidden = true;
+          $("siteLoader").classList.remove("loader-has-video");
+        });
+      };
+      video.addEventListener("canplay", showVideo, { once: true });
+      video.addEventListener("error", () => {
+        video.hidden = true;
+        $("siteLoader").classList.remove("loader-has-video");
+      }, { once: true });
+      if (video.readyState >= 2) showVideo();
     }
     if (loading.enabled === false) $("siteLoader").classList.add("loader-disabled");
   }
