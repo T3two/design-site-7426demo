@@ -308,6 +308,33 @@
     }
   }
 
+  // Camera tours work with existing static GLBs. These are views of the real
+  // geometry, not fabricated mechanical motion. Native glTF clips are handled
+  // separately whenever a model actually contains animations.
+  function cameraTourFor(model) {
+    const kind = String(model.id || "").split("-").slice(2).join("-");
+    const detail = {
+      drivetrain: "Chassis, module placement, and packaging",
+      intake: "Intake geometry and mounting arrangement",
+      hopper: "Storage and clearance from adjacent mechanisms",
+      "feeder-queuer": "Fuel transfer path and internal layout",
+      turret: "Rotating assembly and structural support",
+      shooter: "Scoring mechanism packaging and flywheel layout",
+      climber: "Climbing assembly and envelope",
+      elevator: "Elevator structure and moving-stage layout",
+      carriage: "Carriage geometry and connections",
+      claw: "Manipulator geometry and mounting",
+      bumpers: "Bumper construction and frame interfaces"
+    };
+    const focus = detail[kind] || "Robot architecture and subsystem packaging";
+    return [
+      {title:"Assembly overview", detail:focus, orbit:"35deg 68deg auto"},
+      {title:"Around the structure",detail:"Inspect the opposite side and component interfaces",orbit:"150deg 72deg auto"},
+      {title:"Packaging study",detail:"Look down into the model for spatial relationships",orbit:"45deg 18deg auto"},
+      {title:"Lower perspective",detail:"See the underside and mounting details",orbit:"235deg 108deg auto"}
+    ];
+  }
+
   function makeModelCard(model) {
     const card = document.createElement("article");
     card.className = "model-card model-card-modern";
@@ -482,12 +509,164 @@
     const controls = document.createElement("div");
     controls.className = "model-actions model-actions-modern";
 
+    const tourStops = cameraTourFor(model);
+    let tourIndex = 0;
+    let tourPlaying = false;
+    let tourRequested = false;
+    let tourTimer = null;
+    const tourPanel = document.createElement("div");
+    tourPanel.className = "viewer-tour-panel";
+    tourPanel.hidden = true;
+    const tourTop = document.createElement("div");
+    tourTop.className = "viewer-tour-overline";
+    tourTop.textContent = "ENGINEERING / CAMERA TOUR";
+    const tourHeading = document.createElement("strong");
+    tourHeading.textContent = tourStops[0].title;
+    const tourDetail = document.createElement("p");
+    tourDetail.textContent = tourStops[0].detail;
+    const tourProgress = document.createElement("div");
+    tourProgress.className = "viewer-tour-progress";
+    tourProgress.setAttribute("aria-hidden", "true");
+    const tourMarks = tourStops.map(() => {
+      const mark = document.createElement("span");
+      tourProgress.appendChild(mark);
+      return mark;
+    });
+    tourPanel.append(tourTop, tourHeading, tourDetail, tourProgress);
+    viewerWrap.appendChild(tourPanel);
+
+    const tourToggle = document.createElement("button");
+    tourToggle.type = "button";
+    tourToggle.className = "model-icon-control model-tour-toggle";
+    tourToggle.textContent = "▶ Guided tour";
+    tourToggle.title = "Animate the camera around this CAD model";
+    tourToggle.setAttribute("aria-pressed", "false");
+    const tourPrevious = document.createElement("button");
+    tourPrevious.type = "button";
+    tourPrevious.className = "model-icon-control model-tour-step";
+    tourPrevious.textContent = "‹";
+    tourPrevious.title = "Previous camera view";
+    tourPrevious.setAttribute("aria-label", "Previous camera view");
+    const tourNext = document.createElement("button");
+    tourNext.type = "button";
+    tourNext.className = "model-icon-control model-tour-step";
+    tourNext.textContent = "›";
+    tourNext.title = "Next camera view";
+    tourNext.setAttribute("aria-label", "Next camera view");
+
+    const applyTourStop = () => {
+      const shot = tourStops[tourIndex];
+      viewer.removeAttribute("auto-rotate");
+      viewer.setAttribute("interpolation-decay", "220");
+      viewer.cameraTarget = "auto auto auto";
+      viewer.cameraOrbit = shot.orbit;
+      tourPanel.hidden = false;
+      tourHeading.textContent = String(tourIndex + 1).padStart(2,"0") + " / " + shot.title;
+      tourDetail.textContent = shot.detail;
+      tourMarks.forEach((mark,index) => mark.classList.toggle("is-active",index === tourIndex));
+    };
+    const pauseTour = () => {
+      tourPlaying = false;
+      tourRequested = false;
+      if (tourTimer !== null) clearTimeout(tourTimer);
+      tourTimer = null;
+      tourToggle.textContent = "▶ Guided tour";
+      tourToggle.setAttribute("aria-pressed","false");
+    };
+    const scheduleTour = () => {
+      if (tourTimer !== null) clearTimeout(tourTimer);
+      if (!tourPlaying) return;
+      tourTimer = setTimeout(() => {
+        if (!tourPlaying || !card.isConnected) {pauseTour(); return;}
+        tourIndex = (tourIndex + 1) % tourStops.length;
+        applyTourStop();
+        scheduleTour();
+      }, 4300);
+    };
+    const playTour = () => {
+      if (model.hosted === false) return;
+      if (!card.classList.contains("model-loaded")) {
+        tourRequested = true;
+        startLoad();
+        tourToggle.textContent = "Preparing tour…";
+        return;
+      }
+      tourRequested = false;
+      tourPlaying = true;
+      tourToggle.textContent = "Ⅱ Pause tour";
+      tourToggle.setAttribute("aria-pressed","true");
+      applyTourStop();
+      scheduleTour();
+    };
+    tourToggle.addEventListener("click", () => tourPlaying ? pauseTour() : playTour());
+    const stepTour = delta => {
+      pauseTour();
+      tourIndex = (tourIndex + delta + tourStops.length) % tourStops.length;
+      if (!card.classList.contains("model-loaded")) startLoad();
+      applyTourStop();
+    };
+    tourPrevious.addEventListener("click", () => stepTour(-1));
+    tourNext.addEventListener("click", () => stepTour(1));
+    // Hands-on orbiting always wins over an automated camera move.
+    viewer.addEventListener("pointerdown", pauseTour);
+    viewer.addEventListener("wheel", pauseTour, {passive:true});
+    viewer.addEventListener("keydown", pauseTour);
+    viewer.addEventListener("error", pauseTour);
+    viewer.addEventListener("load", () => {
+      if (tourRequested) playTour();
+      // GLB-native mechanism animation, if the asset author included it.
+      const clips = Array.isArray(viewer.availableAnimations) ? viewer.availableAnimations : [];
+      if (clips.length) {
+        nativeMotion.hidden = false;
+        nativeMotion.textContent = "▶ Mechanism motion";
+        if (clips.length > 1) {
+          clipPicker.hidden = false;
+          clipPicker.replaceChildren();
+          clips.forEach(name => {
+            const option = document.createElement("option");
+            option.value = name;
+            option.textContent = name;
+            clipPicker.appendChild(option);
+          });
+        }
+      }
+    });
+
+    controls.append(tourToggle, tourPrevious, tourNext);
+    const nativeMotion = document.createElement("button");
+    nativeMotion.type = "button";
+    nativeMotion.className = "model-icon-control model-motion-toggle";
+    nativeMotion.hidden = true;
+    nativeMotion.textContent = "▶ Mechanism motion";
+    const clipPicker = document.createElement("select");
+    clipPicker.className = "model-motion-select";
+    clipPicker.setAttribute("aria-label","Choose CAD motion clip");
+    clipPicker.hidden = true;
+    clipPicker.addEventListener("change", () => {
+      viewer.animationName = clipPicker.value;
+      if (!viewer.paused) viewer.play();
+    });
+    nativeMotion.addEventListener("click", () => {
+      if (viewer.paused) {
+        pauseTour();
+        if (clipPicker.value) viewer.animationName = clipPicker.value;
+        viewer.play();
+        nativeMotion.textContent = "Ⅱ Pause mechanism";
+      } else {
+        viewer.pause();
+        nativeMotion.textContent = "▶ Mechanism motion";
+      }
+    });
+    controls.append(nativeMotion,clipPicker);
+
     const reset = document.createElement("button");
     reset.type = "button";
     reset.className = "model-icon-control";
     reset.textContent = "↺ Reset";
     reset.title = "Reset camera position";
     reset.addEventListener("click", () => {
+      pauseTour();
+      tourPanel.hidden = true;
       viewer.cameraOrbit = "35deg 68deg auto";
       viewer.cameraTarget = "auto auto auto";
       viewer.fieldOfView = "auto";
@@ -501,6 +680,8 @@
     rotate.textContent = automatic && !reducedMotion.matches ? "Ⅱ Pause spin" : "↻ Rotate";
     rotate.setAttribute("aria-pressed", automatic && !reducedMotion.matches ? "true" : "false");
     rotate.addEventListener("click", () => {
+      pauseTour();
+      tourPanel.hidden = true;
       const enabled = !viewer.hasAttribute("auto-rotate");
       if (enabled) viewer.setAttribute("auto-rotate", "");
       else viewer.removeAttribute("auto-rotate");
