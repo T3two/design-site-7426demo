@@ -280,6 +280,8 @@
       }catch(error){
         if(token===seq){
           status.textContent="Unable to open full CAD: "+error.message;
+          overlay.querySelector("p").textContent="The assembly couldn't be loaded: "+error.message;
+          enter.textContent="Retry complete assembly";
           overlay.hidden=false;
         }
       }finally{fullBusy=false;if(token===seq)clearBusy();}
