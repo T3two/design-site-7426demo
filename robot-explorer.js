@@ -170,6 +170,7 @@ function mount(host,year,models,loadPackedModel){
   const subsystemCache=new Map(), subsystemLoading=new Map();
   let fullUrl=null,seq=0,visibility=true, destroyed=false,clock=0;
   let autoSpin=false, showHotspots=true, cameraTween=null, fades=[], action=null;
+  let automaticDemoPlayed=false;
   let lastTime=0,stageSize={w:800,h:530};
   const hotspotsByKey=new Map();
   const cleanupObjects=[];
@@ -524,6 +525,14 @@ function mount(host,year,models,loadPackedModel){
     if(ticket!==seq)return;
     showSelection(key);
     trimCache(key);
+    // The first visit to the game's scoring mechanism brings the story to
+    // life automatically. Playback remains optional with reduced motion.
+    if(key===def.actionSubsystem&&!automaticDemoPlayed&&!reduced()){
+      automaticDemoPlayed=true;
+      setTimeout(()=>{
+        if(!destroyed&&selected===key&&!action)playAction();
+      },500);
+    }
   };
   // Construct believable game pieces as actual meshes inside the 3D scene.
   const makeFuel=()=>{
@@ -726,7 +735,10 @@ function mount(host,year,models,loadPackedModel){
   fullNav.addEventListener("click",()=>choose("full"));
   btnFull.addEventListener("click",()=>choose("full"));
   navButtons.forEach((button,key)=>button.addEventListener("click",()=>choose(key)));
-  actionButton.addEventListener("click",playAction);
+  actionButton.addEventListener("click",()=>{
+    automaticDemoPlayed=true;
+    playAction();
+  });
   btnReset.addEventListener("click",()=>{
     if(!camera)return;
     const item=selected==="full"?null:active;
