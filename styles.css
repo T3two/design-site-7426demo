@@ -759,3 +759,149 @@ article:has(.ricochet-facts) .model-grid{max-width:900px}
   #siteLoader .loader-video { display:block !important; animation:none; }
   #siteLoader .loader-video[hidden]{display:none !important}
 }
+
+
+/* CAD studio viewer — controls are secondary; the model is the primary surface. */
+.model-card-modern {
+  border:1px solid #ded8d3;
+  background:#fff;
+  border-radius:10px;
+  box-shadow:0 12px 35px rgba(34,28,25,.07);
+  overflow:hidden;
+}
+.model-card-modern .viewer-studio {
+  min-height:365px;
+  overflow:hidden;
+  background:
+    radial-gradient(ellipse 72% 65% at 50% 42%,#fff 6%,#f2eeea 65%,#e6e1dd 100%);
+}
+.model-card-modern model-viewer {
+  height:clamp(340px,44vw,520px);
+  background:transparent;
+  --poster-color:transparent;
+  outline:0;
+}
+.model-card-modern .viewer-studio::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  border:1px solid rgba(255,255,255,.55);
+  pointer-events:none;
+}
+.model-card-modern .viewer-state {
+  position:absolute;
+  left:20px;
+  top:19px;
+  z-index:2;
+  border:1px solid rgba(117,93,86,.12);
+  background:rgba(255,255,255,.8);
+  color:#665853;
+  font:700 10px/1.3 "Barlow",sans-serif;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  padding:7px 11px;
+  border-radius:3px;
+  backdrop-filter:blur(9px);
+  pointer-events:none;
+}
+.model-card-modern .viewer-state[hidden]{display:none}
+.model-card-modern .viewer-overlay-actions {
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  z-index:2;
+  pointer-events:none;
+}
+.model-card-modern .viewer-start {
+  pointer-events:auto;
+  border:1px solid #9b2d38;
+  border-radius:4px;
+  background:#a32632;
+  color:white;
+  padding:13px 18px;
+  font:700 13px/1.2 "Barlow",sans-serif;
+  cursor:pointer;
+  box-shadow:0 12px 20px rgba(77,17,23,.18);
+}
+.model-card-modern .viewer-start:hover{background:#7f1d27}
+.model-card-modern .viewer-start[hidden]{display:none}
+.model-card-modern .viewer-busy {
+  position:absolute;
+  inset:0;
+  z-index:4;
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:center;
+  color:#584c48;
+  background:rgba(250,248,246,.89);
+  backdrop-filter:blur(5px);
+  font:650 12px/1.4 "Barlow",sans-serif;
+  pointer-events:none;
+}
+.model-card-modern .viewer-busy[hidden]{display:none}
+.model-card-modern .viewer-error {
+  z-index:4;
+  inset:auto 20px 20px;
+  border:1px solid #e9cccf;
+  border-radius:4px;
+  background:#fff9f9;
+  color:#7f1d27;
+  padding:12px 18px;
+}
+.model-card-modern .viewer-error[hidden]{display:none}
+.model-card-modern .model-info{padding:18px 22px 17px}
+.model-card-modern .model-tag{
+  color:#a32632;
+  font:800 10px/1.2 "Barlow",sans-serif;
+  letter-spacing:.13em;
+}
+.model-card-modern .model-info h3{margin:7px 0 6px}
+.model-card-modern .model-info p{margin:0 0 16px;color:#6b615d}
+.model-card-modern .model-actions-modern{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  border-top:1px solid #ece6e2;
+  padding-top:13px;
+}
+.model-card-modern .model-icon-control,
+.model-card-modern .model-file-link{
+  background:#f8f5f2;
+  border:1px solid #e7e0da;
+  color:#5b514d;
+  padding:7px 10px;
+  border-radius:4px;
+  font:650 12px/1.2 "Barlow",sans-serif;
+  cursor:pointer;
+  text-decoration:none;
+}
+.model-card-modern .model-icon-control:hover,
+.model-card-modern .model-file-link:hover {
+  background:#f7e9e9;
+  border-color:#b9424c;
+  color:#8b242e;
+  text-decoration:none;
+}
+.model-card-modern .model-icon-control:focus-visible,
+.model-card-modern .viewer-start:focus-visible {
+  outline:3px solid #a32632;
+  outline-offset:2px;
+}
+.model-card-modern .model-icon-control[aria-pressed="true"]{
+  background:#f9e9ea;
+  color:#8b242e;
+}
+.model-card-modern .model-file-link:last-child{margin-left:auto}
+@media(max-width:650px){
+  .model-card-modern .viewer-studio{min-height:280px}
+  .model-card-modern model-viewer{height:315px}
+  .model-card-modern .model-info{padding:16px}
+  .model-card-modern .model-icon-control,
+  .model-card-modern .model-file-link{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  .model-card-modern .mini-spinner{animation:none}
+}
