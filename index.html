@@ -392,10 +392,12 @@
       loadButton.hidden = true;
       busy.hidden = false;
       if (!customElements.get("model-viewer")) {
-        customElements.whenDefined("model-viewer").then(() => {
-          if (!card.isConnected) return;
-          loadModel();
-        }).catch(() => setError("3D renderer unavailable."));
+        Promise.race([
+          customElements.whenDefined("model-viewer"),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("3D renderer unavailable")), 12000))
+        ]).then(() => {
+          if (card.isConnected) loadModel();
+        }).catch(() => setError("3D renderer unavailable. Check your connection."));
       } else loadModel();
     };
     const loadModel = async () => {
@@ -411,6 +413,22 @@
             // Let model-viewer fetch once; avoid downloading each GLB twice.
             viewer.src = model.file;
           }
+          // Hold the queue slot until the GPU renderer finishes, so a page
+          // with many subsystems does not start all of them simultaneously.
+          await new Promise(resolve => {
+            let settled = false;
+            const finish = () => {
+              if (settled) return;
+              settled = true;
+              viewer.removeEventListener("load", finish);
+              viewer.removeEventListener("error", finish);
+              clearTimeout(watchdog);
+              resolve();
+            };
+            viewer.addEventListener("load", finish);
+            viewer.addEventListener("error", finish);
+            const watchdog = setTimeout(finish, 120000);
+          });
         });
       } catch (err) {
         console.error("Model loading failed", model.id, err);
