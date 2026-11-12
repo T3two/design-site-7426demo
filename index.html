@@ -612,6 +612,55 @@
     article.append(section);
   }
 
+  async function render2026PhotoGallery(article) {
+    // The photos are uploaded separately from the text-based website changes.
+    // The section remains hidden until its first real asset exists.
+    const dir = "assets/robots/2026/";
+    const photos = [
+      ["robot-overview.jpg", "RICOCHET", "The full robot and the subsystems around its compact frame"],
+      ["intake.jpg", "Intake", "Pivoting intake CAD"],
+      ["hopper.jpg", "Hopper", "Extendable fuel storage"],
+      ["feeder.jpg", "Feeder", "Internal transfer assembly"],
+      ["turret.jpg", "Turret", "Rotating turret and vision mounting"],
+      ["scoring-assembly.jpg", "Scoring assembly", "CAD view of the scoring mechanism"],
+      ["climber.jpg", "Climber", "Compact endgame mechanism"],
+      ["robot-positions.jpg", "Robot positions", "Normal, operating, and climbing configurations"],
+      ["scoring-iterations.jpg", "Scoring iterations", "Earlier design concepts and comparisons"],
+      ["intake-iterations.jpg", "Intake iterations", "Development from first prototypes to final layout"],
+      ["post-arizona.jpg", "Post-Arizona", "Later scoring assembly revision"]
+    ];
+    try {
+      const probe = await fetch(dir + photos[0][0], {method:"HEAD", cache:"no-cache"});
+      if (!probe.ok || !article.isConnected) return;
+      const section = document.createElement("section");
+      section.className = "ricochet-photo-section";
+      section.setAttribute("aria-label", "RICOCHET CAD photo gallery");
+      const kicker = document.createElement("p"); kicker.className = "ricochet-gallery-kicker";
+      kicker.textContent = "DRAWINGS / DEVELOPMENT";
+      const heading = document.createElement("h2"); heading.textContent = "The robot, up close";
+      const intro = document.createElement("p");
+      intro.textContent = "Selected CAD images from our technical documentation. Each view highlights a piece of the robot or an iteration that shaped the final design.";
+      const grid = document.createElement("div"); grid.className = "ricochet-photo-grid";
+      for (const [file, title, caption] of photos) {
+        const figure = document.createElement("figure"); figure.className = "ricochet-photo";
+        const img = document.createElement("img");
+        img.src = dir + file;
+        img.alt = caption;
+        img.loading = "lazy";
+        img.onerror = () => { figure.remove(); };
+        const label = document.createElement("figcaption");
+        const strong = document.createElement("strong"); strong.textContent = title;
+        const small = document.createElement("span"); small.textContent = caption;
+        label.append(strong, small); figure.append(img, label); grid.append(figure);
+      }
+      section.append(kicker, heading, intro, grid);
+      const finalHeading = [...article.querySelectorAll("h2")].find(node => node.textContent.includes("What we'd add next"));
+      if (finalHeading) finalHeading.before(section); else article.append(section);
+    } catch (error) {
+      console.info("Optional 2026 photo gallery not yet published", error);
+    }
+  }
+
   function renderSponsorsPage(article) {
     const section = document.createElement("section");
     section.className = "sponsor-grid";
@@ -724,6 +773,7 @@
       if (meta.id === "home") renderHomeShowcase(content);
       if (meta.id.startsWith("robot-") && meta.id !== "robot-archive") addArticleOutline(content);
       if (meta.id === "robot-archive") renderRobotsPage(content);
+      if (meta.id === "robot-2026") render2026PhotoGallery(content);
       if (meta.id !== "home" && !meta.id.startsWith("robot-")) addArticleOutline(content);
       if (meta.id === "home" && sponsors.length) renderFooterSponsors();
     } catch (error) {
