@@ -18,7 +18,7 @@ const seasons={
       ["climber","Climber","The endgame climbing structure is packaged within a compact robot envelope."],
       ["bumpers","Bumpers","A separate protective structure with mounting interfaces for easier service."]
     ],
-    actionName:"WATCH FUEL LAUNCH", actionSubsystem:"shooter", actionTitle:"FUEL / SCORING SEQUENCE"
+    actionName:"Launch FUEL", actionSubsystem:"shooter", actionTitle:"FUEL / SCORING SEQUENCE"
   },
   "2025":{
     name:"DEADPOOL", season:"REEFSCAPE", hero:"",
@@ -31,7 +31,7 @@ const seasons={
       ["climber","Climber","A dedicated endgame mechanism separated from the main assembly."],
       ["bumpers","Bumpers","Chassis-protection geometry and structural mounting interfaces."]
     ],
-    actionName:"WATCH CORAL PLACEMENT",actionSubsystem:"claw",actionTitle:"CORAL / PLACEMENT SEQUENCE"
+    actionName:"Place CORAL",actionSubsystem:"claw",actionTitle:"CORAL / PLACEMENT SEQUENCE"
   }
 };
 const e=(tag,className,text)=>{
@@ -71,10 +71,9 @@ function mount(host,year,models,loadPackedModel){
   host.dataset.year=String(year);
   const titleBand=e("div","theater-heading");
   const headingCopy=e("div","theater-heading-copy");
-  headingCopy.append(e("span","theater-eyebrow","7426 / INTERACTIVE TECHNICAL BINDER / "+year),
-    e("h2",null,def.name+" / THE ROBOT, EXPLAINED"),e("p",null,def.intro));
-  const headingMark=e("div","theater-heading-mark","ENGINEERING IN MOTION");
-  titleBand.append(headingCopy,headingMark);
+  headingCopy.append(e("span","theater-eyebrow","FRC 7426  /  "+year+"  /  "+def.season),
+    e("h2",null,def.name),e("p",null,def.intro));
+  titleBand.append(headingCopy);
 
   const shell=e("div","theater-shell");
   const stage=e("div","theater-stage");
@@ -88,22 +87,22 @@ function mount(host,year,models,loadPackedModel){
     poster.append(img);
   }else poster.append(e("div","theater-poster-word",def.name));
   const posterShade=e("div","theater-poster-shade");
-  const launch=e("button","theater-launch","ENTER THE 3D EXPERIENCE");
+  const launch=e("button","theater-launch","Open 3D model");
   launch.type="button";
   const posterCaption=e("div","theater-poster-caption");
-  posterCaption.append(e("span",null,"IMMERSIVE CAD ARCHIVE"),e("strong",null,"ONE ROBOT. EVERY SUBSYSTEM."),launch);
+  posterCaption.append(e("strong",null,"Explore the robot"),launch);
   posterShade.append(posterCaption);
   poster.append(posterShade);
   const graphic=e("div","theater-visual-grid");
   const hotspots=e("div","theater-hotspots");
   const hudTop=e("div","theater-hud-top");
-  hudTop.append(e("span","theater-live-tag","●  LIVE CAD SCENE"),e("span","theater-top-year",year+" / "+def.season));
+  hudTop.append(e("span","theater-top-year","CAD / "+year));
   const hudBottom=e("div","theater-hud-bottom");
   const hudLabel=e("div","theater-hud-label");
   const sceneStep=e("span","theater-hud-step","01 / FULL ROBOT");
   const sceneTitle=e("strong",null,def.name+" / COMPLETE ASSEMBLY");
   hudLabel.append(sceneStep,sceneTitle);
-  const hudOrbit=e("div","theater-hud-orbit","DRAG TO ORBIT   ·   SCROLL TO ZOOM");
+  const hudOrbit=e("div","theater-hud-orbit","Drag to rotate · Scroll to zoom");
   hudBottom.append(hudLabel,hudOrbit);
   const loader=e("div","theater-loading");
   loader.hidden=true;
@@ -120,19 +119,19 @@ function mount(host,year,models,loadPackedModel){
   demoHud.append(demoStep,demoTitle,demoTrack);
   viewport.append(canvasHome,graphic,poster,hotspots,hudTop,hudBottom,loader,demoHud);
   const controlsBar=e("div","theater-controls");
-  const btnFull=e("button","theater-tool","← FULL ROBOT");
-  const btnReset=e("button","theater-tool","↺ RESET VIEW");
-  const btnSpin=e("button","theater-tool","↻ AUTO ORBIT");
-  const btnExpand=e("button","theater-tool","⛶ EXPAND");
+  const btnFull=e("button","theater-tool","← Full robot");
+  const btnReset=e("button","theater-tool","Reset view");
+  const btnSpin=e("button","theater-tool","Rotate");
+  const btnExpand=e("button","theater-tool","Expand");
   [btnFull,btnReset,btnSpin,btnExpand].forEach(x=>x.type="button");
   btnFull.disabled=true;
-  const controlNote=e("span","theater-controls-note","TRUE CAD GEOMETRY / INTERACTIVE");
-  controlsBar.append(btnFull,btnReset,btnSpin,btnExpand,controlNote);
+  const controlNote=e("span","theater-controls-note","");
+  controlsBar.append(btnFull,btnReset,btnExpand);
   stage.append(viewport,controlsBar);
 
   const side=e("aside","theater-side");
   const sideHeader=e("div","theater-side-title");
-  sideHeader.append(e("span",null,"EXPLORE / "+year),e("h3",null,"SELECT A MECHANISM"),e("p",null,"Focus the camera, isolate the geometry, then explore its design."));
+  sideHeader.append(e("h3",null,"Subsystems"),e("p",null,"Choose a mechanism to inspect."));
   const nav=e("div","theater-nav");
   nav.setAttribute("role","group");
   nav.setAttribute("aria-label","Robot systems");
@@ -156,24 +155,37 @@ function mount(host,year,models,loadPackedModel){
   deeper.href="#robot-explorer";
   detail.append(detailKicker,detailTitle,detailCopy,deeper);
   const actionPanel=e("div","theater-action-panel");
-  const actionMeta=e("span",null,"3D STORY / SIMULATED GAME PIECE");
-  const actionButton=e("button","theater-action-button","▶  "+def.actionName);
+  const actionMeta=e("span",null,"Motion preview");
+  const actionButton=e("button","theater-action-button",def.actionName);
   actionButton.type="button";
-  const actionDisclaimer=e("p",null,"Illustrative game-piece animation, not verified robot motion or measured scoring performance.");
-  actionPanel.append(actionMeta,actionButton,actionDisclaimer);
+  const actionDisclaimer=e("p",null,"Illustrative motion using the uploaded CAD; angles and timing are not measured.");
+  const aimControls=e("div","theater-aim-controls");
+  const aimCaption=e("label","theater-aim-caption","Turret angle");
+  const aimValue=e("output","theater-aim-value","0°");
+  const aimInput=e("input","theater-aim-slider");
+  aimInput.type="range";
+  aimInput.min="-65";aimInput.max="65";aimInput.step="1";aimInput.value="0";
+  aimInput.setAttribute("aria-label","Illustrative turret yaw angle in degrees");
+  aimControls.append(aimCaption,aimValue,aimInput);
+  aimControls.hidden=true;
+  actionPanel.append(actionMeta,aimControls,actionButton,actionDisclaimer);
   side.append(sideHeader,nav,detail,actionPanel);
   shell.append(stage,side);
   host.replaceChildren(titleBand,shell);
   const footnote=e("p","theater-footnote",
-    "Actual robot CAD is shown. Camera choreography, game-piece paths, and stage props are visual demonstrations, not measured robot kinematics or real match footage.");
+    "Original CAD models. Game-piece paths and animated mechanism motion are illustrative.");
   host.append(footnote);
 
   let mod=null,THREE=null,renderer=null,scene=null,camera=null,orbit=null,gltfLoader=null,studioEnv=null;
   let full=null,fullLoad=null,fullBounds=null,active=null;
   const subsystemCache=new Map(), subsystemLoading=new Map();
   let fullUrl=null,seq=0,visibility=true, destroyed=false,clock=0;
-  let autoSpin=false, showHotspots=true, cameraTween=null, fades=[], action=null;
+  let autoSpin=false, showHotspots=false, cameraTween=null, fades=[], action=null;
   let automaticDemoPlayed=false;
+  let turretRig=null, turretGoal=0, turretTargetAngle=0, turretUserAdjusted=false;
+  // Pivot measured from the 2026 turret's top mounting plate in Z-up CAD
+  // coordinates, converted here to Three.js Y-up world space.
+  const TURRET_PIVOT=[0,0.3048,-0.1841];
   let lastTime=0,stageSize={w:800,h:530};
   const hotspotsByKey=new Map();
   const cleanupObjects=[];
@@ -397,6 +409,10 @@ function mount(host,year,models,loadPackedModel){
         camera.position.copy(orbit.target).add(dir);
       }
       if(action)action.update(now);
+      else if(turretRig){
+        const dt=clamp((now-lastTime)/1000,0,.06);
+        turretRig.rotation.y+=(turretGoal-turretRig.rotation.y)*Math.min(1,dt*7);
+      }
       lastTime=now;
       orbit.update();
       if(!visibility)return;
@@ -480,6 +496,32 @@ function mount(host,year,models,loadPackedModel){
       subsystemCache.delete(key);
     }
   };
+  const ensureTurretRig=()=>{
+    if(year!=="2026"||!active||turretRig)return turretRig;
+    const pivot=new THREE.Vector3(...TURRET_PIVOT);
+    const rig=new THREE.Group();
+    rig.name="Shooter yaw / turret mounting axis";
+    rig.position.copy(pivot);
+    scene.add(rig);
+    scene.updateMatrixWorld(true);
+    rig.attach(active.group);
+    turretRig=rig;
+    turretRig.rotation.y=turretGoal;
+    return rig;
+  };
+  const releaseTurretRig=()=>{
+    if(!turretRig||!scene)return;
+    turretRig.rotation.y=0;
+    turretRig.updateMatrixWorld(true);
+    if(active?.group?.parent===turretRig)scene.attach(active.group);
+    scene.remove(turretRig);
+    turretRig=null;
+    turretGoal=0;
+    turretTargetAngle=0;
+    turretUserAdjusted=false;
+    aimInput.value="0";
+    aimValue.textContent="0°";
+  };
   const stopAction=()=>{
     if(!action)return;
     action.clean();
@@ -488,19 +530,22 @@ function mount(host,year,models,loadPackedModel){
     demoTitle.textContent=def.actionTitle;
     demoFill.style.width="0%";
     actionButton.disabled=false;
-    actionButton.textContent="▶  "+def.actionName;
+    actionButton.textContent=def.actionName;
+    aimInput.disabled=false;
   };
   let selected="full";
   const showSelection=key=>{
+    aimControls.hidden=year!=="2026"||key!=="shooter";
     selectNav(key);
     selected=key;
-    showHotspots=key==="full";
+    showHotspots=false;
     stage.classList.toggle("is-isolated",key!=="full");
   };
   const choose=async key=>{
     if(destroyed)return;
     const ticket=++seq;
     stopAction();
+    if(turretRig && key!=="shooter") releaseTurretRig();
     selectNav(key);
     if(!full){
       try{await loadFull();}
@@ -539,6 +584,7 @@ function mount(host,year,models,loadPackedModel){
     ]);
     if(ticket!==seq)return;
     showSelection(key);
+    if(year==="2026"&&key==="shooter") ensureTurretRig();
     trimCache(key);
     // The first visit to the game's scoring mechanism brings the story to
     // life automatically. Playback remains optional with reduced motion.
@@ -793,6 +839,7 @@ function mount(host,year,models,loadPackedModel){
     if(destroyed)return;
     destroyed=true;
     stopAction();
+    releaseTurretRig();
     cancelCamera();
     fades.forEach(f=>f.resolve());fades=[];
     cleanupObjects.forEach(fn=>fn());
@@ -807,6 +854,13 @@ function mount(host,year,models,loadPackedModel){
   fullNav.addEventListener("click",()=>choose("full"));
   btnFull.addEventListener("click",()=>choose("full"));
   navButtons.forEach((button,key)=>button.addEventListener("click",()=>choose(key)));
+  aimInput.addEventListener("input",()=>{
+    if(year!=="2026"||selected!=="shooter"||action)return;
+    turretUserAdjusted=true;
+    turretGoal=Number(aimInput.value)*Math.PI/180;
+    aimValue.value=aimInput.value+"°";
+    aimValue.textContent=aimValue.value;
+  });
   actionButton.addEventListener("click",()=>{
     automaticDemoPlayed=true;
     playAction();
