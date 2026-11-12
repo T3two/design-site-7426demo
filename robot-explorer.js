@@ -360,7 +360,8 @@ function mount(host,year,models,loadPackedModel){
       if(destroyed||!host.isConnected){destroy();return;}
       requestAnimationFrame(tick);
       clock=now;
-      if(!visibility)return;
+      // Animation promises must resolve even if the viewer is scrolled away
+      // (especially when a mobile user taps a subsystem tab below the stage).
       if(cameraTween){
         const t=clamp((now-cameraTween.start)/cameraTween.duration,0,1);
         const c=ease(t);
@@ -382,6 +383,7 @@ function mount(host,year,models,loadPackedModel){
       if(action)action.update(now);
       lastTime=now;
       orbit.update();
+      if(!visibility)return;
       renderer.render(scene,camera);
       if(++frames%3===0)setAllHotspots();
     };
