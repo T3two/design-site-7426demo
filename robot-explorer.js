@@ -775,6 +775,20 @@ function mount(host,year,models,loadPackedModel){
       });
     });
   }
+  // On capable desktop connections, prepare the entire robot as the reader
+  // scrolls to this section. Phones and data-saving connections retain a clear
+  // opt-in button so a large assembly never silently consumes mobile data.
+  if("IntersectionObserver" in window){
+    const previewObserver=new IntersectionObserver(entries=>{
+      if(!entries.some(x=>x.isIntersecting))return;
+      previewObserver.disconnect();
+      const network=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+      const constrained=network?.saveData||["slow-2g","2g","3g"].includes(network?.effectiveType);
+      if(window.innerWidth>=980&&!constrained)loadFull().catch(()=>{});
+    },{rootMargin:"120px",threshold:.05});
+    previewObserver.observe(host);
+    cleanupObjects.push(()=>previewObserver.disconnect());
+  }
   const observer=new MutationObserver(()=>{
     if(!host.isConnected){observer.disconnect();destroy();}
   });
