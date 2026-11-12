@@ -7,7 +7,7 @@
 const seasons={
   "2026":{
     name:"RICOCHET", season:"REBUILT", hero:"assets/document-image-2.png",
-    intro:"Explore the assembled robot, zoom into real CAD subsystems, and watch an illustrative FUEL scoring sequence.",
+    intro:"The 2026 REBUILT robot. Select a subsystem to inspect its CAD and design notes.",
     pieces:[
       ["drivetrain","Swerve drivetrain","A low four-module chassis with SDS MK5N modules and a 27 × 27-inch frame."],
       ["intake","Over-bumper intake","The pivoting roller intake collects FUEL and transfers it toward storage. Its geometry evolved through testing."],
@@ -22,7 +22,7 @@ const seasons={
   },
   "2025":{
     name:"DEADPOOL", season:"REEFSCAPE", hero:"",
-    intro:"See the full 2025 robot, inspect its mechanisms, and watch an illustrative CORAL placement sequence.",
+    intro:"The 2025 REEFSCAPE robot. Select a subsystem to inspect its CAD and design notes.",
     pieces:[
       ["drivetrain","Drivetrain","View the full drive chassis independently. Detailed motor and gearing specifications remain to be verified."],
       ["elevator","Elevator","The upright mechanism positions the manipulator across different vertical levels."],
@@ -149,9 +149,9 @@ function mount(host,year,models,loadPackedModel){
   });
   const detail=e("div","theater-detail");
   const detailKicker=e("span","theater-detail-kicker","SYSTEM / 00");
-  const detailTitle=e("h4",null,"THE ENTIRE ROBOT");
+  const detailTitle=e("h4",null,"Complete robot");
   const detailCopy=e("p",null,def.intro);
-  const deeper=e("a","theater-read-more","READ THE ENGINEERING CHAPTER ↗");
+  const deeper=e("a","theater-read-more","Read the design notes ↗");
   deeper.href="#robot-explorer";
   detail.append(detailKicker,detailTitle,detailCopy,deeper);
   const actionPanel=e("div","theater-action-panel");
@@ -207,17 +207,17 @@ function mount(host,year,models,loadPackedModel){
     const index=def.pieces.findIndex(p=>p[0]===slug);
     if(index<0){
       detailKicker.textContent="SYSTEM / 00";
-      detailTitle.textContent="THE ENTIRE ROBOT";
+      detailTitle.textContent="Complete robot";
       detailCopy.textContent=def.intro;
       sceneStep.textContent="Full robot";
-      sceneTitle.textContent=def.name+" / COMPLETE ASSEMBLY";
+      sceneTitle.textContent=def.name+" / Complete robot";
     }else{
       const p=def.pieces[index];
       detailKicker.textContent="SYSTEM / "+String(index+1).padStart(2,"0");
-      detailTitle.textContent=p[1].toUpperCase();
+      detailTitle.textContent=p[1];
       detailCopy.textContent=p[2];
       sceneStep.textContent="Subsystem";
-      sceneTitle.textContent=p[1].toUpperCase();
+      sceneTitle.textContent=p[1];
     }
   };
   const cancelCamera=()=>{
