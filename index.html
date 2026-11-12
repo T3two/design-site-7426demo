@@ -817,7 +817,7 @@
   }
 
   function addArticleOutline(article) {
-    const heads = [...article.querySelectorAll("h2")].filter(h => !h.closest(".page-models,.home-showcase,.sponsor-grid"));
+    const heads = [...article.querySelectorAll("h2")].filter(h => !h.closest(".page-models,.home-showcase,.sponsor-grid,.robot-workbench"));
     if (heads.length < 3) return;
     const outline = document.createElement("nav"); outline.className = "article-outline";
     outline.setAttribute("aria-label", "On this page");
