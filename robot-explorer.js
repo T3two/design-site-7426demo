@@ -714,8 +714,10 @@ function mount(host,year,models,loadPackedModel){
     if(!camera||!orbit)return;
     const aim=center.clone().add(new THREE.Vector3(0,.37,forward));
     const eye=aim.clone().add(new THREE.Vector3(2.35,1.63,2.9));
-    camera.position.lerp(eye,.048);
-    orbit.target.lerp(aim,.055);
+    // Lag deliberately behind the drive path so the robot visibly crosses
+    // the workplane instead of remaining artificially locked to screen center.
+    camera.position.lerp(eye,.015);
+    orbit.target.lerp(aim,.016);
   };
 
   const runFuel=(requestedAim=0)=>{
@@ -862,7 +864,7 @@ function mount(host,year,models,loadPackedModel){
     const coral=makeCoral();
     const started=performance.now()+180;
     const duration=8300;
-    let finalPlaced=false;
+
     demoTitle.textContent="Reef approach and CORAL placement";
     demoStep.textContent="Approach the reef";
     action={
@@ -870,7 +872,7 @@ function mount(host,year,models,loadPackedModel){
         const elapsed=Math.max(0,now-started);
         const t=clamp(elapsed/duration,0,1);
         const drive=ease(clamp(elapsed/2100,0,1));
-        const ready=ease(clamp((elapsed-2100)/530,0,1));
+
         const settle=ease(clamp((elapsed-7480)/780,0,1));
         motion.chassis.position.copy(motion.base)
           .addScaledVector(startOffset,1-drive);
@@ -885,7 +887,9 @@ function mount(host,year,models,loadPackedModel){
           (1-ease(clamp((elapsed-6400)/900,0,1)));
         if(lift){
           lift.position.copy(liftRest);
-          lift.position.y-=.34*(1-rise+rise*retract);
+          // Begin lowered, extend for placement, then retract gently.
+          // Finish at the imported CAD pose to avoid a cleanup jump.
+          lift.position.y-=.34*(1-rise)+.11*Math.sin(Math.PI*retract);
           lift.position.z+=.085*reach;
           lift.updateWorldMatrix(true,false);
         }
@@ -898,7 +902,7 @@ function mount(host,year,models,loadPackedModel){
           coral.position.lerpVectors(grip,reefPosition,placement);
           coral.rotation.z=Math.PI/2;
         }else{
-          finalPlaced=true;
+
           coral.position.copy(reefPosition);
           coral.rotation.z=Math.PI/2;
         }
