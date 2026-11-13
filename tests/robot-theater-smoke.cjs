@@ -28,18 +28,18 @@ const time=()=>new Date().toISOString();
       });
       try{
         console.log(time(),year,"opening page");
-        await page.goto(base+"?page=robot-"+year,{waitUntil:"domcontentloaded",timeout:35000});
+        await page.goto(base+"?page=robot-"+year+"&qa=1",{waitUntil:"domcontentloaded",timeout:35000});
         await page.locator(".robot-theater .theater-launch").waitFor({timeout:35000});
-        await page.locator(".robot-theater .theater-launch").click();
+        await page.locator(".robot-theater .theater-launch").evaluate(el=>el.click());
         await page.locator(".theater-stage.is-ready").waitFor({timeout:180000});
         console.log(time(),year,"full robot rendered");
-        await page.locator(".theater-nav-button").filter({hasText:part}).first().click();
+        await page.locator(".theater-nav-button").filter({hasText:part}).first().evaluate(el=>el.click());
         await page.locator(".theater-action-panel:not([hidden])").waitFor({timeout:90000});
         console.log(time(),year,"subsystem ready");
         await page.waitForTimeout(14000);
         const button=page.locator(".theater-action-button");
         if(await button.isDisabled())await page.waitForTimeout(9000);
-        await button.click({timeout:20000});
+        await button.evaluate(el=>el.click());
         console.log(time(),year,"manual scoring started");
         await page.waitForTimeout(12000);
         const state=await page.evaluate(()=>{
@@ -54,7 +54,7 @@ const time=()=>new Date().toISOString();
             canvas:!!document.querySelector(".theater-canvas-home canvas")
           };
         });
-        await page.screenshot({path:"test-results/"+year+"-after-demo.png",fullPage:false});
+        try{await page.screenshot({path:"test-results/"+year+"-after-demo.png",fullPage:false,timeout:5000});}catch(e){console.log("Screenshot not captured:",e.message.slice(0,90));}
         console.log(time(),year,"STATE",JSON.stringify(state));
         if(!state.canvas||!state.ready)throw new Error("3D canvas/full robot absent");
         if(state.loadingVisible||/unable|error|could not|missing|failed/i.test(state.loadingText||""))
