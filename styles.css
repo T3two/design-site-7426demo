@@ -1599,3 +1599,171 @@ article .workbench-jump:hover{background:#f2dddf;text-decoration:none}
 @media(prefers-reduced-motion:reduce){
   .robot-theater .theater-demo-track span{transition:none}
 }
+
+
+/* =======================================================================
+   WELCOME GATEWAY — typography/layout ready for four hand-drawn Ace assets.
+   No generated illustration is installed. See assets/welcome/README.md.
+   ======================================================================= */
+.welcome-gateway[hidden]{display:none!important}
+.welcome-mode .layout{display:block}
+.welcome-mode .sidebar{display:none}
+.welcome-mode .menu-button{display:none!important}
+.welcome-mode .page-intro{display:none}
+.welcome-mode .content-shell{max-width:1200px;margin:auto}
+.welcome-gateway{
+  position:relative;isolation:isolate;display:grid;place-items:center;
+  min-height:clamp(660px,calc(100svh - 79px),900px);
+  background:#f8f4ef;overflow:hidden;
+  border-bottom:5px solid #b12e3b;
+}
+.welcome-scenes{position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr;z-index:0}
+.welcome-scene{position:relative;display:block;min-width:0;overflow:hidden;text-decoration:none;color:#352d2d}
+.welcome-scene:hover,.welcome-scene:focus-visible{text-decoration:none}
+.welcome-scene--design{
+  background:linear-gradient(115deg,#eddad3 0%,#f2e4df 55%,#fbf7f3 100%);
+  border-right:1px solid #d6c3bb;
+}
+.welcome-scene--robot{
+  color:#f7ede8;
+  background:linear-gradient(248deg,#443a3c 0%,#655355 56%,#f4e4da 155%);
+}
+.welcome-scene:after{
+  content:"";position:absolute;inset:clamp(14px,2.9vw,46px);
+  border:1px solid currentColor;opacity:.16;pointer-events:none;
+  clip-path:polygon(0 0,100% 0,100% 77%,85% 100%,0 100%);
+}
+.welcome-scene-heading{
+  position:absolute;top:clamp(27px,4.5vw,74px);left:clamp(27px,4.3vw,70px);right:clamp(20px,4.3vw,60px);
+  display:flex;justify-content:space-between;gap:12px;z-index:3;
+  font:700 clamp(10px,.95vw,14px)/1.4 "Barlow",Arial,sans-serif;letter-spacing:.12em;
+}
+.welcome-scene-heading span{opacity:.6}
+.welcome-scene-caption{
+  position:absolute;bottom:clamp(22px,3vw,47px);left:clamp(27px,4.3vw,70px);z-index:3;
+  font:700 clamp(9px,.86vw,12px)/1.4 "Barlow",Arial,sans-serif;letter-spacing:.12em;opacity:.8;
+}
+.welcome-art{position:absolute;pointer-events:none;display:grid;place-items:center;z-index:1}
+.welcome-art--background{inset:12% 3% 10%;opacity:.86}
+.welcome-art--ace{
+  z-index:2;width:clamp(200px,31vw,510px);height:75%;
+  bottom:8%;left:0;transform-origin:bottom center;
+  transition:transform .45s cubic-bezier(.2,.7,.3,1);
+}
+.welcome-scene--robot .welcome-art--ace{left:auto;right:0}
+.welcome-scene:hover .welcome-art--ace.has-art,
+.welcome-scene:focus-visible .welcome-art--ace.has-art{transform:translateY(-8px)}
+.welcome-art-tag{
+  display:grid;place-items:center;gap:7px;text-align:center;
+  font:800 clamp(10px,1vw,13px)/1.3 "Barlow",Arial,sans-serif;letter-spacing:.13em;
+  padding:18px 24px;border:1px dashed currentColor;opacity:.48;
+}
+.welcome-art-tag small{font:600 10px/1.3 "Barlow",Arial,sans-serif;letter-spacing:.11em}
+.welcome-art--ace:not(.has-art){width:clamp(180px,29vw,420px);height:59%;bottom:13%;left:4%}
+.welcome-scene--robot .welcome-art--ace:not(.has-art){left:auto;right:4%}
+.welcome-art--ace:not(.has-art) .welcome-art-tag{
+  width:min(76%,310px);height:73%;border-radius:45% 45% 6px 6px;border-style:dashed
+}
+.welcome-art.has-art .welcome-art-tag{display:none}
+.welcome-art img{
+  display:block;width:100%;height:100%;object-fit:contain;
+  object-position:bottom center;pointer-events:none;
+}
+.welcome-art--background.has-art{inset:0;opacity:1}
+.welcome-art--background img{object-fit:cover;object-position:center}
+.welcome-center{
+  position:relative;z-index:4;pointer-events:none;text-align:center;
+  width:clamp(320px,30.5vw,460px);max-width:calc(100% - 28px);
+  margin:30px auto;padding:46px clamp(20px,2.2vw,36px) 33px;
+  background:rgba(255,251,247,.95);border:1px solid #e5d5ce;
+  box-shadow:0 22px 70px rgba(52,34,35,.13);
+}
+.welcome-center:before,.welcome-center:after{
+  content:"";position:absolute;height:4px;background:#b12e3b;width:90px;left:calc(50% - 45px)
+}
+.welcome-center:before{top:-2px}
+.welcome-center:after{bottom:-2px}
+.welcome-eyebrow{
+  display:block;color:#8e2b34;
+  font:800 11px/1.5 "Barlow",Arial,sans-serif;letter-spacing:.15em
+}
+.welcome-brandline{display:flex;justify-content:center;align-items:center;gap:12px;color:#9c2c38;margin:15px 0}
+.welcome-brand-die{font:700 34px/1 Arial,sans-serif;color:#252020}
+.welcome-brandline>span:nth-child(2){font:600 14px/1 "Barlow",Arial,sans-serif;opacity:.5}
+.welcome-center h1{
+  margin:0;font:900 clamp(50px,6vw,86px)/.83 var(--display);
+  letter-spacing:.012em;color:#292325;
+}
+.welcome-center h1 strong{display:block;color:#ab2d3a;font-size:1.42em;letter-spacing:.035em}
+.welcome-hello{
+  font:800 13px/1.45 "Barlow",Arial,sans-serif;letter-spacing:.19em;color:#423737;
+  margin:22px 0 25px;
+}
+.welcome-options{display:grid;gap:11px;pointer-events:auto}
+.welcome-option{
+  position:relative;display:grid;grid-template-columns:37px minmax(0,1fr) 18px;
+  align-items:center;gap:8px;text-align:left;
+  min-height:75px;padding:12px 19px 12px 16px;color:#fff;
+  background:#30292b;text-decoration:none;
+  border-left:4px solid #b7313f;
+  transition:transform .2s ease,background .2s ease,box-shadow .2s ease;
+}
+.welcome-option:hover,.welcome-option:focus-visible{
+  background:#a52c38;color:#fff;text-decoration:none;transform:translateX(4px);
+  box-shadow:0 8px 0 rgba(174,46,58,.1);
+}
+.welcome-option-number{font:800 16px/1 var(--display);color:#e8abb0}
+.welcome-option-copy{display:grid;gap:2px}
+.welcome-option-copy strong{font:800 clamp(22px,2.3vw,28px)/1 var(--display);letter-spacing:.05em}
+.welcome-option-copy small{font:500 11px/1.4 "Barlow",Arial,sans-serif;color:#efdfdd}
+.welcome-option-arrow{font:700 24px/1 var(--display);justify-self:end}
+.welcome-prompt{
+  margin:23px 0 0;color:#776765;
+  font:700 10px/1.3 "Barlow",Arial,sans-serif;letter-spacing:.21em
+}
+.welcome-mode .content-shell{padding-top:50px}
+@media(max-width:1100px) and (min-width:781px){
+  .welcome-gateway{min-height:700px}
+  .welcome-center{width:345px;padding:38px 20px 27px}
+  .welcome-center h1{font-size:60px}
+  .welcome-art--ace{width:33vw;height:64%}
+  .welcome-scene-heading{left:23px;right:20px}
+}
+@media(max-width:780px){
+  .welcome-gateway{display:flex;flex-direction:column;min-height:auto}
+  .welcome-center{
+    order:0;width:100%;max-width:none;margin:0;border:0;border-bottom:2px solid #ddcfc8;
+    box-shadow:none;padding:35px 25px 30px;background:#fff9f5
+  }
+  .welcome-center:before,.welcome-center:after{display:none}
+  .welcome-center h1{font-size:clamp(54px,11vw,80px)}
+  .welcome-options{max-width:480px;margin:auto}
+  .welcome-scenes{position:relative;order:1;width:100%;height:clamp(340px,71vw,490px)}
+  .welcome-scene-heading{left:17px;right:13px;top:21px;font-size:10px;letter-spacing:.055em}
+  .welcome-scene-heading span{display:none}
+  .welcome-scene-caption{left:14px;right:12px;bottom:14px;font-size:9px;letter-spacing:.045em}
+  .welcome-art--background{inset:10% 3% 8%}
+  .welcome-art--ace,.welcome-art--ace:not(.has-art){
+    width:92%;height:68%;bottom:11%;left:4%
+  }
+  .welcome-scene--robot .welcome-art--ace,
+  .welcome-scene--robot .welcome-art--ace:not(.has-art){left:auto;right:4%}
+  .welcome-art--ace:not(.has-art) .welcome-art-tag{height:67%;padding:8px}
+  .welcome-art-tag{font-size:9px;padding:7px}
+  .welcome-art-tag small{font-size:8px}
+  .welcome-mode .content-shell{padding-top:30px}
+}
+@media(max-width:390px){
+  .welcome-eyebrow{font-size:9px}
+  .welcome-hello{font-size:11px}
+  .welcome-options{gap:8px}
+  .welcome-option{min-height:68px}
+  .welcome-scenes{height:310px}
+  .welcome-scene-heading{font-size:9px}
+}
+@media(prefers-reduced-motion:reduce){
+  .welcome-art--ace,.welcome-option{transition:none!important}
+  .welcome-scene:hover .welcome-art--ace.has-art,
+  .welcome-scene:focus-visible .welcome-art--ace.has-art{transform:none}
+  .welcome-option:hover,.welcome-option:focus-visible{transform:none}
+}
