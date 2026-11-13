@@ -1,0 +1,24 @@
+name: Review actual-CAD robot poster images
+on:
+  push:
+    branches: ['feature/robot-instant-lod-and-comic-ace']
+    paths: ['.github/workflows/review-cad-posters.yml']
+  workflow_dispatch:
+permissions: {contents: read}
+jobs:
+  collect-posters:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assert all seven CAD posters exist
+        shell: bash
+        run: |
+          set -euo pipefail
+          for year in 2026 2025 2024 2023 2022 2020 2019; do
+            test -s "models/preview/posters/${year}.jpg"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: real-cad-poster-review
+          path: models/preview/posters/*.jpg
+          retention-days: 5
