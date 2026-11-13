@@ -1980,3 +1980,137 @@ html.initial-home .menu-button{display:none!important}
   letter-spacing:.02em;color:#7c454b;
 }
 .robot-theater .theater-explode-note[hidden]{display:none!important}
+
+
+/* Workbench 2.0: engineering tools, not decorative controls. */
+.robot-theater .wb2-tool[aria-pressed="true"]{
+  color:#8d2631;background:#fdf0ef;border-color:#b95c65;
+}
+.robot-theater .wb2-stage-panel{
+  display:grid;grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;gap:8px 14px;padding:10px 16px;
+  background:#faf9f8;border-top:1px solid #e6e1df;
+}
+.robot-theater .wb2-stage-panel[hidden],
+.robot-theater .wb2-history[hidden]{display:none!important}
+.robot-theater .wb2-stage-panel strong,
+.robot-theater .wb2-history-heading strong{
+  font:750 10px/1.4 "Barlow",Arial,sans-serif;
+  letter-spacing:.10em;color:#8b2833;
+}
+.robot-theater .wb2-readout{
+  font:650 12px/1.4 "Barlow",Arial,sans-serif;
+  color:#3c3436;
+}
+.robot-theater .wb2-stage-panel small{
+  grid-column:1/-1;display:block;font:400 10px/1.45 "Barlow",Arial,sans-serif;
+  color:#7b7473;
+}
+.robot-theater .wb2-mini-button{
+  background:#fff;border:1px solid #ddd3d1;color:#5a5050;border-radius:3px;
+  font:650 11px/1.2 "Barlow",Arial,sans-serif;padding:7px 10px;cursor:pointer;
+}
+.robot-theater .wb2-section-panel{
+  grid-template-columns:1fr auto;
+}
+.robot-theater .wb2-section-header{
+  grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.robot-theater .wb2-axis{
+  border:1px solid #dbd2d0;background:#fff;color:#504a4a;border-radius:3px;
+  padding:6px;font:600 11px/1.2 "Barlow",Arial,sans-serif;
+}
+.robot-theater .wb2-section-range{width:100%;accent-color:#a32632}
+.robot-theater .wb2-finder{padding:12px 15px;border-bottom:1px solid #e9e6e4}
+.robot-theater .wb2-finder label{
+  display:grid;gap:6px;font:700 10px/1.3 "Barlow",Arial,sans-serif;
+  color:#6b6261;letter-spacing:.02em;
+}
+.robot-theater .wb2-search{
+  min-width:0;width:100%;border:1px solid #e1d9d6;
+  border-radius:4px;padding:10px 11px;background:#fff;color:#312a2b;
+  font:500 12px/1.3 "Barlow",Arial,sans-serif;letter-spacing:normal;
+}
+.robot-theater .theater-nav-button[hidden]{display:none!important}
+.robot-theater .wb2-tree{border-bottom:1px solid #e9e6e4;}
+.robot-theater .wb2-tree summary{
+  padding:11px 15px;cursor:pointer;
+  color:#393536;font:750 12px/1.4 "Barlow",Arial,sans-serif;
+}
+.robot-theater .wb2-tree[open] summary{border-bottom:1px solid #f0e9e8}
+.robot-theater .wb2-tree-hint{
+  color:#817777;margin:10px 15px;
+  font:450 11px/1.45 "Barlow",Arial,sans-serif;
+}
+.robot-theater .wb2-tree-results{
+  max-height:240px;overflow:auto;padding-bottom:6px;
+  scrollbar-color:#cfc6c5 #fff;
+}
+.robot-theater .wb2-tree-item{
+  display:block;text-align:left;width:100%;
+  background:#fff;border:0;border-bottom:1px solid #f4f0ef;
+  padding:8px 18px;color:#585151;
+  font:550 11px/1.35 "Barlow",Arial,sans-serif;
+  white-space:nowrap;text-overflow:ellipsis;overflow:hidden;cursor:pointer;
+}
+.robot-theater .wb2-tree-item:hover,
+.robot-theater .wb2-tree-item:focus-visible{background:#faf1f0;color:#8b2833}
+.robot-theater .wb2-part-specs{
+  display:grid;grid-template-columns:96px minmax(0,1fr);
+  gap:6px 8px;margin:12px 0 14px;padding-top:11px;
+  border-top:1px solid #e8dedd;
+}
+.robot-theater .wb2-part-specs dt{
+  color:#817475;font:650 10px/1.4 "Barlow",Arial,sans-serif;
+}
+.robot-theater .wb2-part-specs dd{
+  min-width:0;margin:0;color:#393333;
+  font:600 10px/1.45 "Barlow",Arial,sans-serif;overflow-wrap:anywhere;
+}
+.robot-theater .wb2-part-specs .wb2-spec-note{
+  grid-column:1/-1;margin:3px 0 0;color:#877777;
+  font:450 10px/1.5 "Barlow",Arial,sans-serif;
+}
+.robot-theater .wb2-history{
+  border-top:1px solid #e7dfde;
+  background:#fff;padding:15px 17px 16px;
+}
+.robot-theater .wb2-history-heading{display:flex;justify-content:space-between;gap:10px}
+.robot-theater .wb2-history-heading small{
+  font:650 9px/1.4 "Barlow",Arial,sans-serif;color:#9a9090;
+}
+.robot-theater .wb2-history-desc{
+  font:450 11px/1.5 "Barlow",Arial,sans-serif;color:#847d7b;
+  margin:8px 0 12px;
+}
+.robot-theater .wb2-history-items{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}
+.robot-theater .wb2-milestone{
+  min-width:0;text-align:left;background:#f8f7f6;
+  border:1px solid #e8e3e2;border-top:2px solid #d5cccc;
+  color:#6d6364;padding:8px 7px;
+  font:650 10px/1.35 "Barlow",Arial,sans-serif;cursor:pointer;
+}
+.robot-theater .wb2-milestone.is-current{
+  background:#fff8f7;border-top-color:#a32632;
+  color:#892a34;
+}
+.robot-theater .wb2-history-note{
+  min-height:60px;margin:12px 0 8px;
+  color:#4e4647;font:450 11px/1.55 "Barlow",Arial,sans-serif;
+}
+.robot-theater .wb2-history-link{
+  border:0;background:none;padding:4px 0;text-align:left;
+  color:#962c39;font:700 11px/1.35 "Barlow",Arial,sans-serif;
+  cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+}
+.robot-theater .wb2-history-link:hover{color:#6b1f27}
+@media(max-width:750px){
+  .robot-theater .wb2-stage-panel{grid-template-columns:1fr auto;padding:9px 12px}
+  .robot-theater .wb2-stage-panel strong{grid-column:1/-1}
+  .robot-theater .wb2-history{padding:16px}
+  .robot-theater .wb2-history-note{min-height:0}
+  .robot-theater .wb2-tree-results{max-height:190px}
+}
+@media(prefers-reduced-motion:reduce){
+  .robot-theater .wb2-milestone{transition:none}
+}
