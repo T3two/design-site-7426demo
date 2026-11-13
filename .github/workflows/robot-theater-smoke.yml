@@ -7,6 +7,7 @@ on:
       - 'styles.css'
       - 'assets/welcome/**'
       - 'tests/welcome-startup-smoke.cjs'
+      - 'tests/fast-robot-preview.cjs'
       - 'tests/robot-theater-smoke.cjs'
       - '.github/workflows/robot-theater-smoke.yml'
   workflow_dispatch:
@@ -30,6 +31,8 @@ jobs:
           sleep 3
       - name: Verify instant welcome paint (desktop and mobile)
         run: node tests/welcome-startup-smoke.cjs
+      - name: Verify fast real CAD models for all seven seasons
+        run: node tests/fast-robot-preview.cjs
       - name: Exercise both 3D scoring sequences in Chromium
         run: node tests/robot-theater-smoke.cjs
       - name: Attach screenshots and browser errors
