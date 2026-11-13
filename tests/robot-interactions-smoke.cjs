@@ -6,6 +6,11 @@ async function verifyYear(browser,year,subsystem){
  page.on('pageerror',e=>errors.push(String(e.stack||e)));
  try{
   await page.goto(BASE+'?page=robot-'+year+'&qa=1&perf=1',{waitUntil:'domcontentloaded',timeout:35000});
+  await page.locator('.robot-theater').waitFor({state:'attached',timeout:30000});
+  await page.locator('.theater-viewport').scrollIntoViewIfNeeded();
+  const launch=page.locator('.theater-launch');
+  if(!await page.locator('.theater-stage.is-ready').count()&&await launch.isVisible())
+    await launch.evaluate(el=>el.click());
   await page.locator('.theater-stage.is-ready').waitFor({timeout:80000});
   const stage=page.locator('.theater-stage');
   const sub=page.locator('.theater-nav-button').filter({hasText:new RegExp(subsystem,'i')}).first();
@@ -51,6 +56,9 @@ async function verifyYear(browser,year,subsystem){
   if(!/Show all/i.test(await page.locator('.theater-part-isolate').innerText()))
     throw Error('Part visibility controls failed');
   await page.locator('.theater-part-isolate').click();
+  const fs=require('fs');
+  fs.mkdirSync('test-results',{recursive:true});
+  await page.locator('.theater-stage').screenshot({path:'test-results/'+year+'-cad-inspected.png',timeout:15000}).catch(error=>console.warn('Screenshot:',error.message));
   await page.locator('.theater-part-close').click();
   if(await page.locator('.theater-part-inspector:not([hidden])').count())
     throw Error('Inspector did not close');
