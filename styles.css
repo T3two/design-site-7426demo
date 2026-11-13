@@ -1832,3 +1832,5 @@ html.initial-home .menu-button{display:none!important}
 @media(max-width:780px){
  html.initial-home .welcome-gateway:not([hidden]){display:flex}
 }
+
+@media(max-width:780px){body.welcome-mode .welcome-gateway:not([hidden]){display:flex}}
