@@ -9,7 +9,10 @@ async function verifyYear(browser,year,subsystem){
   await page.locator('.robot-theater').waitFor({state:'attached',timeout:30000});
   await page.locator('.theater-viewport').scrollIntoViewIfNeeded();
   const launch=page.locator('.theater-launch');
-  if(!await page.locator('.theater-stage.is-ready').count()&&await launch.isVisible())
+  await launch.waitFor({state:'attached',timeout:30000});
+  // The button can be opacity-hidden during automatic prefetch, so
+  // visibility is not evidence the async viewer has already started.
+  if(!await page.locator('.theater-stage.is-ready').count())
     await launch.evaluate(el=>el.click());
   await page.locator('.theater-stage.is-ready').waitFor({timeout:80000});
   const stage=page.locator('.theater-stage');
