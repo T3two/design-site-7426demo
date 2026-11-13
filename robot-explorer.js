@@ -1884,7 +1884,7 @@ function mount(host,year,models,loadPackedModel){
   });
   deeper.addEventListener("click",event=>{
     event.preventDefault();
-    const synonyms={"shooter":"scoring mechanism","feeder-queuer":"feeder"};
+    const synonyms={"full":"our design process","shooter":"scoring mechanism","feeder-queuer":"feeder"};
     const name=synonyms[selected]||selected;
     const article=host.closest("article");
     if(!article)return;
@@ -1916,7 +1916,7 @@ function mount(host,year,models,loadPackedModel){
     });
   }
   if(year==="2026"){
-    import("./robot-workbench-2.js?v=workbench-2-20261113").then(({createWorkbench2})=>{
+    import("./robot-workbench-2.js?v=workbench-2-20261113-2").then(({createWorkbench2})=>{
       if(destroyed||!host.isConnected)return;
       workbench2=createWorkbench2({
         host,stage,side,controlsBar,partInspector,partIsolate,
