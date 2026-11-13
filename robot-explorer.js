@@ -1506,9 +1506,13 @@ function mount(host,year,models,loadPackedModel){
     const approach=new THREE.Vector3(-.38,0,-.58);
     motion.chassis.position.copy(motion.base);
     motion.chassis.rotation.y=scoreHeading;
+    // Calculate a release pose with the actual CAD claw and carriage.
+    // The offsets remain illustrative until the team supplies encoder limits.
     lift.position.copy(liftHome);
+    lift.position.z+=.11;
     motion.chassis.updateMatrixWorld(true);
     const gripAtScore=claw.localToWorld(gripLocal.clone());
+    lift.position.copy(liftHome);
 
     // The target is a supported L3 pipe branch, not the small circular
     // openings in a decorative reef. Its 35° upward axis faces the robot.
@@ -1523,13 +1527,19 @@ function mount(host,year,models,loadPackedModel){
     const branchAngle=35*Math.PI/180;
     const inwardAcceleration=branchGravity(branchAngle,.26);
     const seatDistance=coralHalfLength+.012; // end sits against branch root
-    const entranceDistance=.30+coralHalfLength*.56;
+    // At the instant of release the entire hollow pipe must be OUTSIDE
+    // the free end of the branch, not intersecting it by several centimeters.
+    const entranceDistance=.30+coralHalfLength+.012;
     const entrance=reef.base.clone().addScaledVector(direction,entranceDistance);
     const seat=reef.base.clone().addScaledVector(direction,seatDistance);
+    const dockingDelta=entrance.clone().sub(gripAtScore);
+    const chassisDock=new THREE.Vector3(dockingDelta.x,0,dockingDelta.z);
+    const liftDockY=dockingDelta.y;
+    let releaseGap=null;
 
-    motion.chassis.position.copy(motion.base).add(approach);
+    motion.chassis.position.copy(motion.base).add(chassisDock).add(approach);
     motion.chassis.rotation.y=startHeading;
-    lift.position.copy(liftHome).add(new THREE.Vector3(0,-.26,0));
+    lift.position.copy(liftHome).add(new THREE.Vector3(0,liftDockY-.26,0));
 
     const horizontal=new THREE.Quaternion()
       .setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(1,0,0));
@@ -1544,7 +1554,7 @@ function mount(host,year,models,loadPackedModel){
         const t=clamp(elapsed/duration,0,1);
         // Chassis first squares up to the reef; then the elevator extends.
         const drive=ease(clamp(elapsed/1960,0,1));
-        motion.chassis.position.copy(motion.base)
+        motion.chassis.position.copy(motion.base).add(chassisDock)
           .addScaledVector(approach,1-drive);
         motion.chassis.rotation.y=startHeading+
           (scoreHeading-startHeading)*drive;
@@ -1556,23 +1566,26 @@ function mount(host,year,models,loadPackedModel){
         const extend=ease(clamp((elapsed-3800)/760,0,1));
         const retract=ease(clamp((elapsed-6510)/920,0,1));
         lift.position.copy(liftHome);
-        lift.position.y-=.26*(1-rise);
+        lift.position.y+=liftDockY-.26*(1-rise);
         lift.position.z+=.11*extend*(1-retract);
         lift.updateWorldMatrix(true,false);
         const grip=claw.localToWorld(gripLocal.clone());
 
-        // A pipe is not a ball. It must first line up coaxially with the
-        // 35° branch, then enter over the FREE END of that branch.
+        // CORAL remains attached to the tracked CAD claw until release;
+        // no free-floating interpolation between an unrelated robot and reef.
+        // Wrist travel is illustrative because the joint CAD limits are unknown.
         const alignment=ease(clamp((elapsed-4710)/790,0,1));
         coral.quaternion.slerpQuaternions(horizontal,onBranch,alignment);
         if(elapsed<5500){
-          coral.position.lerpVectors(grip,entrance,alignment);
+          coral.position.copy(grip);
+          if(elapsed>=5400 && releaseGap===null)releaseGap=grip.distanceTo(entrance);
         }else{
-          // Tangential gravity pulls the 30cm CORAL toward the root.
-          // Coulomb friction opposes sliding: a = g(sin35 - μcos35).
-          // Once the tube reaches the root stop, contact constrains its
-          // position; no falling through, no teleporting below the branch.
-          const seconds=(elapsed-5500)*.00079; // 79% physical speed
+          if(releaseGap===null)releaseGap=grip.distanceTo(entrance);
+          if(releaseGap>.06)throw Error("CAD release pose misses branch entrance by "+
+            releaseGap.toFixed(3)+" m; mechanism calibration required");
+          // The tube begins beyond the branch end. Its idealized contact
+          // motion is constrained to the branch axis and stops at the root.
+          const seconds=(elapsed-5500)*.00027; // deliberate slowed demonstration
           const travel=.08*seconds+.5*inwardAcceleration*seconds*seconds;
           const distance=Math.max(seatDistance,entranceDistance-travel);
           coral.position.copy(reef.base).addScaledVector(direction,distance);
@@ -1623,7 +1636,9 @@ function mount(host,year,models,loadPackedModel){
               centerError:coral.position.distanceTo(seat),
               alignment:Math.abs(coral.quaternion.dot(onBranch)),
               branchContactLength:contactLength,
-              gravitySlide:inwardAcceleration
+              gravitySlide:inwardAcceleration,
+              releaseGap,
+              freeEndClearance:entranceDistance-.30-coralHalfLength
             };
           }
         }else{
