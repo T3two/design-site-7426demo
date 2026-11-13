@@ -28,6 +28,9 @@ const {chromium}=require('playwright');
       await launch.evaluate(el=>el.click());
     await page.locator('.theater-stage.is-ready').waitFor({timeout:120000});
     await page.waitForFunction(()=>
+      document.querySelector('.theater-stage')?.dataset.readySelection==='full',
+      null,{timeout:20000});
+    await page.waitForFunction(()=>
       !document.querySelector('.wb2-tool')?.disabled,null,{timeout:12000});
     const measure=page.locator('.wb2-tool').filter({hasText:'Measure'});
     const section=page.locator('.wb2-tool').filter({hasText:'Section view'});
@@ -46,7 +49,16 @@ const {chromium}=require('playwright');
       const text=await page.locator('.wb2-stage-panel output').first().innerText();
       if(/first point set/i.test(text)){picked=true;break}
     }
-    if(!picked)throw Error('Measurement did not hit the actual CAD');
+    if(!picked){
+      const state=await page.evaluate(()=>({
+        ready:document.querySelector('.theater-stage')?.dataset.readySelection,
+        active:document.querySelector('.wb2-tool')?.getAttribute('aria-pressed'),
+        measurePanel:document.querySelector('.wb2-stage-panel output')?.textContent,
+        model:document.querySelector('.robot-theater')?.dataset.workbenchReady,
+        stageSize:document.querySelector('.theater-canvas-home canvas')?.getBoundingClientRect().toJSON()
+      }));
+      throw Error('Measurement did not hit the actual CAD '+JSON.stringify(state));
+    }
     let done=false;
     for(const [u,v] of coords.slice().reverse()){
       await page.mouse.click(box.x+box.width*u,box.y+box.height*v);
