@@ -37,7 +37,13 @@ const years=['2026','2025','2024','2023','2022','2020','2019'];
     }
     await page.waitForTimeout(500);
     const file='models/preview/posters/'+year+'.jpg';
-    await element.screenshot({path:file,type:'jpeg',quality:85,timeout:15000});
+    // Animated WebGL canvases never become geometrically "stable" enough
+    // for locator.screenshot. Screenshot the page at their current bounds.
+    const rect=await element.boundingBox();
+    if(!rect||rect.width<50||rect.height<50)throw Error('Invalid CAD viewport for '+year);
+    await page.screenshot({path:file,type:'jpeg',quality:85,
+      clip:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},
+      animations:'disabled',timeout:20000});
     const size=fs.statSync(file).size;
     if(size<3000||size>800000)throw Error('Unexpected rendered image size '+size);
     if(errors.length)console.log('NONFATAL_PAGE_NOTES',year,errors.slice(0,3));
