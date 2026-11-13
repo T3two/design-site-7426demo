@@ -22,7 +22,7 @@ async function verifyYear(browser,year,subsystem){
   await sub.hover();
   await page.waitForTimeout(1000);
   await sub.evaluate(el=>el.click());
-  await page.waitForFunction(slug=>document.querySelector('.theater-stage')?.dataset.readySelection===slug,subsystem,{timeout:18000});
+  await page.waitForFunction(slug=>document.querySelector('.theater-stage')?.dataset.readySelection===slug,subsystem.toLowerCase(),{timeout:18000});
   const noteTabs=page.locator('.theater-evidence-tabs');
   await noteTabs.locator('button').filter({hasText:'CAD source'}).click();
   const cadText=await page.locator('.theater-evidence-copy').innerText();
@@ -37,7 +37,7 @@ async function verifyYear(browser,year,subsystem){
   await page.waitForFunction(()=>document.querySelector('.theater-stage')?.dataset.readySelection==='full',null,{timeout:18000});
   // This second selection should be resident in GPU memory.
   await sub.evaluate(el=>el.click());
-  await page.waitForFunction(slug=>document.querySelector('.theater-stage')?.dataset.readySelection===slug,subsystem,{timeout:18000});
+  await page.waitForFunction(slug=>document.querySelector('.theater-stage')?.dataset.readySelection===slug,subsystem.toLowerCase(),{timeout:18000});
   const latest=await page.evaluate(()=>window.__robotTheaterPerf||[]);
   const repeated=latest.filter(e=>e.selection===subsystem).at(-1);
   if(!repeated || !repeated.cached || repeated.elapsedMs>1850)
