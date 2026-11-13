@@ -7,16 +7,17 @@
 <body><header><h1>ACE / Animation Studio <span style="color:#f07589">BETA</span></h1><a href="./?page=home">← Back to website</a></header>
 <main><section id="view" aria-label="3D preview"><div class="hint">Drag to orbit · Scroll to zoom · Keyframe poses in the panel</div></section>
 <aside class="panel">
-<div><label for="character">Character pose</label><select id="character"><option value="rigged">Rigged Ace (new)</option><option value="pointing">Pointing Ace (original)</option><option value="seated">Seated Ace</option></select></div>
+<div><label for="character">Character pose</label><select id="character"><option value="rigged">Cute Ace</option><option value="pointing">Cute Ace · Pointing</option><option value="seated">Cute Ace · Sunglasses</option></select></div>
 <div><label for="clip">Animation name</label><input id="clip" value="Ace introduction" maxlength="80"></div>
 <div class="track"><label for="timeline">Timeline <output id="timeValue">0.00s</output></label><input type="range" id="timeline" min="0" max="4" step=".016" value="0"><div class="row"><button id="play">▶ Play</button><button id="add" class="secondary">+ Keyframe</button></div></div>
+<div class="track"><label for="embedded">Built-in animation</label><select id="embedded"><option value="">Manual keyframes</option></select><button id="previewClip" class="secondary" style="margin-top:8px;width:100%">Preview animation</button></div>
 <h2>Pose controls</h2>
 <div id="controls"></div>
 <div class="row"><button id="reset" class="secondary">Reset pose</button><button id="delete" class="secondary">Delete key</button></div>
 <div><h2>Keyframes</h2><div id="keylist"></div></div>
 <div class="row"><button id="export">Export JSON</button><button id="import" class="secondary">Import JSON</button></div>
 <input type="file" id="file" accept=".json,application/json" hidden>
-<div class="note">Browser-based animation authoring with the real Ace GLB. Create poses, add keyframes, preview at 12 fps, then export a reusable animation file. Changes are saved in this browser, not automatically published to the homepage. The new model has a skeletal rig and embedded animation clips. The sliders edit selected joints; the original pose models still use simple pivots.</div>
+<div class="note">Browser-based animation authoring with the real Ace GLB. Create poses, add keyframes, preview at 12 fps, then export a reusable animation file. Changes are saved in this browser, not automatically published to the homepage. All three character options use the same Cute Rig GLB. Edit the 46-joint rig with the pose controls, or preview one of its seven original clips. Keyframe exports stay local to your browser.</div>
 <div class="status" id="status" role="status">Loading original Ace model…</div>
 </aside></main>
 <script type="module">
@@ -26,7 +27,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const $=id=>document.getElementById(id), host=$('view'),status=$('status');
 const channels=[['bodyX','Body lean X',-35,35],['bodyY','Body turn Y',-70,70],['bodyZ','Body lean Z',-30,30],['headX','Head nod',-30,30],['headY','Head turn',-45,45],['headZ','Head tilt',-30,30],['armZ','Arm gesture',-45,45],['bounce','Body height',-30,30]];
 const neutral=()=>Object.fromEntries(channels.map(([key])=>[key,0]));
-let mixer=null, rigged=false, pose=neutral(), keys=[{t:0,p:neutral()},{t:4,p:neutral()}],duration=4,time=0,playing=false,last=0,actor=null,head=null,arm=null;
+let mixer=null, rigged=false, selectedAction=null, storedClips=[], pose=neutral(), keys=[{t:0,p:neutral()},{t:4,p:neutral()}],duration=4,time=0,playing=false,last=0,actor=null,head=null,arm=null;
 const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(32,1,.1,100);
 camera.position.set(5,3.6,12);
 const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});
@@ -43,7 +44,7 @@ for(const [id,label,min,max] of channels){
  const wrap=document.createElement('div');wrap.className='track';
  const lbl=document.createElement('label');lbl.textContent=label+' ';const out=document.createElement('output');out.textContent='0°';lbl.append(out);
  const input=document.createElement('input');input.type='range';input.min=min;input.max=max;input.step=1;input.value=0;input.setAttribute('aria-label',label);
- input.addEventListener('input',()=>{playing=false;$('play').textContent='▶ Play';pose[id]=Number(input.value);out.textContent=input.value+(id==='bounce'?' cm':'°');apply()});
+ input.addEventListener('input',()=>{stopPreview();playing=false;$('play').textContent='▶ Play';pose[id]=Number(input.value);out.textContent=input.value+(id==='bounce'?' cm':'°');apply()});
  wrap.append(lbl,input);$('controls').append(wrap);sliders[id]={input,out};
 }
 function show(){for(const [id] of channels){sliders[id].input.value=pose[id];sliders[id].out.textContent=Math.round(pose[id])+(id==='bounce'?' cm':'°')}}
@@ -52,7 +53,7 @@ function apply(){if(!actor)return;const rad=Math.PI/180;
  if(head) head.rotation.set(pose.headX*rad,pose.headY*rad,pose.headZ*rad);
  if(arm) arm.rotation.z=pose.armZ*rad;
 }
-function sample(t){let i=keys.findIndex(k=>k.t>=t);if(i<=0)return {...keys[0].p};const a=keys[i-1],b=keys[i];const f=Math.max(0,Math.min(1,(t-a.t)/Math.max(.001,b.t-a.t)));const smooth=f*f*(3-2*f);return Object.fromEntries(channels.map(([id])=>[id,a.p[id]+(b.p[id]-a.p[id])*smooth]))}
+function sample(t){let i=keys.findIndex(k=>k.t>=t);if(i<0)return {...keys[keys.length-1].p};if(i===0)return {...keys[0].p};const a=keys[i-1],b=keys[i];const f=Math.max(0,Math.min(1,(t-a.t)/Math.max(.001,b.t-a.t)));const smooth=f*f*(3-2*f);return Object.fromEntries(channels.map(([id])=>[id,a.p[id]+(b.p[id]-a.p[id])*smooth]))}
 function seek(t){time=Math.max(0,Math.min(duration,t));$('timeline').value=time;$('timeValue').textContent=time.toFixed(2)+'s';pose=sample(time);show();apply()}
 function renderKeys(){$('keylist').replaceChildren();keys.forEach(k=>{const b=document.createElement('button');b.textContent=k.t.toFixed(2)+'s';b.onclick=()=>seek(k.t);$('keylist').append(b)})}
 function save(){try{localStorage.setItem('ace-studio-v1',JSON.stringify({character:$('character').value,clip:$('clip').value,duration,keys}))}catch{}}
@@ -61,48 +62,108 @@ $('add').onclick=()=>{const t=Math.round(time*100)/100;keys=keys.filter(k=>Math.
 $('delete').onclick=()=>{if(keys.length<=1)return;let i=keys.findIndex(k=>Math.abs(k.t-time)<.025);if(i<0)i=keys.reduce((best,k,j)=>Math.abs(k.t-time)<Math.abs(keys[best].t-time)?j:best,0);keys.splice(i,1);renderKeys();save();seek(time)};
 $('reset').onclick=()=>{pose=neutral();show();apply()};
 $('timeline').oninput=e=>{playing=false;$('play').textContent='▶ Play';seek(Number(e.target.value))};
-$('play').onclick=()=>{playing=!playing;last=0;$('play').textContent=playing?'❚❚ Pause':'▶ Play'};
+$('play').onclick=()=>{stopPreview();playing=!playing;last=0;$('play').textContent=playing?'❚❚ Pause':'▶ Play'};
 $('export').onclick=()=>{const blob=new Blob([JSON.stringify({version:1,character:$('character').value,clip:$('clip').value,fps:12,duration,keys},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ace-animation.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 $('import').onclick=()=>$('file').click();
 $('file').onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text());if(d.version!==1)throw Error('Unsupported file');$('clip').value=String(d.clip||'Ace animation').slice(0,80);$('character').value=['rigged','seated','pointing'].includes(d.character)?d.character:'pointing';setKeys(d.keys);await load();status.textContent='Animation imported'}catch(err){status.textContent='Import failed: '+err.message}e.target.value=''};
+function stopPreview(){
+  if(selectedAction && mixer) mixer.stopAllAction();
+  selectedAction=null;
+  $('previewClip').textContent='Preview animation';
+}
+$('embedded').onchange=()=>{stopPreview();apply()};
+$('previewClip').onclick=()=>{
+  if(!mixer)return;
+  if(selectedAction){stopPreview();apply();return}
+  const name=$('embedded').value;
+  const clip=storedClips.find(c=>c.name===name);
+  if(!clip){status.textContent='Choose a built-in animation first';return}
+  playing=false;$('play').textContent='▶ Play';
+  selectedAction=mixer.clipAction(clip);
+  selectedAction.reset().setLoop(THREE.LoopRepeat,Infinity).play();
+  $('previewClip').textContent='Stop preview';
+  status.textContent='Previewing '+clip.name;
+};
+function addCuteShades(root){
+  const joint=root.getObjectByName('Head');
+  const mat=new THREE.MeshBasicMaterial({color:'#211b23',side:THREE.DoubleSide});
+  const pale=new THREE.MeshBasicMaterial({color:'#fff8ed'});
+  for(const x of [-.33,.33]){
+    const lens=new THREE.Mesh(new THREE.BoxGeometry(.548,.474,.04),mat);
+    lens.position.set(x,.12,.661);lens.name='CuteSunglassLens';joint.add(lens);
+    const shine=new THREE.Mesh(new THREE.BoxGeometry(.16,.015,.012),pale);
+    shine.position.set(x-.10,.27,.689);shine.rotation.z=.65;joint.add(shine);
+  }
+  const bridge=new THREE.Mesh(new THREE.BoxGeometry(.13,.065,.08),mat);
+  bridge.position.set(0,.15,.65);joint.add(bridge);
+}
+function addCuteChair(root){
+  const dark=new THREE.MeshStandardMaterial({color:'#44353d',roughness:1});
+  const cushion=new THREE.MeshStandardMaterial({color:'#8d4048',roughness:1});
+  const piece=(pos,size,material)=>{
+    const o=new THREE.Mesh(new THREE.BoxGeometry(...size),material);
+    o.position.set(...pos);root.add(o);
+  };
+  piece([0,1.27,.12],[1.75,.18,1.27],dark);
+  piece([0,1.38,.12],[1.69,.15,1.22],cushion);
+  piece([0,2.27,-.64],[1.70,1.14,.18],cushion);
+  for(const x of [-.75,.75]){
+    for(const z of [-.46,.65])piece([x,.66,z],[.09,1.3,.09],dark);
+  }
+}
 async function load(){
- status.textContent='Loading original Ace GLB…';if(actor){scene.remove(actor);actor.traverse(o=>{if(o.isMesh){o.geometry?.dispose();const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>m.dispose())}})}
- rigged = $('character').value === 'rigged';
- if (rigged) {
-   const response = await fetch('assets/welcome/ace_7426_web.glb');
-   if (!response.ok) throw Error('Rigged Ace GLB not uploaded yet. Use original Ace or deploy assets/welcome/ace_7426_web.glb.');
-   const gltf = await new GLTFLoader().parseAsync(await response.arrayBuffer(), 'assets/welcome/');
-   actor = gltf.scene;
-   head = actor.getObjectByName('Head');
-   arm = actor.getObjectByName('L_UpperArm');
-   mixer = new THREE.AnimationMixer(actor);
-   const idle = gltf.animations.find(clip => /Idle_Breathing/.test(clip.name));
-   if (idle) mixer.clipAction(idle).play();
-   scene.add(actor);
-   apply();
-   status.textContent = 'Rigged Ace loaded · 41 joints · 6 clips · Idle playing';
-   return;
- }
- mixer = null;
- const path='assets/welcome/ace_'+($('character').value==='seated'?'seated':'pointing')+'.glb.gz';
- const res=await fetch(path);if(!res.ok||!res.body)throw Error('Ace model unavailable');
- const bytes=await new Response(res.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
- const gltf=await new GLTFLoader().parseAsync(bytes,'assets/welcome/');actor=gltf.scene;
- const ramp=new THREE.DataTexture(new Uint8Array([120,206,255]),3,1,THREE.RedFormat);ramp.magFilter=ramp.minFilter=THREE.NearestFilter;ramp.needsUpdate=true;
- const source=[];actor.traverse(o=>{if(o.isMesh)source.push(o)});
- for(const mesh of source){const old=Array.isArray(mesh.material)?mesh.material:[mesh.material];const toon=old.map(m=>new THREE.MeshToonMaterial({color:m.color||new THREE.Color('white'),gradientMap:ramp,vertexColors:!!mesh.geometry.getAttribute('color'),flatShading:true,transparent:!!m.transparent,opacity:m.opacity??1}));mesh.material=Array.isArray(mesh.material)?toon:toon[0]}
- actor.updateMatrixWorld(true);
- head=new THREE.Group();head.position.set(0,3.54,0);actor.add(head);
- arm=new THREE.Group();arm.position.set(0,2.5,0);actor.add(arm);
- const headNames=/^(head_white|dice_head|glasses_|wink|open_eye|freckle|dice_top_marks|sunglasses_)/i;
- const armNames=/^(left_sleeve|left_elbow|left_forearm|left_cuff|left_hand|pointing_finger|finger_tip|right_sleeve|right_elbow|right_forearm|right_cuff|right_glove|seated_left_upper|seated_left_forearm|seated_right_upper|seated_right_forearm|left_glove|right_glove)/i;
- for(const mesh of source){const name=mesh.name||mesh.parent?.name||'';if(headNames.test(name))head.attach(mesh);else if(armNames.test(name))arm.attach(mesh)}
- scene.add(actor);apply();status.textContent='Original Ace loaded · Ready to animate';save();
+  status.textContent='Loading Ace Cute Rig…';
+  stopPreview();
+  if(actor){
+    scene.remove(actor);
+    actor.traverse(o=>{
+      if(o.isMesh){
+        o.geometry?.dispose();
+        const mats=Array.isArray(o.material)?o.material:[o.material];
+        mats.forEach(m=>m?.dispose());
+      }
+    });
+    actor=null;
+  }
+  const response=await fetch('assets/welcome/ace_7426_cute_web.glb?v=cute-20261113-2',{cache:'no-cache'});
+  if(!response.ok)throw Error('Cute Ace model not deployed: HTTP '+response.status);
+  const bytes=await response.arrayBuffer();
+  if(new DataView(bytes).getUint32(0,true)!==0x46546c67)throw Error('Cute Ace asset is not a valid GLB');
+  const gltf=await new GLTFLoader().parseAsync(bytes,'assets/welcome/');
+  if(gltf.animations.length!==7||!gltf.scene.getObjectByName('Head'))
+    throw Error('Wrong Ace model version: expected Cute Rig');
+  actor=gltf.scene;
+  head=actor.getObjectByName('Head');
+  arm=actor.getObjectByName('L_UpperArm');
+  const variant=$('character').value;
+  if(variant==='seated'){
+    for(const side of ['L','R']){
+      const thigh=actor.getObjectByName(side+'_Thigh');
+      const shin=actor.getObjectByName(side+'_Shin');
+      const foot=actor.getObjectByName(side+'_Foot');
+      if(thigh)thigh.rotation.x=-1.34;
+      if(shin)shin.rotation.x=1.40;
+      if(foot)foot.rotation.x=-.06;
+    }
+    addCuteChair(actor);addCuteShades(actor);
+  }else if(variant==='pointing'){
+    arm.rotation.x=-.9;
+  }
+  mixer=new THREE.AnimationMixer(actor);
+  rigged=true;
+  storedClips=gltf.animations;
+  const menu=$('embedded');
+  menu.replaceChildren(new Option('Manual keyframes',''));
+  for(const clip of storedClips)menu.add(new Option(clip.name.replace(/^\\d+_/,'').replaceAll('_',' '),clip.name));
+  scene.add(actor);
+  apply();
+  save();
+  status.textContent='Cute Ace loaded · 46 joints · '+storedClips.length+' clips · '+(variant==='seated'?'Sunglasses':variant==='pointing'?'Pointing':'Default');
 }
 $('character').onchange=()=>load().catch(e=>status.textContent=e.message);
 $('clip').oninput=save;
 try{const stored=JSON.parse(localStorage.getItem('ace-studio-v1'));if(stored){$('character').value=['rigged','seated','pointing'].includes(stored.character)?stored.character:'pointing';$('clip').value=stored.clip||'Ace introduction';setKeys(stored.keys)}}catch{}
 renderKeys();load().catch(e=>status.textContent='Load failed: '+e.message);
-function loop(now){requestAnimationFrame(loop);if(mixer && last) mixer.update(Math.min((now-last)/1000,.05));if(playing){if(last){time+=(now-last)/1000;if(time>duration)time=0;const held=Math.floor(time*12)/12;pose=sample(held);show();apply();$('timeline').value=time;$('timeValue').textContent=time.toFixed(2)+'s'}last=now}else last=0;orbit.update();renderer.render(scene,camera)}
+let previousRender=0;function loop(now){requestAnimationFrame(loop);const delta=previousRender?Math.min((now-previousRender)/1000,.05):0;previousRender=now;if(mixer&&selectedAction)mixer.update(delta);if(playing){time+=delta;if(time>duration)time=0;const held=Math.floor(time*12)/12;pose=sample(held);show();apply();$('timeline').value=time;$('timeValue').textContent=time.toFixed(2)+'s'}orbit.update();renderer.render(scene,camera)}
 requestAnimationFrame(loop);
 </script></body></html>
