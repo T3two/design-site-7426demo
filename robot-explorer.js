@@ -693,6 +693,19 @@ function mount(host,year,models,loadPackedModel){
   // proxy. A ground-level pivot moves the drivetrain and every mechanism
   // together. Named children are articulated and restored without changing
   // the source GLBs.
+  // GLTFLoader sanitizes characters such as "<" and ">" in Onshape
+  // assembly names (e.g. "Shooter <2>" becomes "Shooter__2_").
+  // Compare normalized CAD identifiers instead of brittle exact labels.
+  const canonicalCADName=name=>String(name||"").toLowerCase()
+    .replace(/[^a-z0-9]/g,"");
+  const findCADPart=(root,name)=>{
+    const target=canonicalCADName(name);
+    let match=null;
+    root.traverse(node=>{
+      if(!match && canonicalCADName(node.name)===target)match=node;
+    });
+    return match;
+  };
   const stageRobot=()=>{
     if(!full?.group||!fullBounds)throw Error("Full robot CAD not loaded");
     const root=full.group;
@@ -710,7 +723,7 @@ function mount(host,year,models,loadPackedModel){
     chassis.attach(root);
     const connections=[];
     const articulate=(names,pivot)=>{
-      const nodes=names.map(name=>root.getObjectByName(name)).filter(Boolean);
+      const nodes=names.map(name=>findCADPart(root,name)).filter(Boolean);
       if(!nodes.length)return null;
       chassis.updateMatrixWorld(true);
       const joint=new THREE.Group();
@@ -767,7 +780,7 @@ function mount(host,year,models,loadPackedModel){
 
   const runFuel=(requestedAim=0)=>{
     const motion=stageRobot();
-    const shooter=motion.root.getObjectByName("Shooter <2>");
+    const shooter=findCADPart(motion.root,"Shooter <2>");
     if(!shooter){motion.restore();throw Error("2026 shooter missing from full CAD");}
     const turret=motion.articulate(["Turret <1>","Shooter <2>"],
       new THREE.Vector3(...TURRET_PIVOT));
@@ -902,7 +915,7 @@ function mount(host,year,models,loadPackedModel){
   };
   const runCoral=()=>{
     const motion=stageRobot();
-    const claw=motion.root.getObjectByName("2025Claw <1>");
+    const claw=findCADPart(motion.root,"2025Claw <1>");
     if(!claw){motion.restore();throw Error("Deadpool claw is missing from CAD");}
     const localGrip=claw.worldToLocal(
       new THREE.Box3().setFromObject(claw).getCenter(new THREE.Vector3())
