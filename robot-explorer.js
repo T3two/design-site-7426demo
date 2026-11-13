@@ -580,6 +580,7 @@ function mount(host,year,models,loadPackedModel){
       if(fullIsOriginal)btnOriginal.textContent="Original CAD ready";
       setMessage("",false);
       hotspotsByKey.forEach(el=>el.hidden=false);
+      prefetchScoringSubsystem();
       return full;
     })().catch(err=>{
       fullLoad=null;
@@ -624,27 +625,48 @@ function mount(host,year,models,loadPackedModel){
     }).finally(()=>{originalRequest=null;});
     return originalRequest;
   };
-  const loadSubsystem=async(key)=>{
+  // A low-cost part can be fetched quietly on hover/after initial robot paint.
+  // Repeated hover and selection share exactly one promise and one GPU upload.
+  const loadSubsystem=async(key,{quiet=false}={})=>{
     if(subsystemCache.has(key))return subsystemCache.get(key);
     if(subsystemLoading.has(key))return subsystemLoading.get(key);
     const model=byId.get("robot-"+year+"-"+key);
     if(!model)throw Error("No uploaded subsystem GLB: "+key);
     const task=(async()=>{
-      setMessage("PREPARING "+key.toUpperCase()+" 3D");
+      await configureScene();
+      if(!quiet)setMessage("PREPARING "+key.toUpperCase()+" 3D");
       let gltf;
       if(model.fastPreview?.file){
         try{gltf=await gltfLoader.loadAsync(model.fastPreview.file);}
-        catch(error){console.warn("Subsystem fast CAD fallback:",key,error);}
+        catch(error){console.warn("Subsystem optimized CAD fallback:",key,error);}
       }
       if(!gltf)gltf=await gltfLoader.loadAsync(model.file);
+      if(destroyed)throw Error("Viewer closed");
       const item=makeGroup(gltf);
       applyFade(item,0);
       subsystemCache.set(key,item);
-      setMessage("",false);
+      if(!quiet)setMessage("",false);
       return item;
     })().finally(()=>subsystemLoading.delete(key));
     subsystemLoading.set(key,task);
     return task;
+  };
+  const shouldPrefetch=()=>{
+    const network=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+    return window.innerWidth>=1020 && !network?.saveData &&
+      !['slow-2g','2g','3g'].includes(network?.effectiveType) &&
+      (navigator.deviceMemory||8)>=6;
+  };
+  let backgroundPrefetchScheduled=false;
+  const prefetchScoringSubsystem=()=>{
+    if(backgroundPrefetchScheduled || !shouldPrefetch() || destroyed || !full)return;
+    backgroundPrefetchScheduled=true;
+    // The robot gets first GPU priority. A low-res mechanism is the *only*
+    // automatic background detail fetch; other parts load on user intent.
+    const trigger=()=>loadSubsystem(def.actionSubsystem,{quiet:true}).catch(()=>{});
+    if('requestIdleCallback' in window)
+      window.requestIdleCallback(trigger,{timeout:3200});
+    else window.setTimeout(trigger,900);
   };
   // Bound GPU memory while readers explore multiple heavy CAD subsystems.
   // The full assembly stays resident so returning home is instantaneous.
@@ -717,63 +739,92 @@ function mount(host,year,models,loadPackedModel){
     actionPanel.hidden=!(key==="full"||key===def.actionSubsystem);
     selectNav(key);
     selected=key;
+    btnOriginal.disabled=fullIsOriginal || key!=='full';
     showHotspots=false;
     stage.classList.toggle("is-isolated",key!=="full");
   };
+  // Once geometry is resident, this is one continuous camera + alpha
+  // interpolation (rather than three blocking, serial animation stages).
   const choose=async key=>{
     if(destroyed)return;
     const ticket=++seq;
+    const navigationAt=performance.now();
     stopAction();
     clearScoringProps();
-    if(turretRig && key!=="shooter") releaseTurretRig();
+    if(turretRig && key!=='shooter')releaseTurretRig();
     selectNav(key);
+    stage.dataset.selectionRequest=key;
+    stage.classList.add('is-transitioning');
     if(!full){
       try{await loadFull();}
-      catch{return;}
+      catch{stage.classList.remove('is-transitioning');return;}
     }
     if(ticket!==seq)return;
-    if(key==="full"){
+    if(key==='full'){
       showHotspots=false;
       const target=homePose();
-      const previous=active;
-      const promises=[cameraTo(target.position,target.target,1250),fadeTo(full,1,1050)];
-      if(previous)promises.push(fadeTo(previous,0,850));
-      await Promise.all(promises);
+      const old=active;
+      await Promise.all([
+        cameraTo(target.position,target.target,540),
+        fadeTo(full,1,460),
+        old?fadeTo(old,0,390):Promise.resolve()
+      ]);
       if(ticket!==seq)return;
       active=null;
-      showSelection("full");
+      showSelection('full');
+      stage.classList.remove('is-transitioning');
+      stage.dataset.readySelection='full';
+      if(SCORING_QA){
+        window.__robotTheaterPerf=window.__robotTheaterPerf||[];
+        window.__robotTheaterPerf.push({year,selection:'full',elapsedMs:performance.now()-navigationAt,cached:true});
+      }
       return;
     }
     const old=active;
+    const cached=subsystemCache.has(key);
+    // Initiate immediately, even if a first-time network request is needed.
+    const pending=loadSubsystem(key,{quiet:false});
+    if(!cached){
+      // Preserve spatial context while preparing this never-visited mechanism.
+      // The full robot remains interactive instead of being replaced by a spinner.
+      loader.classList.add('theater-nonblocking');
+    }
     let next;
-    try{next=await loadSubsystem(key);}
-    catch(err){setMessage("Could not read "+key+" CAD: "+err.message,true);return;}
+    try{next=await pending;}
+    catch(err){
+      if(ticket===seq){
+        setMessage('Could not open '+key+' CAD: '+err.message,true);
+        stage.classList.remove('is-transitioning');
+      }
+      return;
+    }finally{loader.classList.remove('theater-nonblocking');}
     if(ticket!==seq)return;
+    const focus=focusPose(next,false);
     showHotspots=false;
-    if(old&&old!==next)await Promise.all([fadeTo(old,0,380),fadeTo(full,.83,440)]);
-    if(ticket!==seq)return;
-    const focus=focusPose(next,true);
-    await Promise.all([cameraTo(focus.position,focus.target,880),fadeTo(full,.68,830)]);
-    if(ticket!==seq)return;
     active=next;
-    const close=focusPose(next,false);
-    await Promise.all([
-      cameraTo(close.position,close.target,850),
-      fadeTo(full,.085,840),
-      fadeTo(next,1,840)
+    const blend=Promise.all([
+      cameraTo(focus.position,focus.target,560),
+      fadeTo(full,.10,510),
+      fadeTo(next,1,530),
+      old&&old!==next?fadeTo(old,0,380):Promise.resolve()
     ]);
+    await blend;
     if(ticket!==seq)return;
     showSelection(key);
-    if(year==="2026"&&key==="shooter") ensureTurretRig();
+    stage.classList.remove('is-transitioning');
+    stage.dataset.readySelection=key;
+    if(SCORING_QA){
+      window.__robotTheaterPerf=window.__robotTheaterPerf||[];
+      window.__robotTheaterPerf.push({year,selection:key,elapsedMs:performance.now()-navigationAt,cached});
+    }
+    if(year==='2026'&&key==='shooter')ensureTurretRig();
     trimCache(key);
-    // The first visit to the game's scoring mechanism brings the story to
-    // life automatically. Playback remains optional with reduced motion.
     if(key===def.actionSubsystem&&!automaticDemoPlayed&&!reduced()&&
-       !new URLSearchParams(window.location.search).has("qa")){
+      !new URLSearchParams(window.location.search).has('qa')){
       automaticDemoPlayed=true;
-      setTimeout(()=>{
+      window.setTimeout(()=>{
         if(!destroyed&&selected===key&&!action)playAction();
-      },500);
+      },450);
     }
   };
   // Construct believable game pieces as actual meshes inside the 3D scene.
@@ -1415,7 +1466,16 @@ function mount(host,year,models,loadPackedModel){
   launch.addEventListener("click",()=>choose("full"));
   fullNav.addEventListener("click",()=>choose("full"));
   btnFull.addEventListener("click",()=>choose("full"));
-  navButtons.forEach((button,key)=>button.addEventListener("click",()=>choose(key)));
+  navButtons.forEach((button,key)=>{
+    button.addEventListener('click',()=>choose(key));
+    // No preloading giant original CAD on mouse hover: only optimized parts.
+    const warm=()=>{
+      if(!destroyed&&full&&shouldPrefetch()&&byId.get('robot-'+year+'-'+key)?.fastPreview)
+        loadSubsystem(key,{quiet:true}).catch(()=>{});
+    };
+    button.addEventListener('pointerenter',warm,{passive:true});
+    button.addEventListener('focus',warm,{passive:true});
+  });
   aimInput.addEventListener("input",()=>{
     if(year!=="2026"||selected!=="shooter"||action)return;
     turretUserAdjusted=true;
