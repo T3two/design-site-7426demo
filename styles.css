@@ -1526,3 +1526,76 @@ article .workbench-jump:hover{background:#f2dddf;text-decoration:none}
   .robot-theater .theater-poster{transition:none}
   .robot-theater .theater-loading-bar{animation:none}
 }
+
+
+/* Robot operation storytelling — subtle industrial studio treatment. */
+.robot-theater .theater-viewport{
+  background:
+    radial-gradient(ellipse 60% 48% at 51% 43%,#fff 0%,#f8f8f8 70%,#f1f1f1 100%);
+}
+.robot-theater .theater-demo-hud{
+  width:min(315px,85%);
+  top:16px;right:17px;
+  border:1px solid #dcd7d4;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 8px 32px rgba(56,50,50,.08);
+  padding:14px 15px 12px;
+}
+.robot-theater .theater-demo-hud strong{
+  font-size:16px;
+  margin:5px 0 14px;
+  line-height:1.25;
+}
+.robot-theater .theater-demo-track{
+  height:3px;
+  border-radius:3px;
+}
+.robot-theater .theater-demo-track span{
+  border-radius:3px;
+}
+.robot-theater .theater-phase-rail{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px;
+  margin-top:12px;
+}
+.robot-theater .theater-phase-rail span{
+  min-width:0;
+  padding-top:6px;
+  border-top:2px solid #e6e4e3;
+  color:#999495;
+  text-align:left;
+  font:600 9px/1.2 "Barlow",Arial,sans-serif;
+  white-space:nowrap;
+}
+.robot-theater .theater-phase-rail span.is-complete{
+  border-top-color:#c7a8ac;
+  color:#827173;
+}
+.robot-theater .theater-phase-rail span.is-current{
+  border-top-color:#a32632;
+  color:#8e2732;
+}
+.robot-theater .theater-pause-motion{
+  margin-left:auto;
+  border-color:#a32632;
+  color:#8b2934;
+}
+.robot-theater .theater-pause-motion[hidden]{display:none}
+.robot-theater .theater-pause-motion[aria-pressed="true"]{
+  color:#fff;
+  background:#a32632;
+  border-color:#a32632;
+}
+@media(max-width:750px){
+  .robot-theater .theater-demo-hud{
+    top:12px;right:12px;
+    padding:11px 12px;
+    width:min(294px,85%);
+  }
+  .robot-theater .theater-phase-rail{gap:4px;}
+  .robot-theater .theater-phase-rail span{font-size:8px;}
+}
+@media(prefers-reduced-motion:reduce){
+  .robot-theater .theater-demo-track span{transition:none}
+}
