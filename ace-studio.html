@@ -7,7 +7,7 @@
 <body><header><h1>ACE / Animation Studio <span style="color:#f07589">BETA</span></h1><a href="./?page=home">← Back to website</a></header>
 <main><section id="view" aria-label="3D preview"><div class="hint">Drag to orbit · Scroll to zoom · Keyframe poses in the panel</div></section>
 <aside class="panel">
-<div><label for="character">Character pose</label><select id="character"><option value="pointing">Pointing Ace</option><option value="seated">Seated Ace</option></select></div>
+<div><label for="character">Character pose</label><select id="character"><option value="rigged">Rigged Ace (new)</option><option value="pointing">Pointing Ace (original)</option><option value="seated">Seated Ace</option></select></div>
 <div><label for="clip">Animation name</label><input id="clip" value="Ace introduction" maxlength="80"></div>
 <div class="track"><label for="timeline">Timeline <output id="timeValue">0.00s</output></label><input type="range" id="timeline" min="0" max="4" step=".016" value="0"><div class="row"><button id="play">▶ Play</button><button id="add" class="secondary">+ Keyframe</button></div></div>
 <h2>Pose controls</h2>
@@ -16,7 +16,7 @@
 <div><h2>Keyframes</h2><div id="keylist"></div></div>
 <div class="row"><button id="export">Export JSON</button><button id="import" class="secondary">Import JSON</button></div>
 <input type="file" id="file" accept=".json,application/json" hidden>
-<div class="note">Browser-based animation authoring with the real Ace GLB. Create poses, add keyframes, preview at 12 fps, then export a reusable animation file. Changes are saved in this browser, not automatically published to the homepage. These are simple head, arm and body pivots; individual limbs and facial acting will require a fuller rig.</div>
+<div class="note">Browser-based animation authoring with the real Ace GLB. Create poses, add keyframes, preview at 12 fps, then export a reusable animation file. Changes are saved in this browser, not automatically published to the homepage. The new model has a skeletal rig and embedded animation clips. The sliders edit selected joints; the original pose models still use simple pivots.</div>
 <div class="status" id="status" role="status">Loading original Ace model…</div>
 </aside></main>
 <script type="module">
@@ -26,7 +26,7 @@ import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 const $=id=>document.getElementById(id), host=$('view'),status=$('status');
 const channels=[['bodyX','Body lean X',-35,35],['bodyY','Body turn Y',-70,70],['bodyZ','Body lean Z',-30,30],['headX','Head nod',-30,30],['headY','Head turn',-45,45],['headZ','Head tilt',-30,30],['armZ','Arm gesture',-45,45],['bounce','Body height',-30,30]];
 const neutral=()=>Object.fromEntries(channels.map(([key])=>[key,0]));
-let pose=neutral(), keys=[{t:0,p:neutral()},{t:4,p:neutral()}],duration=4,time=0,playing=false,last=0,actor=null,head=null,arm=null;
+let mixer=null, rigged=false, pose=neutral(), keys=[{t:0,p:neutral()},{t:4,p:neutral()}],duration=4,time=0,playing=false,last=0,actor=null,head=null,arm=null;
 const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(32,1,.1,100);
 camera.position.set(5,3.6,12);
 const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});
@@ -49,8 +49,8 @@ for(const [id,label,min,max] of channels){
 function show(){for(const [id] of channels){sliders[id].input.value=pose[id];sliders[id].out.textContent=Math.round(pose[id])+(id==='bounce'?' cm':'°')}}
 function apply(){if(!actor)return;const rad=Math.PI/180;
  actor.rotation.set(pose.bodyX*rad,pose.bodyY*rad,pose.bodyZ*rad);actor.position.y=pose.bounce/100;
- head.rotation.set(pose.headX*rad,pose.headY*rad,pose.headZ*rad);
- arm.rotation.z=pose.armZ*rad;
+ if(head) head.rotation.set(pose.headX*rad,pose.headY*rad,pose.headZ*rad);
+ if(arm) arm.rotation.z=pose.armZ*rad;
 }
 function sample(t){let i=keys.findIndex(k=>k.t>=t);if(i<=0)return {...keys[0].p};const a=keys[i-1],b=keys[i];const f=Math.max(0,Math.min(1,(t-a.t)/Math.max(.001,b.t-a.t)));const smooth=f*f*(3-2*f);return Object.fromEntries(channels.map(([id])=>[id,a.p[id]+(b.p[id]-a.p[id])*smooth]))}
 function seek(t){time=Math.max(0,Math.min(duration,t));$('timeline').value=time;$('timeValue').textContent=time.toFixed(2)+'s';pose=sample(time);show();apply()}
@@ -64,9 +64,26 @@ $('timeline').oninput=e=>{playing=false;$('play').textContent='▶ Play';seek(Nu
 $('play').onclick=()=>{playing=!playing;last=0;$('play').textContent=playing?'❚❚ Pause':'▶ Play'};
 $('export').onclick=()=>{const blob=new Blob([JSON.stringify({version:1,character:$('character').value,clip:$('clip').value,fps:12,duration,keys},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ace-animation.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
 $('import').onclick=()=>$('file').click();
-$('file').onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text());if(d.version!==1)throw Error('Unsupported file');$('clip').value=String(d.clip||'Ace animation').slice(0,80);$('character').value=d.character==='seated'?'seated':'pointing';setKeys(d.keys);await load();status.textContent='Animation imported'}catch(err){status.textContent='Import failed: '+err.message}e.target.value=''};
+$('file').onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text());if(d.version!==1)throw Error('Unsupported file');$('clip').value=String(d.clip||'Ace animation').slice(0,80);$('character').value=['rigged','seated','pointing'].includes(d.character)?d.character:'pointing';setKeys(d.keys);await load();status.textContent='Animation imported'}catch(err){status.textContent='Import failed: '+err.message}e.target.value=''};
 async function load(){
  status.textContent='Loading original Ace GLB…';if(actor){scene.remove(actor);actor.traverse(o=>{if(o.isMesh){o.geometry?.dispose();const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>m.dispose())}})}
+ rigged = $('character').value === 'rigged';
+ if (rigged) {
+   const response = await fetch('assets/welcome/ace_7426_web.glb');
+   if (!response.ok) throw Error('Rigged Ace GLB not uploaded yet. Use original Ace or deploy assets/welcome/ace_7426_web.glb.');
+   const gltf = await new GLTFLoader().parseAsync(await response.arrayBuffer(), 'assets/welcome/');
+   actor = gltf.scene;
+   head = actor.getObjectByName('Head');
+   arm = actor.getObjectByName('L_UpperArm');
+   mixer = new THREE.AnimationMixer(actor);
+   const idle = gltf.animations.find(clip => /Idle_Breathing/.test(clip.name));
+   if (idle) mixer.clipAction(idle).play();
+   scene.add(actor);
+   apply();
+   status.textContent = 'Rigged Ace loaded · 41 joints · 6 clips · Idle playing';
+   return;
+ }
+ mixer = null;
  const path='assets/welcome/ace_'+($('character').value==='seated'?'seated':'pointing')+'.glb.gz';
  const res=await fetch(path);if(!res.ok||!res.body)throw Error('Ace model unavailable');
  const bytes=await new Response(res.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
@@ -84,8 +101,8 @@ async function load(){
 }
 $('character').onchange=()=>load().catch(e=>status.textContent=e.message);
 $('clip').oninput=save;
-try{const stored=JSON.parse(localStorage.getItem('ace-studio-v1'));if(stored){$('character').value=stored.character==='seated'?'seated':'pointing';$('clip').value=stored.clip||'Ace introduction';setKeys(stored.keys)}}catch{}
+try{const stored=JSON.parse(localStorage.getItem('ace-studio-v1'));if(stored){$('character').value=['rigged','seated','pointing'].includes(stored.character)?stored.character:'pointing';$('clip').value=stored.clip||'Ace introduction';setKeys(stored.keys)}}catch{}
 renderKeys();load().catch(e=>status.textContent='Load failed: '+e.message);
-function loop(now){requestAnimationFrame(loop);if(playing){if(last){time+=(now-last)/1000;if(time>duration)time=0;const held=Math.floor(time*12)/12;pose=sample(held);show();apply();$('timeline').value=time;$('timeValue').textContent=time.toFixed(2)+'s'}last=now}else last=0;orbit.update();renderer.render(scene,camera)}
+function loop(now){requestAnimationFrame(loop);if(mixer && last) mixer.update(Math.min((now-last)/1000,.05));if(playing){if(last){time+=(now-last)/1000;if(time>duration)time=0;const held=Math.floor(time*12)/12;pose=sample(held);show();apply();$('timeline').value=time;$('timeValue').textContent=time.toFixed(2)+'s'}last=now}else last=0;orbit.update();renderer.render(scene,camera)}
 requestAnimationFrame(loop);
 </script></body></html>
