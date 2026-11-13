@@ -1940,3 +1940,33 @@ html.initial-home .menu-button{display:none!important}
   .robot-theater .theater-part-name{font-size:20px}
   .robot-theater .theater-perf-hud{font-size:9px}
 }
+
+/* The engineering companion to the actual CAD: provenance and verification are
+   visible inside the model theater, not buried in a downloadable binder. */
+.robot-theater .theater-evidence-tabs{
+  display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 10px;
+}
+.robot-theater .theater-evidence-tab{
+  flex:1 1 auto;border:1px solid #e8d9d7;background:#faf9f7;
+  padding:8px 5px;border-radius:2px;
+  color:#665957;font:750 10px/1.3 'Barlow',Arial,sans-serif;
+  cursor:pointer;transition:background .14s,color .14s,border-color .14s;
+}
+.robot-theater .theater-evidence-tab.is-current{
+  border-color:#a32632;background:#fff0ef;color:#942934;
+}
+.robot-theater .theater-evidence-tab:hover{
+  background:#f9efee;border-color:#c3a2a4;
+}
+.robot-theater .theater-evidence-tab:focus-visible{
+  outline:2px solid #a32632;outline-offset:2px;
+}
+.robot-theater .theater-evidence-copy{
+  margin:10px 0 15px;color:#594f4c;
+  font:500 12px/1.65 'Barlow',Arial,sans-serif;
+  min-height:65px;
+}
+@media(max-width:760px){
+  .robot-theater .theater-evidence-tabs{margin-top:9px}
+  .robot-theater .theater-evidence-copy{min-height:0}
+}
