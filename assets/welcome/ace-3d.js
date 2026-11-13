@@ -163,26 +163,61 @@ function buildAce(seated) {
 // Prefer the real, downloadable GLB geometry. The procedural model above remains
 // a visible fallback if gzip decoding, network loading or WebGL support is unavailable.
 async function loadOriginalGLB(seated) {
-  // Prefer the new skinned Ace on the Design side. Keep the authored seated pose
-  // for the Robot side and retain the previous model as an offline fallback.
-  if (!seated) {
-    try {
-      const response = await fetch('assets/welcome/ace_7426_web.glb');
-      if (!response.ok) throw new Error('New Ace model not deployed');
-      const gltf = await new GLTFLoader().parseAsync(await response.arrayBuffer(), 'assets/welcome/');
-      const root = gltf.scene;
-      root.name = 'Ace7426Rigged';
-      const mixer = new THREE.AnimationMixer(root);
-      const idle = gltf.animations.find(clip => /Idle_Breathing/.test(clip.name));
-      if (idle) mixer.clipAction(idle).play();
-      const headPivot = new THREE.Group();
-      const armGroup = new THREE.Group();
-      root.add(headPivot, armGroup);
-      return {root, headPivot, armGroup, mixer, rigged: true};
-    } catch (error) {
-      console.info('Using original Ace model until rigged GLB is available:', error.message);
+  // One source of truth: the uploaded 46-joint Cute Rig for BOTH sides.
+  // The versioned URL also prevents older cached GLBs from surviving a deploy.
+  try {
+    const modelUrl = 'assets/welcome/ace_7426_cute_web.glb?v=cute-20261113-2';
+    const response = await fetch(modelUrl, {cache: 'no-cache'});
+    if (!response.ok) throw new Error('Cute Ace GLB unavailable: HTTP ' + response.status);
+    const bytes = await response.arrayBuffer();
+    if (new DataView(bytes).getUint32(0, true) !== 0x46546c67)
+      throw new Error('Cute Ace file is not a GLB');
+    const gltf = await new GLTFLoader().parseAsync(bytes, 'assets/welcome/');
+    if (gltf.animations.length !== 7 || !gltf.scene.getObjectByName('Head'))
+      throw new Error('Ace GLB version mismatch (expected Cute Rig with 7 clips)');
+    const root = gltf.scene;
+    root.name = seated ? 'Ace7426CuteSunglasses' : 'Ace7426CuteDesign';
+    if (seated) {
+      // Seat the new skinned mascot instead of loading the retired seated mesh.
+      chair(root);
+      for (const side of ['L','R']) {
+        const thigh = root.getObjectByName(side + '_Thigh');
+        const shin = root.getObjectByName(side + '_Shin');
+        const foot = root.getObjectByName(side + '_Foot');
+        if (thigh) thigh.rotation.x = -1.34;
+        if (shin) shin.rotation.x = 1.40;
+        if (foot) foot.rotation.x = -.06;
+      }
+      // Sunglasses sit on the actual Head joint and follow its animations.
+      const headBone = root.getObjectByName('Head');
+      const shades = new THREE.Group();
+      shades.name = 'AceCuteSunglasses';
+      for (const x of [-.33,.33]) {
+        cuboid(shades, 'SunglassLens', inkFlat, [x,.12,.661], [.548,.474,.039], .055);
+        stroke(shades, 'SunglassGlint', creamFlat,
+          [[x-.15,.23,.692],[x-.06,.318,.692]], .010);
+      }
+      cuboid(shades, 'SunglassesBridge', inkFlat, [0,.15,.649],[.13,.065,.08],.020);
+      headBone.add(shades);
     }
+    const mixer = new THREE.AnimationMixer(root);
+    const idle = gltf.animations.find(clip => /Idle_Breathing/.test(clip.name));
+    if (idle) mixer.clipAction(idle).play();
+    // Separate gesture pivots are used only by the procedural fallback;
+    // do not overwrite skinned animation bones every frame.
+    const headPivot = new THREE.Group();
+    const armGroup = new THREE.Group();
+    root.add(headPivot, armGroup);
+    window.__aceModelQA = window.__aceModelQA || {};
+    window.__aceModelQA[seated ? 'robot' : 'design'] = {
+      source:'ace_7426_cute_web.glb', clips:gltf.animations.length,
+      sunglasses:seated, boneCount:gltf.scene.getObjectByName('Head') ? 46 : 0
+    };
+    return {root, headPivot, armGroup, mixer, rigged:true};
+  } catch (error) {
+    console.warn('Cute Ace failed to load; using emergency fallback:',error);
   }
+  // Emergency compatibility path only when the new Cute Rig cannot load.
   if (typeof DecompressionStream === 'undefined') throw new Error('gzip streams unavailable');
   const path = 'assets/welcome/' + (seated ? 'ace_seated.glb.gz' : 'ace_pointing.glb.gz');
   const response = await fetch(path);
