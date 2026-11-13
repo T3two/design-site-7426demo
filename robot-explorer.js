@@ -427,6 +427,10 @@ function mount(host,year,models,loadPackedModel){
     const observer=new IntersectionObserver(entries=>{visibility=entries.some(x=>x.isIntersecting);},{threshold:.01});
     observer.observe(viewport);cleanupObjects.push(()=>observer.disconnect());
     let frames=0;
+    let lastVisualFrame=-Infinity;
+    // QA has to render the real CAD on a CPU-only GitHub runner.
+    // Slow its visual frames without affecting the interactive site.
+    const qaSoftwareRenderer=new URLSearchParams(window.location.search).has("qa");
     const tick=now=>{
       if(destroyed||!host.isConnected){destroy();return;}
       requestAnimationFrame(tick);
@@ -463,7 +467,9 @@ function mount(host,year,models,loadPackedModel){
       lastTime=now;
       orbit.update();
       if(!visibility)return;
+      if(qaSoftwareRenderer&&now-lastVisualFrame<1600)return;
       renderer.render(scene,camera);
+      lastVisualFrame=now;
       if(++frames%3===0)setAllHotspots();
     };
     requestAnimationFrame(tick);
