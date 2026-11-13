@@ -1881,3 +1881,62 @@ html.initial-home .menu-button{display:none!important}
     filter:none;
   }
 }
+
+/* CAD-native part inspector. These labels are read from GLB nodes, not AI text. */
+.robot-theater .theater-part-inspector{
+  position:absolute;top:57px;right:15px;z-index:9;
+  width:min(320px,calc(100% - 30px));
+  background:rgba(255,255,255,.97);
+  color:#332a2c;border:1px solid #d6c5c4;border-top:3px solid #a32632;
+  box-shadow:0 10px 26px rgba(34,23,29,.12);
+  padding:13px 14px 14px;
+  pointer-events:auto;
+}
+.robot-theater .theater-part-inspector[hidden],
+.robot-theater .theater-perf-hud[hidden]{display:none!important}
+.robot-theater .theater-part-header{
+  display:flex;justify-content:space-between;gap:15px;align-items:start;
+}
+.robot-theater .theater-part-header span{
+  font:800 10px/1.3 'Barlow',Arial,sans-serif;
+  letter-spacing:.12em;color:#962c39;
+}
+.robot-theater .theater-part-close{
+  background:none;border:0;color:#443538;font:500 25px/1 Arial,sans-serif;
+  margin:-7px -5px 0 0;padding:3px 6px;cursor:pointer;
+}
+.robot-theater .theater-part-name{
+  display:block;font:800 23px/1.15 'Barlow Condensed',Impact,sans-serif;
+  overflow-wrap:anywhere;margin-top:10px;
+}
+.robot-theater .theater-part-source{
+  margin:8px 0 12px;font:500 11px/1.5 'Barlow',Arial,sans-serif;
+  color:#655a59;
+}
+.robot-theater .theater-part-isolate{
+  font:750 11px/1.2 'Barlow',Arial,sans-serif;
+  background:#fff5f4;color:#92323b;border:1px solid #d7a6ac;
+  border-radius:3px;padding:9px 12px;cursor:pointer;
+}
+.robot-theater .theater-part-isolate:hover{background:#f9e3e1}
+.robot-theater .theater-part-isolate:focus-visible,
+.robot-theater .theater-part-close:focus-visible{outline:3px solid #a32632;outline-offset:2px}
+.robot-theater .theater-perf-hud{
+  position:absolute;top:12px;left:12px;z-index:7;
+  padding:6px 9px;background:rgba(32,29,33,.84);color:#f9f5f5;
+  font:700 10px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;
+  max-width:calc(100% - 24px);pointer-events:none;
+}
+.robot-theater .theater-loading.theater-nonblocking{
+  pointer-events:none;max-width:min(330px,85%);font-size:10px;
+  padding:7px 10px;opacity:.92;
+}
+@media(max-width:760px){
+  .robot-theater .theater-part-inspector{
+    top:auto;bottom:64px;right:8px;
+    width:min(300px,calc(100% - 16px));
+    padding:11px 12px;
+  }
+  .robot-theater .theater-part-name{font-size:20px}
+  .robot-theater .theater-perf-hud{font-size:9px}
+}
