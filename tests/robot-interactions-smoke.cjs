@@ -24,6 +24,16 @@ async function verifyYear(browser,year,subsystem){
   await page.waitForTimeout(1000);
   await sub.evaluate(el=>el.click());
   await page.waitForFunction(slug=>document.querySelector('.theater-stage')?.dataset.readySelection===slug,subsystem.toLowerCase(),{timeout:18000});
+  const explode=page.locator('.theater-explode');
+  const canExplode=await explode.isEnabled();
+  if(canExplode){
+    await explode.click();
+    if(await explode.getAttribute('aria-pressed')!=='true')throw Error('Exploded assembly toggle did not activate');
+    if(!(await page.locator('.theater-explode-note').isVisible()))throw Error('Exploded view missing mechanical disclaimer');
+    await page.waitForTimeout(300);
+    await explode.click();
+    if(await explode.getAttribute('aria-pressed')!=='false')throw Error('Exploded assembly did not reset');
+  }
   const noteTabs=page.locator('.theater-evidence-tabs');
   await noteTabs.locator('button').filter({hasText:'CAD source'}).click();
   const cadText=await page.locator('.theater-evidence-copy').innerText();
@@ -67,7 +77,7 @@ async function verifyYear(browser,year,subsystem){
   if(await page.locator('.theater-part-inspector:not([hidden])').count())
     throw Error('Inspector did not close');
   if(errors.length)throw Error('Browser errors: '+errors.slice(0,5).join(' | '));
-  console.log('CAD_INTERACTION_PASS',JSON.stringify({year,subsystem,repeatedTransitionMs:Math.round(repeated.elapsedMs),label:name,perf:await page.evaluate(y=>window.__pairOfDicePerformance?.[y]||null,year)}));
+  console.log('CAD_INTERACTION_PASS',JSON.stringify({year,subsystem,canExplode,repeatedTransitionMs:Math.round(repeated.elapsedMs),label:name,perf:await page.evaluate(y=>window.__pairOfDicePerformance?.[y]||null,year)}));
  }finally{await page.close();}
 }
 (async()=>{
