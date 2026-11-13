@@ -186,6 +186,9 @@ function mount(host,year,models,loadPackedModel){
   btnOriginal.hidden=!fastSource;
   btnOriginal.disabled=true;
   btnOriginal.title="Load the complete high-resolution CAD model only when needed.";
+  const btnSlowDemo=e("button","theater-tool theater-slow-motion","Slow motion · ½×");
+  btnSlowDemo.type="button";btnSlowDemo.hidden=true;
+  btnSlowDemo.setAttribute("aria-pressed","false");
   const btnPauseDemo=e("button","theater-tool theater-pause-motion","Pause");
   btnPauseDemo.type="button";
   btnPauseDemo.hidden=true;
@@ -198,7 +201,7 @@ function mount(host,year,models,loadPackedModel){
   [btnFull,btnReset,btnSpin,btnExpand].forEach(x=>x.type="button");
   btnFull.disabled=true;
   const controlNote=e("span","theater-controls-note","");
-  controlsBar.append(btnFull,btnReset,btnExpand,btnOriginal,btnPauseDemo);
+  controlsBar.append(btnFull,btnReset,btnExpand,btnOriginal,btnPauseDemo,btnSlowDemo);
   stage.append(viewport,controlsBar);
 
   const side=e("aside","theater-side");
@@ -273,6 +276,13 @@ function mount(host,year,models,loadPackedModel){
   const subsystemCache=new Map(), subsystemLoading=new Map();
   let fullUrl=null,seq=0,visibility=true, destroyed=false,clock=0;
   let autoSpin=false, showHotspots=false, cameraTween=null, fades=[], action=null;
+  let playbackRate=1;
+  btnSlowDemo.addEventListener("click",()=>{
+    if(!action)return;
+    playbackRate=playbackRate===1?.5:1;
+    btnSlowDemo.textContent=playbackRate===1?"Slow motion · ½×":"Normal speed · 1×";
+    btnSlowDemo.setAttribute("aria-pressed",String(playbackRate!==1));
+  });
   let pickedMesh=null, pickedHelper=null, pickedBounds=null;
   let isolatedParts=[],partIsolation=false;
   let automaticDemoPlayed=false;
@@ -679,7 +689,7 @@ function mount(host,year,models,loadPackedModel){
         // Cleanup restores the original imported robot transforms.
         try{
           if(action._clock==null)action._clock=now;
-          if(!action._paused)action._clock+=Math.min(Math.max(now-lastTime,0),80);
+          if(!action._paused)action._clock+=Math.min(Math.max(now-lastTime,0),80)*playbackRate;
           action.update(action._clock);
         }catch(err){
           console.error("Scoring playback interrupted:",err);
@@ -911,6 +921,10 @@ function mount(host,year,models,loadPackedModel){
     catch(err){console.error("Robot scene cleanup:",err);}
     demoHud.hidden=true;
     btnPauseDemo.hidden=true;
+    btnSlowDemo.hidden=true;
+    playbackRate=1;
+    btnSlowDemo.textContent="Slow motion · ½×";
+    btnSlowDemo.setAttribute("aria-pressed","false");
     btnPauseDemo.textContent="Pause";
     btnPauseDemo.setAttribute("aria-pressed","false");
     setPhase(0);
@@ -1608,6 +1622,10 @@ function mount(host,year,models,loadPackedModel){
       if(year==="2026")runFuel(requestedAim);
       else runCoral();
       btnPauseDemo.hidden=false;
+      btnSlowDemo.hidden=false;
+      playbackRate=1;
+      btnSlowDemo.textContent="Slow motion · ½×";
+      btnSlowDemo.setAttribute("aria-pressed","false");
       btnPauseDemo.textContent="Pause";
       btnPauseDemo.setAttribute("aria-pressed","false");
     }catch(error){
