@@ -17,6 +17,25 @@ jobs:
           for year in 2026 2025 2024 2023 2022 2020 2019; do
             test -s "models/preview/posters/${year}.jpg"
           done
+      - name: Validate recognizable CAD silhouettes rather than blank poster screenshots
+        shell: bash
+        run: |
+          python3 -m pip install --user --disable-pip-version-check Pillow
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image, ImageFilter
+          for file in sorted(Path('models/preview/posters').glob('*.jpg')):
+              with Image.open(file) as im:
+                  im=im.convert('RGB')
+                  w,h=im.size
+                  if min(w,h)<220: raise SystemExit(f'{file}: too small')
+                  # Exclude footer controls and clipped edges; test central robot.
+                  region=im.crop((int(w*.15),int(h*.12),int(w*.85),int(h*.70)))
+                  edges=region.convert('L').filter(ImageFilter.FIND_EDGES)
+                  rate=sum(v>25 for v in edges.get_flattened_data())/(edges.width*edges.height)
+                  print(f'CAD poster {file.name}: strong edge density {rate:.2%}')
+                  if rate<.025: raise SystemExit(f'{file}: blank or insufficient robot silhouette')
+          PY
       - uses: actions/upload-artifact@v4
         with:
           name: real-cad-poster-review
