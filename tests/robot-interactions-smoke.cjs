@@ -1,6 +1,7 @@
 const { chromium } = require('playwright');
 const BASE='http://127.0.0.1:8765/';
 async function verifyYear(browser,year,subsystem){
+ const slug=subsystem.toLowerCase();
  const page=await browser.newPage({viewport:{width:1360,height:900},deviceScaleFactor:1});
  const errors=[];
  page.on('pageerror',e=>errors.push(String(e.stack||e)));
@@ -39,7 +40,7 @@ async function verifyYear(browser,year,subsystem){
   await sub.evaluate(el=>el.click());
   await page.waitForFunction(slug=>document.querySelector('.theater-stage')?.dataset.readySelection===slug,subsystem.toLowerCase(),{timeout:18000});
   const latest=await page.evaluate(()=>window.__robotTheaterPerf||[]);
-  const repeated=latest.filter(e=>e.selection===subsystem).at(-1);
+  const repeated=latest.filter(e=>e.selection===slug).at(-1);
   if(!repeated || !repeated.cached || repeated.elapsedMs>1850)
     throw Error('Repeated transition is not responsive: '+JSON.stringify(latest));
   await page.locator('.theater-nav-button').filter({hasText:/complete robot/i}).first().evaluate(el=>el.click());
