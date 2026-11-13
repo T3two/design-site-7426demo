@@ -23,11 +23,17 @@ for(const [year,mechanism] of cases){
     console.log("CAD_LOADED",year);
     const threeStage=page.locator(".robot-theater .theater-stage");
     await threeStage.scrollIntoViewIfNeeded();
+    console.log("STAGE_IN_VIEW",year);
     await page.waitForTimeout(650);
     await page.locator(".robot-theater .theater-nav-button").filter({hasText:mechanism}).first().evaluate(el=>el.click());
     await page.waitForFunction((name)=>!!document.querySelector(".robot-theater .theater-detail h4")?.textContent?.toLowerCase().includes(name.toLowerCase()),mechanism,{timeout:60000});
-    // Allow the scripted isolation/transition and any automatic demo time.
-    await page.waitForTimeout(5500);
+    // Wait for the isolated CAD transition to complete. QA disables autoplay
+    // so every test exercises the same manual scoring control.
+    await page.waitForFunction(()=>{
+      const panel=document.querySelector(".robot-theater .theater-action-panel");
+      return panel&&!panel.hidden;
+    },null,{timeout:45000});
+    console.log("SUBSYSTEM_READY",year);
     const action=page.locator(".robot-theater .theater-action-button");
     if(await action.isEnabled())await action.evaluate(el=>el.click());
     await page.waitForFunction(()=>{
