@@ -96,8 +96,11 @@ const {chromium}=require('playwright');
     if(!/dead.axle/i.test(await page.locator('.wb2-history-note').innerText()))
       throw Error('Intake revision history is disconnected from the documented binder');
     const tree=page.locator('.wb2-tree');
-    await tree.locator('summary').click();
-    await page.waitForTimeout(300);
+    // Search may already have expanded the details element. Do not close it.
+    if(!await tree.evaluate(el=>el.open))
+      await tree.locator('summary').click();
+    await page.waitForFunction(()=>document.querySelector('.wb2-tree')?.open);
+    await page.waitForTimeout(180);
     const treeStatus=await page.locator('.wb2-tree-hint').first().innerText();
     if(!/named CAD meshes|no named meshes/i.test(treeStatus))
       throw Error('Actual mesh assembly tree not populated '+treeStatus);
