@@ -647,6 +647,7 @@ function mount(host,year,models,loadPackedModel){
     if(destroyed)return;
     const ticket=++seq;
     stopAction();
+    clearScoringProps();
     if(turretRig && key!=="shooter") releaseTurretRig();
     selectNav(key);
     if(!full){
@@ -1187,15 +1188,24 @@ function mount(host,year,models,loadPackedModel){
   let demoReturnSelection="full";
   const completeAction=()=>{
     if(!action)return;
+    action._completed=true;
     stopAction();
     if(destroyed)return;
     if(demoReturnSelection==="full"){
-      const home=homePose();
-      Promise.all([
-        cameraTo(home.position,home.target,860),
-        fadeTo(full,1,550),
-        fadeTo(active,0,450)
-      ]).then(()=>{if(!destroyed)showSelection("full");});
+      // Give viewers time to see the CORAL remain supported on the branch,
+      // instead of immediately zooming out and making it disappear.
+      const ticket=seq;
+      const leaveScene=()=>{
+        if(destroyed||ticket!==seq)return;
+        const home=homePose();
+        Promise.all([
+          cameraTo(home.position,home.target,900),
+          fadeTo(full,1,550),
+          fadeTo(active,0,450)
+        ]).then(()=>{if(!destroyed&&ticket===seq)showSelection("full");});
+      };
+      if(year==="2025")setTimeout(leaveScene,1900);
+      else leaveScene();
       return;
     }
     if(!active||selected!==def.actionSubsystem)return;
@@ -1215,6 +1225,7 @@ function mount(host,year,models,loadPackedModel){
     if(destroyed||preparingDemo||action)return;
     preparingDemo=true;
     try{
+      clearScoringProps();
       actionDisclaimer.textContent="Illustrative CAD motion using the original robot parts.";
       if(!full)await loadFull();
       // An overview playback uses only the complete assembly, dramatically
@@ -1283,6 +1294,7 @@ function mount(host,year,models,loadPackedModel){
     if(destroyed)return;
     destroyed=true;
     stopAction();
+    clearScoringProps();
     releaseTurretRig();
     cancelCamera();
     fades.forEach(f=>f.resolve());fades=[];
