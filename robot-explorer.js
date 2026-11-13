@@ -206,7 +206,9 @@ function mount(host,year,models,loadPackedModel){
   [btnFull,btnReset,btnSpin,btnExpand].forEach(x=>x.type="button");
   btnFull.disabled=true;
   const controlNote=e("span","theater-controls-note","");
-  controlsBar.append(btnFull,btnReset,btnExpand,btnExplode,btnOriginal,btnPauseDemo,btnSlowDemo);
+  const explodeNote=e("small","theater-explode-note","Exploded CAD inspection — not actual mechanism travel");
+  explodeNote.hidden=true;
+  controlsBar.append(btnFull,btnReset,btnExpand,btnExplode,btnOriginal,btnPauseDemo,btnSlowDemo,explodeNote);
   stage.append(viewport,controlsBar);
 
   const side=e("aside","theater-side");
@@ -295,6 +297,7 @@ function mount(host,year,models,loadPackedModel){
     btnExplode.disabled=true;
     btnExplode.textContent="Explode parts";
     btnExplode.setAttribute("aria-pressed","false");
+    explodeNote.hidden=true;
   };
   const setupExplodedInspection=(item)=>{
     clearExplodedInspection();
@@ -334,6 +337,7 @@ function mount(host,year,models,loadPackedModel){
     explodeGoal=explodeGoal>.5?0:1;
     btnExplode.textContent=explodeGoal?"Assemble parts":"Explode parts";
     btnExplode.setAttribute("aria-pressed",String(!!explodeGoal));
+    explodeNote.hidden=!explodeGoal;
   });
   let pickedMesh=null, pickedHelper=null, pickedBounds=null;
   let isolatedParts=[],partIsolation=false;
