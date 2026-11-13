@@ -1,0 +1,67 @@
+name: Publish Ace Cute Rig models
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/ace_cute_build.brotli.b64'
+      - '.github/workflows/publish-ace-cute.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install the original asset builder dependencies
+        run: python -m pip install --disable-pip-version-check numpy==2.3.5 scipy==1.17.0 trimesh==4.11.1 pillow==12.3.0 brotli==1.2.0
+      - name: Restore and verify exact Cute Rig source
+        run: |
+          python - <<'PY'
+          import base64,brotli,hashlib,pathlib
+          src = pathlib.Path('scripts/ace_cute_build.brotli.b64').read_text()
+          packed = base64.b64decode(''.join(src.split()))
+          original = brotli.decompress(packed)
+          actual = hashlib.sha256(original).hexdigest()
+          expected = 'baf0f5be984eefeaaa7dfebf75ebce2d56bfcb12fd86acd306af3c0dd3a5a4c0'
+          assert actual == expected, f'Source checksum mismatch: {actual}'
+          source = original.decode('utf-8')
+          assert "P='/mnt/data'" in source
+          source = source.replace("P='/mnt/data'", "P='.'")
+          pathlib.Path('ace_cute_build.py').write_text(source)
+          PY
+      - name: Build the real Ace Cute Rig asset
+        run: |
+          python ace_cute_build.py --level web
+          python - <<'PY'
+          import hashlib,pathlib,struct,json
+          path=pathlib.Path('ace_7426_cute_web.glb')
+          data=path.read_bytes()
+          actual=hashlib.sha256(data).hexdigest()
+          expected='0a5c445d7d5f0b8e5db15634e38592b6e13e385961fe4e5555735324b6a47aa9'
+          assert actual == expected, f'Built model differs from uploaded Cute Rig: {actual}'
+          assert data[:4] == b'glTF' and struct.unpack_from('<I',data,8)[0] == len(data)
+          n=struct.unpack_from('<I',data,12)[0]
+          gltf=json.loads(data[20:20+n])
+          assert len(gltf['skins'][0]['joints']) == 46
+          assert len(gltf['animations']) == 7
+          PY
+      - name: Install both current and legacy-compatible URLs
+        run: |
+          mkdir -p assets/welcome
+          cp ace_7426_cute_web.glb assets/welcome/ace_7426_cute_web.glb
+          cp ace_7426_cute_web.glb assets/welcome/ace_7426_web.glb
+      - name: Commit real binary models to main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/welcome/ace_7426_cute_web.glb assets/welcome/ace_7426_web.glb
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish verified Ace Cute Rig GLB for homepage and studio"
+            git push origin HEAD:main
+          fi
