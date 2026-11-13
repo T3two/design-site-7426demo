@@ -131,6 +131,24 @@
   let navigation = [];
   let modelCatalog = [];
   let previewCatalog = {models:{}};
+  const pageTextCache = new Map();
+  function readPageText(filename) {
+    if (!pageTextCache.has(filename)) {
+      const job = fetch('content/' + filename).then(response => {
+        if (!response.ok) throw Error('Page file not found: ' + filename);
+        return response.text();
+      }).catch(error => {
+        pageTextCache.delete(filename);
+        throw error;
+      });
+      pageTextCache.set(filename,job);
+    }
+    return pageTextCache.get(filename);
+  }
+  function prefetchPage(key) {
+    const meta = pageMap[key];
+    if (meta?.file) readPageText(meta.file).catch(() => {});
+  }
   let sponsors = [];
   let robots = [];
   let pageMap = {};
@@ -1083,8 +1101,7 @@
     if (animate && currentPage !== key) {
       intro.classList.add("page-fade");
       content.classList.add("page-fade");
-      await new Promise(resolve => setTimeout(resolve, 100));
-      if (requestId !== pageRequestId) return;
+      // No deliberate 100ms delay; transition only while real content resolves.
     }
 
     setWelcomeMode(meta.id);
@@ -1093,11 +1110,10 @@
     $("pageDescription").textContent = meta.description || "";
     setActiveNavigation(meta.id);
 
-    content.innerHTML = "<p class='loading-copy'>Loading page…</p>";
+    // Keep the previous page visible while retrieving the next, rather than
+    // clearing the screen and showing a flickering "Loading page" placeholder.
     try {
-      const response = await fetch("content/" + meta.file);
-      if (!response.ok) throw new Error("Page file not found: " + meta.file);
-      let markdown = await response.text();
+      let markdown = await readPageText(meta.file);
       if (requestId !== pageRequestId) return;
       // Markdown files are stored in /content but rendered on index.html. Normalize paths
       // so the image paths work consistently on GitHub Pages project sites.
@@ -1238,6 +1254,9 @@
     buildNavigation();
     renderFooterSponsors();
     loadWelcomeArt();
+    // These two tiny landing pages can be ready before the visitor clicks.
+    prefetchPage('design-teaching');
+    prefetchPage('robot-archive');
 
     const params = new URLSearchParams(location.search);
     const requested = params.get("page");
@@ -1259,6 +1278,14 @@
   });
 
   // The side panels and central calls-to-action use the existing in-page router.
+  $("welcomeGateway").addEventListener("pointerover", event => {
+    const link = event.target.closest('a[data-page]');
+    if (link) prefetchPage(link.dataset.page);
+  }, {passive:true});
+  $("welcomeGateway").addEventListener("focusin", event => {
+    const link = event.target.closest('a[data-page]');
+    if (link) prefetchPage(link.dataset.page);
+  });
   $("welcomeGateway").addEventListener("click", event => {
     const link = event.target.closest("a[data-page]");
     if (!link || !pageMap[link.dataset.page]) return;
