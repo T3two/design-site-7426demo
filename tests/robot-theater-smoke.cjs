@@ -33,10 +33,23 @@ const time=()=>new Date().toISOString();
         await page.locator(".robot-theater .theater-launch").evaluate(el=>el.click());
         await page.locator(".theater-stage.is-ready").waitFor({timeout:180000});
         console.log(time(),year,"full robot rendered");
+        // Score straight from the full assembly; no duplicate subsystem GLB
+        // should be required to enter the demonstration.
+        await page.locator(".theater-action-panel:not([hidden])").waitFor({timeout:15000});
+        await page.locator(".theater-action-button").evaluate(el=>el.click());
+        await page.waitForTimeout(11600);
+        const overviewState=await page.evaluate(()=>({
+          busy:document.querySelector(".theater-loading")?.hidden===false,
+          buttonDisabled:document.querySelector(".theater-action-button")?.disabled,
+          sceneReady:document.querySelector(".theater-stage")?.classList.contains("is-ready")
+        }));
+        console.log(time(),year,"FULL ROBOT DEMO",JSON.stringify(overviewState));
+        if(overviewState.busy||overviewState.buttonDisabled||!overviewState.sceneReady)
+          throw new Error("Full robot direct demo unhealthy "+JSON.stringify(overviewState));
         await page.locator(".theater-nav-button").filter({hasText:part}).first().evaluate(el=>el.click());
         await page.locator(".theater-action-panel:not([hidden])").waitFor({timeout:90000});
         console.log(time(),year,"subsystem ready");
-        await page.waitForTimeout(14000);
+        await page.waitForTimeout(900);
         const button=page.locator(".theater-action-button");
         if(await button.isDisabled())await page.waitForTimeout(9000);
         await button.evaluate(el=>el.click());
@@ -56,6 +69,20 @@ const time=()=>new Date().toISOString();
         });
         try{await page.screenshot({path:"test-results/"+year+"-after-demo.png",fullPage:false,timeout:5000});}catch(e){console.log("Screenshot not captured:",e.message.slice(0,90));}
         console.log(time(),year,"STATE",JSON.stringify(state));
+        // Second invocation from the same isolated assembly tests cleanup
+        // and restoration across repeated replay cycles.
+        if(!state.buttonDisabled){
+          await button.evaluate(el=>el.click());
+          await page.waitForTimeout(12000);
+          const replay=await page.evaluate(()=>({
+            buttonDisabled:document.querySelector(".theater-action-button")?.disabled,
+            loadingVisible:document.querySelector(".theater-loading")?.hidden===false,
+            loadingText:document.querySelector(".theater-loading")?.textContent
+          }));
+          console.log(time(),year,"REPLAY",JSON.stringify(replay));
+          if(replay.buttonDisabled||replay.loadingVisible)
+            throw new Error("Second playback failed: "+JSON.stringify(replay));
+        }
         if(!state.canvas||!state.ready)throw new Error("3D canvas/full robot absent");
         if(state.loadingVisible||/unable|error|could not|missing|failed/i.test(state.loadingText||""))
           throw new Error("Viewer error displayed: "+state.loadingText);
