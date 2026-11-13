@@ -1,0 +1,56 @@
+name: CAD viewer browser smoke test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "robot-explorer.js"
+      - "index.html"
+      - "qa/**"
+      - ".github/workflows/cad-browser-test.yml"
+
+jobs:
+  browser-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install browser test dependencies
+        run: |
+          npm install --no-save playwright@1.58.2
+          npx playwright install --with-deps chromium
+      - name: Inspect GLB node hierarchy
+        run: |
+          python3 - <<'PY'
+          import json,gzip,struct,glob
+          for year in ("2025","2026"):
+              chunks=b"".join(open(p,"rb").read() for p in sorted(glob.glob("models/packed/"+year+"/*.part*")))
+              try: raw=gzip.decompress(chunks)
+              except Exception as e: print("GLB decompress failed",year,e);continue
+              size=struct.unpack_from("<I",raw,12)[0]
+              doc=json.loads(raw[20:20+size])
+              nodes=[n.get("name","") for n in doc.get("nodes",[])]
+              print(year,"nodes",len(nodes))
+              for key in ("Shooter","Turret","Claw","Carriage","Elevator","Brass","Roller"):
+                  matches=[n for n in nodes if key.lower() in n.lower()]
+                  if matches:print("MATCH",year,key,matches[:20])
+          PY
+      - name: Start local website
+        run: |
+          python3 -m http.server 8080 --bind 127.0.0.1 >/tmp/cad-server.log 2>&1 &
+          for i in $(seq 1 20); do curl -fsS http://127.0.0.1:8080/ >/dev/null && break; sleep 1; done
+      - name: Reproduce scoring animations in Chromium
+        run: node qa/robot-smoke.mjs
+      - name: Upload screenshots and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cad-browser-test-results
+          path: |
+            qa-results/
+            /tmp/cad-server.log
+          if-no-files-found: ignore
