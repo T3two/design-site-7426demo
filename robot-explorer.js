@@ -279,6 +279,7 @@ function mount(host,year,models,loadPackedModel){
 
   let mod=null,THREE=null,renderer=null,scene=null,camera=null,orbit=null,gltfLoader=null,studioEnv=null,floorShadow=null;
   let full=null,fullLoad=null,fullBounds=null,active=null;
+  let workbench2=null;
   let fullIsOriginal=false, originalRequest=null;
   const subsystemCache=new Map(), subsystemLoading=new Map();
   let fullUrl=null,seq=0,visibility=true, destroyed=false,clock=0;
@@ -396,6 +397,7 @@ function mount(host,year,models,loadPackedModel){
       ?"This is complete original CAD geometry."
       :"This is optimized geometry; inspect the original CAD for more detail.");
     partInspector.hidden=false;
+    workbench2?.onPart(mesh);
   };
   partClose.addEventListener("click",clearPickedPart);
   partIsolate.addEventListener("click",()=>{
@@ -681,7 +683,7 @@ function mount(host,year,models,loadPackedModel){
       const hit=picker.intersectObject(root,true).find(entry=>
         entry.object.isMesh && entry.object.visible &&
         entry.object.parent?.visible!==false);
-      if(hit)inspectPart(hit.object);
+      if(hit && !workbench2?.onPick(hit))inspectPart(hit.object);
     },{passive:true});
     orbit=new OrbitControls(camera,renderer.domElement);
     orbit.enableDamping=true;orbit.dampingFactor=.075;
@@ -885,6 +887,7 @@ function mount(host,year,models,loadPackedModel){
       setMessage("",false);
       hotspotsByKey.forEach(el=>el.hidden=false);
       prefetchScoringSubsystem();
+      workbench2?.refresh();
       return full;
     })().catch(err=>{
       fullLoad=null;
@@ -920,6 +923,7 @@ function mount(host,year,models,loadPackedModel){
         else obj.material?.dispose();
       });
       fullIsOriginal=true;
+      workbench2?.refresh();
       btnOriginal.textContent="Original CAD ready";
       setMessage("",false);
     })().catch(error=>{
@@ -1048,6 +1052,7 @@ function mount(host,year,models,loadPackedModel){
     actionPanel.hidden=!(key==="full"||key===def.actionSubsystem);
     selectNav(key);
     selected=key;
+    workbench2?.onSelection();
     btnOriginal.disabled=fullIsOriginal || key!=='full';
     btnExplode.disabled=key==='full'||!explodeTargets.length;
     showHotspots=false;
@@ -1748,6 +1753,7 @@ function mount(host,year,models,loadPackedModel){
       clearScoringProps();
       clearExplodedInspection();
       actionDisclaimer.textContent="Illustrative CAD motion using the original robot parts.";
+      workbench2?.beforeMotion();
       if(!full)await loadFull();
       // An overview playback uses only the complete assembly, dramatically
       // reducing peak GPU memory on mobile and avoiding unnecessary downloads.
@@ -1818,6 +1824,8 @@ function mount(host,year,models,loadPackedModel){
   const destroy=()=>{
     if(destroyed)return;
     destroyed=true;
+    workbench2?.dispose();
+    workbench2=null;
     clearPickedPart();
     clearExplodedInspection();
     stopAction();
@@ -1906,6 +1914,21 @@ function mount(host,year,models,loadPackedModel){
         choose(a.dataset.exploreSystem);
       });
     });
+  }
+  if(year==="2026"){
+    import("./robot-workbench-2.js?v=workbench-2-20261113").then(({createWorkbench2})=>{
+      if(destroyed||!host.isConnected)return;
+      workbench2=createWorkbench2({
+        host,stage,side,controlsBar,partInspector,partIsolate,
+        getScene:()=>({THREE,scene,renderer,camera,orbit}),
+        getRoot:()=>active?.alpha>.5?active.group:full?.group,
+        getSelection:()=>selected,
+        onInspectPart:inspectPart,
+        onChoose:choose,
+        onReadNotes:()=>deeper.click()
+      });
+      workbench2.onSelection();
+    }).catch(error=>console.error("Workbench inspection tools unavailable:",error));
   }
   // On capable desktop connections, prepare the entire robot as the reader
   // scrolls to this section. Phones and data-saving connections retain a clear
