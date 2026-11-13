@@ -65,3 +65,48 @@ The original website downloaded entire full-resolution robot GLBs before showing
 1. Update the original models and manifest in `models/catalog.json` if a verified CAD export changes.
 2. From the repository's preview-generation workflow, run `tools/build_robot_lods.py` and `tools/build_subsystem_lods.py` using gltfpack 0.25. Never replace the original packed models with lossy previews.
 3. Review file-size summaries, SHA-256 manifests, and browser smoke results before publishing.
+
+## Architecture comparison against professional 3D web techniques
+
+| Approach | Strength | Cost or limitation | Decision |
+| --- | --- | --- | --- |
+| Three.js + WebGL2 + optimized glTF | Already powers the working robotics simulator; exposes reliable OrbitControls, PBR materials, GLTFLoader, meshopt decoding and custom mechanical animation | Requires careful scene/material lifetime management and explicit DOM/UI wiring | **Keep and optimize** instead of replacing functioning code |
+| React Three Fiber | Good component composition and declarative lifecycle for complex React apps | A migration from a static site introduces React/runtime bundles and costly regression surface without decreasing source geometry bytes | **Do not migrate merely for fashion** |
+| Three.js WebGPU | Modern rendering and compute options; excellent long-term potential | Browser/GPU variance, renderer API migration, and less predictable hardware support for school and mobile devices | **Future optional feature detection**, not a blocker for the current production site |
+| Unity WebGL / full game-engine build | Rich authoring and established editor workflows | High startup payloads and broad device requirements; too heavyweight for a largely static educational binder | **Do not adopt** |
+| Rapier rigid-body engine | Contact/joints, kinematic bodies, constraints for verified collision scenes | Adds runtime and an authoring burden for correctly labeled collision proxies; will not create physical truth from unknown axes/telemetry | **Defer for verified mechanical data**; use constrained CAD transforms and educational analytical paths now |
+
+The choice is **not** a benchmark claiming Three.js wins universally. For this team's actual repository, model delivery and GPU geometry dominated the initial delay, so rewriting the UI framework would not solve the main problem.
+
+### Transfer, decode, first-frame and transition are distinct metrics
+
+1. **First meaningful paint**: immediate HTML and actual static previews; no blocking splash.
+2. **Cold real 3D**: network transfer + Meshopt decompression + glTF parse + scene construction + shaders + GPU upload. On a software-rendered GitHub Actions Chromium test, measured first interactability varies by season and is not guaranteed sub-500 ms.
+3. **Warm subsystem selection**: reused decoded GLTF, GPU resources and a single camera/fade animation; test this separately from cold load.
+4. **High-detail inspection**: explicit user action downloads original assemblies; large originals still require a noticeable load.
+5. **Runtime stability**: measured in `?perf=1` diagnostics with live FPS estimate, frame-time p95, draw calls, triangles, geometry and textures. Those numbers depend on the actual machine.
+
+Chrome's Performance panel provides LCP, INP, layout shift, and long-frame traces; WebGL renderer.info provides draw calls, triangle and memory counters. The automated software-rendered browser suite is valuable for regressions but **not a reliable proxy for 60 FPS on real desktop or phone GPUs**.
+
+### Graphic direction and professional references
+
+The welcome art is the team's own Ace mascot in a stylized, held-frame, ink-outlined Three.js scene. The robot uses a separate restrained, white-background PMREM/PBR materials environment so the character's comic treatment never alters source engineering geometry. Professional vehicle-configurator case studies reinforce the design choice: preserve a stable scene and camera while users change what is being inspected. Their art/assets are not copied.
+
+Relevant public references and technical documentation:
+
+- [Three.js GLTFLoader (Meshopt, KTX2, Draco)](https://threejs.org/docs/pages/GLTFLoader.html)
+- [Three.js WebGLRenderer shader compilation](https://threejs.org/docs/pages/WebGLRenderer)
+- [Meshoptimizer gltfpack optimization](https://meshoptimizer.org/gltf/)
+- [Three.js InstancedMesh draw calls](https://threejs.org/docs/pages/InstancedMesh.html)
+- [Rapier joint constraints](https://rapier.rs/docs/user_guides/javascript/joints/)
+- [Chrome Performance panel: measuring frames and Web Vitals](https://developer.chrome.com/docs/devtools/performance/reference)
+- [Web-focused BMW configurator case study](https://interactiva.studio/3d-car-configurator/)
+- [Porsche 3D interactive case study (fan project)](https://adjierizqan.com/projects/porsche-3d/)
+- [Official FRC REBUILT 2026 game manual](https://firstfrc.blob.core.windows.net/frc2026/Manual/HTML/2026GameManual.htm)
+- [Official FIRST archived games](https://www.firstinspires.org/resources/library/frc/archived-games)
+
+## Engineering trust boundary
+
+**Actual team CAD is a source of geometric evidence, not complete behavioral evidence.** The user-provided 2026 article includes specific design descriptions; the 2025 page explicitly flags missing verified engineering specifications. There is currently no full 2025 engineering notebook or measured joint envelope in this repository, and the `binders/` directory does not contain a verified original binder PDF. Therefore do not label the viewer's illustrative claw path or idealized fuel trajectory as a verified digital twin. The UI's Evidence tab says exactly which motion assumptions need confirmation.
+
+Exact collision proxies, joint hard-stop angles, verified roller axes and shot/placement telemetry would be required before certifying a physically grounded twin. The source code retains those demonstrations as **illustrative, CAD-derived scenes**, while numeric original measurements are never silently invented to fill gaps.
