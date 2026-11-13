@@ -2,7 +2,7 @@ name: Review actual-CAD robot poster images
 on:
   push:
     branches: ['feature/robot-instant-lod-and-comic-ace']
-    paths: ['.github/workflows/review-cad-posters.yml']
+    paths: ['.github/workflows/review-cad-posters.yml', 'models/preview/posters/**']
   workflow_dispatch:
 permissions: {contents: read}
 jobs:
