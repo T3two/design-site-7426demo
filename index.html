@@ -6,52 +6,31 @@
   <meta name="theme-color" content="#a32632">
   <meta name="description" content="Engineering resources, design reasoning, and interactive CAD from Pair of Dice Robotics, FRC Team 7426.">
   <title>Pair of Dice Design | FRC 7426</title>
+  <script>
+    // Show the welcome composition during HTML parsing, before any JS/CAD loads.
+    if (!new URLSearchParams(location.search).get('page') ||
+        new URLSearchParams(location.search).get('page') === 'home')
+      document.documentElement.classList.add('initial-home');
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=ace-3d-prototype-1">
+  <link rel="stylesheet" href="styles.css?v=ace-3d-instant-v2">
   <script type="importmap">
     {"imports":{
       "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
       "three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
     }}
   </script>
-  <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
-  <script type="module" src="assets/welcome/ace-3d.js?v=ace-3d-prototype-1"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
-  <script src="robot-explorer.js?v=physics-checked-scoring-v11"></script>
+  
+  <script type="module" src="assets/welcome/ace-3d.js?v=ace-3d-instant-v2"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/marked@15.0.7/marked.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+  
 </head>
 <body>
-  <div class="site-loader" id="siteLoader" role="status" aria-label="Loading Pair of Dice Design">
-    <div class="loader-content loader-video-content">
-      <video id="loaderVideo" class="loader-video" autoplay muted loop playsinline preload="auto" aria-hidden="true">
-        <source src="assets/loading/pair-of-dice-original-red-outline.mp4?v=h264-2" type="video/mp4">
-      </video>
-      <div id="loaderVideoFallback" class="loader-video-fallback" hidden>
-        <span>PAIR OF <b>DICE</b></span>
-        <small>FRC 7426 / LAS VEGAS</small>
-      </div>
-      <p id="loaderText">Opening the design notebook…</p>
-      <div class="loader-track"><span></span></div>
-    </div>
-  </div>
-  <script>
-    (() => {
-      const video = document.getElementById("loaderVideo");
-      const fallback = document.getElementById("loaderVideoFallback");
-      if (!video || !fallback) return;
-      const showFallback = () => {
-        video.hidden = true;
-        fallback.hidden = false;
-        document.getElementById("siteLoader").classList.add("loader-video-failed");
-      };
-      video.addEventListener("error", showFallback, { once: true });
-      const source = video.querySelector("source");
-      source?.addEventListener("error", showFallback, { once: true });
-      video.play().catch(showFallback);
-    })();
-  </script>
+  <!-- No blocking splash: preserve the loader API contract without a video request. -->
+  <div class="site-loader" id="siteLoader" hidden aria-hidden="true"><span id="loaderText" hidden></span></div>
 
   <header class="topbar">
     <a class="brand" href="./" aria-label="Pair of Dice Design home">
@@ -71,15 +50,15 @@
     <main>
       <!-- Welcome artwork: exactly four future uploads (two Ace figures, two backgrounds).
            Each slot stays intentionally unillustrated until assets/welcome/manifest.json is filled. -->
-      <section class="welcome-gateway" id="welcomeGateway" aria-labelledby="welcomeTitle" hidden>
+      <section class="welcome-gateway" id="welcomeGateway" aria-labelledby="welcomeTitle">
         <div class="welcome-scenes">
           <a class="welcome-scene welcome-scene--design" href="?page=design-teaching" data-page="design-teaching" aria-label="Enter Design Teaching">
             <span class="welcome-scene-heading">THE DRAWING BOARD <span>01 / 02</span></span>
             <div class="welcome-art welcome-art--background" data-welcome-asset="designBackground" aria-hidden="true">
               <span class="welcome-art-tag">DESIGN BACKGROUND <small>ARTWORK SLOT 01</small></span>
             </div>
-            <div class="welcome-art welcome-art--ace" data-welcome-asset="designAce" aria-hidden="true">
-              <span class="welcome-art-tag">POINTING ACE <small>ARTWORK SLOT 02</small></span>
+            <div class="welcome-art welcome-art--ace has-art ace3d-ready" data-welcome-asset="designAce" aria-hidden="true">
+              <img class="ace-3d-poster" src="assets/welcome/ace-pointing-poster.webp" alt="" width="614" height="740" fetchpriority="high" loading="eager" decoding="async">
             </div>
             <span class="welcome-scene-caption">IDEAS / SKETCHES / WHY IT WORKS</span>
           </a>
@@ -88,8 +67,8 @@
             <div class="welcome-art welcome-art--background" data-welcome-asset="robotBackground" aria-hidden="true">
               <span class="welcome-art-tag">ROBOT BACKGROUND <small>ARTWORK SLOT 03</small></span>
             </div>
-            <div class="welcome-art welcome-art--ace" data-welcome-asset="robotAce" aria-hidden="true">
-              <span class="welcome-art-tag">SEATED ACE <small>ARTWORK SLOT 04</small></span>
+            <div class="welcome-art welcome-art--ace has-art ace3d-ready" data-welcome-asset="robotAce" aria-hidden="true">
+              <img class="ace-3d-poster" src="assets/welcome/ace-seated-poster.webp" alt="" width="490" height="740" fetchpriority="high" loading="eager" decoding="async">
             </div>
             <span class="welcome-scene-caption">THE ROBOTS / THE BUILDS / THE JOURNEY</span>
           </a>
@@ -1007,6 +986,30 @@
     article.appendChild(section);
   }
 
+  // Heavy CAD libraries are only fetched if the visitor opens a CAD page.
+  let explorerScriptPromise;
+  function ensureRobotExplorer() {
+    if (window.PairOfDiceExplorer) return Promise.resolve();
+    if (explorerScriptPromise) return explorerScriptPromise;
+    explorerScriptPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'robot-explorer.js?v=physics-checked-scoring-v11';
+      script.async = true;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Robot explorer script unavailable'));
+      document.head.appendChild(script);
+    });
+    return explorerScriptPromise;
+  }
+  function ensureModelViewer() {
+    if (customElements.get('model-viewer') || document.querySelector('script[data-cad-model-viewer]')) return;
+    const script = document.createElement('script');
+    script.dataset.cadModelViewer = 'true';
+    script.type = 'module';
+    script.src = 'https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js';
+    document.head.appendChild(script);
+  }
+
   // Artwork is opt-in: no missing-image requests, no placeholders passed off as final art.
   // The manifest is populated only after the four hand drawings are approved.
   async function loadWelcomeArt() {
@@ -1033,6 +1036,7 @@
     const home = pageId === "home";
     document.body.classList.toggle("welcome-mode", home);
     $("welcomeGateway").hidden = !home;
+    document.documentElement.classList.remove("initial-home");
   }
 
   async function loadPage(key, animate = true) {
@@ -1074,12 +1078,18 @@
       content.innerHTML = window.marked && window.DOMPurify ? DOMPurify.sanitize(marked.parse(markdown), {ADD_ATTR: ["data-model-id","data-explorer-year","data-explore-system"]}) : "<pre></pre>";
       if (!window.marked || !window.DOMPurify) content.querySelector("pre").textContent = markdown;
 
+      if (content.querySelector("[data-model-id], [data-explorer-year]") || meta.showAllModels ||
+          modelCatalog.some(model => Array.isArray(model.pages) && model.pages.includes(meta.id)))
+        ensureModelViewer();
       const placedIds = [...content.querySelectorAll('[data-model-id]')].map(node => node.dataset.modelId);
       renderModelPlaceholders(content);
 
       const interactiveBinder = content.querySelector("[data-explorer-year]");
-      if (interactiveBinder && window.PairOfDiceExplorer) {
-        window.PairOfDiceExplorer.mount(interactiveBinder,interactiveBinder.dataset.explorerYear,modelCatalog,loadPackedModel);
+      if (interactiveBinder) {
+        ensureRobotExplorer().then(() => {
+          if (requestId === pageRequestId && interactiveBinder.isConnected && window.PairOfDiceExplorer)
+            window.PairOfDiceExplorer.mount(interactiveBinder,interactiveBinder.dataset.explorerYear,modelCatalog,loadPackedModel);
+        }).catch(error => console.warn('Robot explorer unavailable:', error));
       }
 
       let pageModels = modelCatalog.filter(model => Array.isArray(model.pages) && model.pages.includes(meta.id));
@@ -1255,11 +1265,14 @@
     if (!$("siteLoader").classList.contains("loader-hidden")) hideLoader();
   }, 12000);
 
-  init().catch(error => {
-    console.error(error);
-    $("content").innerHTML = "<h2>Website setup could not load</h2><p>Check that the JSON settings files are present and valid.</p>";
-    hideLoader();
-  });
+  // Defer content setup until optional markdown libraries have loaded.
+  // The welcome hero above is already visible while this initializes.
+  document.addEventListener('DOMContentLoaded', () => {
+    init().catch(error => {
+      console.error(error);
+      $("content").innerHTML = "<h2>Website setup could not load</h2><p>Check that the JSON settings files are present and valid.</p>";
+    });
+  }, {once: true});
 })();
 </script>
 </body>
