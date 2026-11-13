@@ -377,8 +377,17 @@ function mount(host,year,models,loadPackedModel){
     pickedHelper.name="CAD selection / visual guide";
     pickedHelper.renderOrder=999;
     scene.add(pickedHelper);
-    const label=([mesh.name,mesh.parent?.name,mesh.geometry?.name]
-      .find(value=>typeof value==='string'&&value.trim()&&!/^(mesh|node|scene)\d*$/i.test(value.trim()))||"Unnamed CAD mesh")
+    // gltfpack may call a rendered primitive "mesh_3"; that is NOT a
+    // meaningful engineering label. Find the nearest real Onshape part/group
+    // name in its ancestry, and never invent a part name when none exists.
+    const isGenericLabel=value=>/^(?:mesh|node|scene|primitive|object|group)[\\s_.-]*\\d*$/i.test(value)
+      || /^(?:default|unnamed|root|gltf scene)$/i.test(value);
+    const importedNames=[];
+    for(let node=mesh,depth=0;node&&node!==scene&&depth<12;node=node.parent,depth++){
+      const value=typeof node.name==='string'?node.name.trim():'';
+      if(value&&!isGenericLabel(value))importedNames.push(value);
+    }
+    const label=(importedNames[0] || "Unlabeled CAD geometry")
       .replace(/[<>]/g,"").slice(0,145);
     partTitle.textContent=label;
     partSource.textContent=fullIsOriginal
