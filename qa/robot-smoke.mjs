@@ -27,7 +27,25 @@ for(const [year,mechanism] of cases){
     await page.waitForTimeout(5500);
     const action=page.locator(".robot-theater .theater-action-button");
     if(await action.isEnabled())await action.evaluate(el=>el.click());
-    await page.waitForTimeout(2800);
+    await page.waitForFunction(()=>{
+      const b=document.querySelector(".robot-theater .theater-pause-motion");
+      return b && !b.hidden;
+    },null,{timeout:20000});
+    // The newly added pause button must stop the scoring timeline, then
+    // resume advancing without throwing errors.
+    const pause=page.locator(".robot-theater .theater-pause-motion");
+    await pause.evaluate(el=>el.click());
+    const pausedWidth=await page.locator(".robot-theater .theater-demo-track span").evaluate(el=>parseFloat(el.style.width)||0);
+    await page.waitForTimeout(650);
+    const stillWidth=await page.locator(".robot-theater .theater-demo-track span").evaluate(el=>parseFloat(el.style.width)||0);
+    console.log("PAUSE_CHECK",year,{pausedWidth,stillWidth});
+    if(Math.abs(stillWidth-pausedWidth)>.4)throw Error("Pause failed: animation advanced "+(stillWidth-pausedWidth)+"%");
+    await pause.evaluate(el=>el.click());
+    await page.waitForTimeout(900);
+    const resumedWidth=await page.locator(".robot-theater .theater-demo-track span").evaluate(el=>parseFloat(el.style.width)||0);
+    console.log("RESUME_CHECK",year,{stillWidth,resumedWidth});
+    if(resumedWidth<=stillWidth+.2)throw Error("Resume failed to advance playback");
+    await page.waitForTimeout(750);
     const data=await page.evaluate(()=>({
       busy:document.querySelector(".robot-theater .theater-loading")?.hidden===false,
       message:document.querySelector(".robot-theater .theater-loading strong")?.textContent,
