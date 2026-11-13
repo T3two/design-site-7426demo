@@ -50,11 +50,15 @@ for(const [year,mechanism] of cases){
     console.log("PAUSE_CHECK",year,{pausedWidth,stillWidth});
     if(Math.abs(stillWidth-pausedWidth)>.4)throw Error("Pause failed: animation advanced "+(stillWidth-pausedWidth)+"%");
     await pause.evaluate(el=>el.click());
-    await page.waitForTimeout(900);
+    // Software-GPU runners can take several seconds for a single full-CAD
+    // frame. Verify eventual forward progress, not a 900 ms FPS assumption.
+    await page.waitForFunction(previous=>{
+      const node=document.querySelector(".robot-theater .theater-demo-track span");
+      return (parseFloat(node?.style.width)||0)>previous+.2;
+    },stillWidth,{timeout:14000,polling:500});
     const resumedWidth=await page.locator(".robot-theater .theater-demo-track span").evaluate(el=>parseFloat(el.style.width)||0);
     console.log("RESUME_CHECK",year,{stillWidth,resumedWidth});
-    if(resumedWidth<=stillWidth+.2)throw Error("Resume failed to advance playback");
-    await page.waitForTimeout(750);
+    await page.waitForTimeout(450);
     const data=await page.evaluate(()=>({
       busy:document.querySelector(".robot-theater .theater-loading")?.hidden===false,
       message:document.querySelector(".robot-theater .theater-loading strong")?.textContent,
