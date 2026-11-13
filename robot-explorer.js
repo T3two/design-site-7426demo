@@ -380,7 +380,7 @@ function mount(host,year,models,loadPackedModel){
     // gltfpack may call a rendered primitive "mesh_3"; that is NOT a
     // meaningful engineering label. Find the nearest real Onshape part/group
     // name in its ancestry, and never invent a part name when none exists.
-    const isGenericLabel=value=>/^(?:mesh|node|scene|primitive|object|group)[\\s_.-]*\\d*$/i.test(value)
+    const isGenericLabel=value=>/^(?:mesh|node|scene|primitive|object|group)[\s_.-]*\d*$/i.test(value)
       || /^(?:default|unnamed|root|gltf scene)$/i.test(value);
     const importedNames=[];
     for(let node=mesh,depth=0;node&&node!==scene&&depth<12;node=node.parent,depth++){
