@@ -1,0 +1,159 @@
+{
+  "previewVersion": 1,
+  "models": {
+    "robot-2025-bumpers": {
+      "file": "models/preview/subsystems/robot-2025-bumpers-fast.glb",
+      "bytes": 81320,
+      "originalBytes": 1412772,
+      "ratio": 0.0576,
+      "sha256": "f672d9b3ce7c912c43e32a9cb6534be42690b24045083381995e0aac269e92e0",
+      "nodes": 86,
+      "meshes": 6,
+      "originalNodes": 58,
+      "originalMeshes": 6
+    },
+    "robot-2025-carriage": {
+      "file": "models/preview/subsystems/robot-2025-carriage-fast.glb",
+      "bytes": 843936,
+      "originalBytes": 16315576,
+      "ratio": 0.0517,
+      "sha256": "3fec488f0170c1242981faf1d1b44e98972a192b8012f121ad008026f5cf3d2e",
+      "nodes": 1093,
+      "meshes": 86,
+      "originalNodes": 733,
+      "originalMeshes": 86
+    },
+    "robot-2025-claw": {
+      "file": "models/preview/subsystems/robot-2025-claw-fast.glb",
+      "bytes": 731692,
+      "originalBytes": 19692328,
+      "ratio": 0.0372,
+      "sha256": "bc53f581b7506170cec08cb249c2866e6d8dbaa93e381061a23fdbbd23579648",
+      "nodes": 497,
+      "meshes": 48,
+      "originalNodes": 335,
+      "originalMeshes": 48
+    },
+    "robot-2025-climber": {
+      "file": "models/preview/subsystems/robot-2025-climber-fast.glb",
+      "bytes": 907324,
+      "originalBytes": 25142536,
+      "ratio": 0.0361,
+      "sha256": "f714cb38b2b36eabe918428158ba54ea69fa6ab1981cd7d63f8c95b379236f7f",
+      "nodes": 501,
+      "meshes": 106,
+      "originalNodes": 334,
+      "originalMeshes": 104
+    },
+    "robot-2025-drivetrain": {
+      "file": "models/preview/subsystems/robot-2025-drivetrain-fast.glb",
+      "bytes": 2552348,
+      "originalBytes": 49644672,
+      "ratio": 0.0514,
+      "sha256": "f9bc2fa6273b6588416218bd0307e036130995cc7e40ab8431ef8849d49e07ba",
+      "nodes": 1229,
+      "meshes": 90,
+      "originalNodes": 828,
+      "originalMeshes": 90
+    },
+    "robot-2025-elevator": {
+      "file": "models/preview/subsystems/robot-2025-elevator-fast.glb",
+      "bytes": 1674800,
+      "originalBytes": 36784600,
+      "ratio": 0.0455,
+      "sha256": "a876ad20de680d818d2e2aacea95151be53c39fc950b43b913e443a6ff72ccff",
+      "nodes": 2606,
+      "meshes": 151,
+      "originalNodes": 1725,
+      "originalMeshes": 148
+    },
+    "robot-2026-bumpers": {
+      "file": "models/preview/subsystems/robot-2026-bumpers-fast.glb",
+      "bytes": 141948,
+      "originalBytes": 2363392,
+      "ratio": 0.0601,
+      "sha256": "c9fd28b47981b7057d7c2487a579317f8de36e8d182d94ed71b1f006b8127f0d",
+      "nodes": 86,
+      "meshes": 6,
+      "originalNodes": 58,
+      "originalMeshes": 6
+    },
+    "robot-2026-climber": {
+      "file": "models/preview/subsystems/robot-2026-climber-fast.glb",
+      "bytes": 782772,
+      "originalBytes": 17595600,
+      "ratio": 0.0445,
+      "sha256": "2d842119e73958d14025069eea81dc335524a940687ce82bee8511c8d3775ad3",
+      "nodes": 294,
+      "meshes": 42,
+      "originalNodes": 189,
+      "originalMeshes": 38
+    },
+    "robot-2026-drivetrain": {
+      "file": "models/preview/subsystems/robot-2026-drivetrain-fast.glb",
+      "bytes": 1245792,
+      "originalBytes": 27110352,
+      "ratio": 0.046,
+      "sha256": "2aa53f1dcbd9eb9cda39a90113eda5329742fb8f7944a6ebe464a86bb6f5563a",
+      "nodes": 382,
+      "meshes": 32,
+      "originalNodes": 250,
+      "originalMeshes": 28
+    },
+    "robot-2026-feeder-queuer": {
+      "file": "models/preview/subsystems/robot-2026-feeder-queuer-fast.glb",
+      "bytes": 729916,
+      "originalBytes": 17527036,
+      "ratio": 0.0416,
+      "sha256": "f4a28e15a74d7ccacbed27074436c2de8d21f2daf1a83f06a7d15d5d1bcfed69",
+      "nodes": 433,
+      "meshes": 64,
+      "originalNodes": 267,
+      "originalMeshes": 54
+    },
+    "robot-2026-hopper": {
+      "file": "models/preview/subsystems/robot-2026-hopper-fast.glb",
+      "bytes": 107544,
+      "originalBytes": 2119508,
+      "ratio": 0.0507,
+      "sha256": "058088bef155fe857e3291dc71e7361de7d88082ef5e0fec3edf59c631f3a106",
+      "nodes": 46,
+      "meshes": 8,
+      "originalNodes": 31,
+      "originalMeshes": 8
+    },
+    "robot-2026-intake": {
+      "file": "models/preview/subsystems/robot-2026-intake-fast.glb",
+      "bytes": 350756,
+      "originalBytes": 8690908,
+      "ratio": 0.0404,
+      "sha256": "fb3efd8ca0aa7144d8be3a4b302d910c7c5a610cb674bd73dee39a2c0f2968e8",
+      "nodes": 269,
+      "meshes": 29,
+      "originalNodes": 166,
+      "originalMeshes": 27
+    },
+    "robot-2026-shooter": {
+      "file": "models/preview/subsystems/robot-2026-shooter-fast.glb",
+      "bytes": 360212,
+      "originalBytes": 6619192,
+      "ratio": 0.0544,
+      "sha256": "0a8dff4a43662ff40198b389560b1e1898aa628ef6f4c1f2239f43154332d92f",
+      "nodes": 217,
+      "meshes": 18,
+      "originalNodes": 144,
+      "originalMeshes": 17
+    },
+    "robot-2026-turret": {
+      "file": "models/preview/subsystems/robot-2026-turret-fast.glb",
+      "bytes": 355276,
+      "originalBytes": 6595628,
+      "ratio": 0.0539,
+      "sha256": "22c61ac47c3ee2d555d067875a84eb88e12696cd2849a586b7329fc1996a84d4",
+      "nodes": 201,
+      "meshes": 20,
+      "originalNodes": 137,
+      "originalMeshes": 20
+    }
+  }
+}

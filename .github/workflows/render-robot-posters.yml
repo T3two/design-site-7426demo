@@ -1,0 +1,46 @@
+name: Capture real-CAD instant posters
+on:
+  push:
+    branches: ['feature/robot-instant-lod-and-comic-ace']
+    paths:
+      - 'tools/render_robot_posters.cjs'
+      - '.github/workflows/render-robot-posters.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: robot-poster-render
+  cancel-in-progress: false
+jobs:
+  render-posters:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install headless 3D browser
+        run: |
+          npm install --no-save --no-package-lock playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Serve the current review branch
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/robot-poster-server.log 2>&1 &
+          sleep 3
+      - name: Render seven accurate CAD first frames
+        run: node tools/render_robot_posters.cjs
+      - name: Save verified posters
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add models/preview/posters
+          if ! git diff --cached --quiet; then
+            git commit -m 'Add real-CAD instant posters for all seven seasons'
+            git pull --rebase origin feature/robot-instant-lod-and-comic-ace
+            git push origin HEAD:refs/heads/feature/robot-instant-lod-and-comic-ace
+          fi

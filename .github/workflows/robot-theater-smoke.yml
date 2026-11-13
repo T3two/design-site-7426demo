@@ -7,9 +7,17 @@ on:
       - 'styles.css'
       - 'assets/welcome/**'
       - 'tests/welcome-startup-smoke.cjs'
+      - 'tests/fast-robot-preview.cjs'
+      - 'tests/ace-comic-3d.cjs'
+      - 'tests/robot-interactions-smoke.cjs'
       - 'tests/robot-theater-smoke.cjs'
       - '.github/workflows/robot-theater-smoke.yml'
   workflow_dispatch:
+
+# Never run several expensive SwiftShader robot tests on the same review ref.
+concurrency:
+  group: robot-theater-smoke-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   browser-smoke:
@@ -30,6 +38,12 @@ jobs:
           sleep 3
       - name: Verify instant welcome paint (desktop and mobile)
         run: node tests/welcome-startup-smoke.cjs
+      - name: Verify comic-styled 3D Ace actually renders
+        run: node tests/ace-comic-3d.cjs
+      - name: Verify fast real CAD models for all seven seasons
+        run: node tests/fast-robot-preview.cjs
+      - name: Verify cached subsystem transitions and CAD part inspection
+        run: node tests/robot-interactions-smoke.cjs
       - name: Exercise both 3D scoring sequences in Chromium
         run: node tests/robot-theater-smoke.cjs
       - name: Attach screenshots and browser errors

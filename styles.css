@@ -1834,3 +1834,149 @@ html.initial-home .menu-button{display:none!important}
 }
 
 @media(max-width:780px){body.welcome-mode .welcome-gateway:not([hidden]){display:flex}}
+
+
+/* Hand-inked, stepped-frame graphic treatment for the ORIGINAL Ace 3D mascot.
+   This uses CSS print texture, not generated art or imitational movie assets. */
+.welcome-scene--design::before,
+.welcome-scene--robot::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle,#8c2c3d 1px,transparent 1.4px);
+  background-size:17px 17px;
+  mask-image:linear-gradient(135deg,transparent 20%,#000 115%);
+  opacity:.10;
+}
+.welcome-scene--robot::before{
+  background-image:radial-gradient(circle,#ffced4 1px,transparent 1.4px);
+  mask-image:linear-gradient(210deg,#000,transparent 80%);
+  opacity:.14;
+}
+.welcome-scene--design .welcome-art--ace.ace3d-live .ace-3d-canvas{
+  filter:drop-shadow(3px 5px 0 rgba(116,33,52,.30));
+}
+.welcome-scene--robot .welcome-art--ace.ace3d-live .ace-3d-canvas{
+  filter:drop-shadow(-3px 5px 0 rgba(63,143,161,.28));
+}
+/* Keep viewer work visible while fine-detail CAD loads; do not dim or blur
+   the whole stage. Full-detail operations are explicit, never automatic. */
+.robot-theater .theater-loading{
+  top:14px;bottom:auto;left:14px;transform:none;
+  z-index:6;max-width:calc(100% - 28px);
+  background:rgba(255,255,255,.94);box-shadow:0 3px 9px rgba(28,22,30,.04);
+}
+.robot-theater .theater-tool.theater-original-detail:not([hidden]){
+  border-color:#b42e3a;color:#9d2d37;background:#fff9f8;
+}
+.robot-theater .theater-tool.theater-original-detail:disabled{
+  opacity:.62;color:#777;
+}
+.model-actions .viewer-full-detail:not([hidden]){
+  border:1px solid #b62e3b;color:#912530;background:#fffaf8;
+  text-transform:uppercase;font-weight:750;letter-spacing:.02em;
+}
+.model-card.model-original-ready .viewer-full-detail{background:#edf5ed;color:#495b49}
+@media(prefers-reduced-motion:reduce){
+  .welcome-scene--design .welcome-art--ace.ace3d-live .ace-3d-canvas,
+  .welcome-scene--robot .welcome-art--ace.ace3d-live .ace-3d-canvas{
+    filter:none;
+  }
+}
+
+/* CAD-native part inspector. These labels are read from GLB nodes, not AI text. */
+.robot-theater .theater-part-inspector{
+  position:absolute;top:57px;right:15px;z-index:9;
+  width:min(320px,calc(100% - 30px));
+  background:rgba(255,255,255,.97);
+  color:#332a2c;border:1px solid #d6c5c4;border-top:3px solid #a32632;
+  box-shadow:0 10px 26px rgba(34,23,29,.12);
+  padding:13px 14px 14px;
+  pointer-events:auto;
+}
+.robot-theater .theater-part-inspector[hidden],
+.robot-theater .theater-perf-hud[hidden]{display:none!important}
+.robot-theater .theater-part-header{
+  display:flex;justify-content:space-between;gap:15px;align-items:start;
+}
+.robot-theater .theater-part-header span{
+  font:800 10px/1.3 'Barlow',Arial,sans-serif;
+  letter-spacing:.12em;color:#962c39;
+}
+.robot-theater .theater-part-close{
+  background:none;border:0;color:#443538;font:500 25px/1 Arial,sans-serif;
+  margin:-7px -5px 0 0;padding:3px 6px;cursor:pointer;
+}
+.robot-theater .theater-part-name{
+  display:block;font:800 23px/1.15 'Barlow Condensed',Impact,sans-serif;
+  overflow-wrap:anywhere;margin-top:10px;
+}
+.robot-theater .theater-part-source{
+  margin:8px 0 12px;font:500 11px/1.5 'Barlow',Arial,sans-serif;
+  color:#655a59;
+}
+.robot-theater .theater-part-isolate{
+  font:750 11px/1.2 'Barlow',Arial,sans-serif;
+  background:#fff5f4;color:#92323b;border:1px solid #d7a6ac;
+  border-radius:3px;padding:9px 12px;cursor:pointer;
+}
+.robot-theater .theater-part-isolate:hover{background:#f9e3e1}
+.robot-theater .theater-part-isolate:focus-visible,
+.robot-theater .theater-part-close:focus-visible{outline:3px solid #a32632;outline-offset:2px}
+.robot-theater .theater-perf-hud{
+  position:absolute;top:12px;left:12px;z-index:7;
+  padding:6px 9px;background:rgba(32,29,33,.84);color:#f9f5f5;
+  font:700 10px/1.35 ui-monospace,SFMono-Regular,Consolas,monospace;
+  max-width:calc(100% - 24px);pointer-events:none;
+}
+.robot-theater .theater-loading.theater-nonblocking{
+  pointer-events:none;max-width:min(330px,85%);font-size:10px;
+  padding:7px 10px;opacity:.92;
+}
+@media(max-width:760px){
+  .robot-theater .theater-part-inspector{
+    top:auto;bottom:64px;right:8px;
+    width:min(300px,calc(100% - 16px));
+    padding:11px 12px;
+  }
+  .robot-theater .theater-part-name{font-size:20px}
+  .robot-theater .theater-perf-hud{font-size:9px}
+}
+
+/* The engineering companion to the actual CAD: provenance and verification are
+   visible inside the model theater, not buried in a downloadable binder. */
+.robot-theater .theater-evidence-tabs{
+  display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 10px;
+}
+.robot-theater .theater-evidence-tab{
+  flex:1 1 auto;border:1px solid #e8d9d7;background:#faf9f7;
+  padding:8px 5px;border-radius:2px;
+  color:#665957;font:750 10px/1.3 'Barlow',Arial,sans-serif;
+  cursor:pointer;transition:background .14s,color .14s,border-color .14s;
+}
+.robot-theater .theater-evidence-tab.is-current{
+  border-color:#a32632;background:#fff0ef;color:#942934;
+}
+.robot-theater .theater-evidence-tab:hover{
+  background:#f9efee;border-color:#c3a2a4;
+}
+.robot-theater .theater-evidence-tab:focus-visible{
+  outline:2px solid #a32632;outline-offset:2px;
+}
+.robot-theater .theater-evidence-copy{
+  margin:10px 0 15px;color:#594f4c;
+  font:500 12px/1.65 'Barlow',Arial,sans-serif;
+  min-height:65px;
+}
+@media(max-width:760px){
+  .robot-theater .theater-evidence-tabs{margin-top:9px}
+  .robot-theater .theater-evidence-copy{min-height:0}
+}
+
+/* CAD-only assembly separation; never presented as physical motion. */
+.robot-theater .theater-tool.theater-explode[aria-pressed="true"]{
+  border-color:#a32632;background:#fff0ef;color:#912b37;
+}
+.robot-theater .theater-explode-note{
+  flex:1 1 100%;font:650 10px/1.3 'Barlow',Arial,sans-serif;
+  letter-spacing:.02em;color:#7c454b;
+}
+.robot-theater .theater-explode-note[hidden]{display:none!important}

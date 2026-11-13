@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=ace-3d-instant-v2">
+  <link rel="stylesheet" href="styles.css?v=robot-fast-3d-1">
   <script type="importmap">
     {"imports":{
       "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -130,6 +130,25 @@
   let settings = DEFAULT_SETTINGS;
   let navigation = [];
   let modelCatalog = [];
+  let previewCatalog = {models:{}};
+  const pageTextCache = new Map();
+  function readPageText(filename) {
+    if (!pageTextCache.has(filename)) {
+      const job = fetch('content/' + filename).then(response => {
+        if (!response.ok) throw Error('Page file not found: ' + filename);
+        return response.text();
+      }).catch(error => {
+        pageTextCache.delete(filename);
+        throw error;
+      });
+      pageTextCache.set(filename,job);
+    }
+    return pageTextCache.get(filename);
+  }
+  function prefetchPage(key) {
+    const meta = pageMap[key];
+    if (meta?.file) readPageText(meta.file).catch(() => {});
+  }
   let sponsors = [];
   let robots = [];
   let pageMap = {};
@@ -395,7 +414,9 @@
     // Smaller models are automatically prefetched once in view; avoid automatic
     // loading of 50–250 MiB full assemblies or overwhelming mobile devices.
     const limit = 32 * 1024 * 1024;
-    const automatic = model.hosted !== false && model.bytes > 0 && model.bytes <= limit && !model.packed;
+    const hasFastPreview = !!model.fastPreview?.file;
+    const automatic = (hasFastPreview && model.category === "Season Robots") ||
+      (model.hosted !== false && model.bytes > 0 && model.bytes <= limit && !model.packed);
     // Guided camera scenes replace endless turntable rotation after loading.
 
     const status = document.createElement("div");
@@ -409,6 +430,14 @@
     error.hidden = true;
     error.textContent = "Unable to display this model.";
 
+    const fullDetailButton = document.createElement("button");
+    fullDetailButton.type = "button";
+    fullDetailButton.className = "small-button viewer-full-detail";
+    fullDetailButton.textContent = "Inspect original CAD";
+    fullDetailButton.hidden = !hasFastPreview;
+    fullDetailButton.disabled = true;
+    fullDetailButton.title = "Load the full original 3D geometry on demand. This is a substantially larger file.";
+    let fullQualityRequested = false;
     const actions = document.createElement("div");
     actions.className = "viewer-overlay-actions";
     const loadButton = document.createElement("button");
@@ -441,6 +470,8 @@
     };
     const startLoad = () => {
       if (started || model.hosted === false) return;
+      // One CAD engine only when a visible 3D card actually requests it.
+      ensureModelViewer();
       started = true;
       error.hidden = true;
       status.hidden = true;
@@ -460,12 +491,14 @@
       try {
         await queueModelLoad(async () => {
           if (!card.isConnected) return;
-          if (model.packed) {
+          if (hasFastPreview && !fullQualityRequested) {
+            // A real GPU-ready, meshopt-compressed view of the exact CAD robot.
+            viewer.src = model.fastPreview.file;
+          } else if (model.packed) {
             releaseModelUrl();
             temporaryModelUrl = await loadPackedModel(model, busy.lastChild);
             viewer.src = temporaryModelUrl;
           } else {
-            // Let model-viewer fetch once; avoid downloading each GLB twice.
             viewer.src = model.file;
           }
           // Hold the queue slot until the GPU renderer finishes, so a page
@@ -497,6 +530,9 @@
       busy.hidden = true;
       error.hidden = true;
       card.classList.add("model-loaded");
+      card.classList.toggle("model-original-ready",fullQualityRequested);
+      fullDetailButton.disabled = fullQualityRequested;
+      if (fullQualityRequested) fullDetailButton.textContent = "Original CAD loaded";
       releaseModelUrl();
     });
     viewer.addEventListener("progress", e => {
@@ -508,6 +544,15 @@
       setError("This CAD file could not be rendered. Try a different browser.");
     });
     loadButton.addEventListener("click", startLoad);
+    fullDetailButton.addEventListener("click", () => {
+      if (!hasFastPreview || fullQualityRequested || !card.classList.contains("model-loaded")) return;
+      fullQualityRequested = true;
+      fullDetailButton.disabled = true;
+      fullDetailButton.textContent = "Preparing full CAD…";
+      busy.lastChild.textContent = "Opening original CAD…";
+      busy.hidden = false;
+      loadModel();
+    });
     // Large assemblies still wait for user intent, but clicking anywhere on
     // the preview starts them — no tiny target required.
     viewerWrap.addEventListener("click", event => {
@@ -536,6 +581,7 @@
     description.textContent = model.description || "";
     const controls = document.createElement("div");
     controls.className = "model-actions model-actions-modern";
+    if (hasFastPreview) controls.appendChild(fullDetailButton);
 
     const tourStops = cameraTourFor(model);
     let tourIndex = 0;
@@ -1006,6 +1052,10 @@
   }
   function ensureModelViewer() {
     if (customElements.get('model-viewer') || document.querySelector('script[data-cad-model-viewer]')) return;
+    // Meshopt is required for fast-CAD previews; configure before web component registers.
+    self.ModelViewerElement = self.ModelViewerElement || {};
+    self.ModelViewerElement.meshoptDecoderLocation =
+      'https://cdn.jsdelivr.net/npm/meshoptimizer@0.25.0/meshopt_decoder.js';
     const script = document.createElement('script');
     script.dataset.cadModelViewer = 'true';
     script.type = 'module';
@@ -1053,8 +1103,7 @@
     if (animate && currentPage !== key) {
       intro.classList.add("page-fade");
       content.classList.add("page-fade");
-      await new Promise(resolve => setTimeout(resolve, 100));
-      if (requestId !== pageRequestId) return;
+      // No deliberate 100ms delay; transition only while real content resolves.
     }
 
     setWelcomeMode(meta.id);
@@ -1063,11 +1112,10 @@
     $("pageDescription").textContent = meta.description || "";
     setActiveNavigation(meta.id);
 
-    content.innerHTML = "<p class='loading-copy'>Loading page…</p>";
+    // Keep the previous page visible while retrieving the next, rather than
+    // clearing the screen and showing a flickering "Loading page" placeholder.
     try {
-      const response = await fetch("content/" + meta.file);
-      if (!response.ok) throw new Error("Page file not found: " + meta.file);
-      let markdown = await response.text();
+      let markdown = await readPageText(meta.file);
       if (requestId !== pageRequestId) return;
       // Markdown files are stored in /content but rendered on index.html. Normalize paths
       // so the image paths work consistently on GitHub Pages project sites.
@@ -1081,9 +1129,6 @@
       content.innerHTML = window.marked && window.DOMPurify ? DOMPurify.sanitize(marked.parse(markdown), {ADD_ATTR: ["data-model-id","data-explorer-year","data-explore-system"]}) : "<pre></pre>";
       if (!window.marked || !window.DOMPurify) content.querySelector("pre").textContent = markdown;
 
-      if (content.querySelector("[data-model-id], [data-explorer-year]") || meta.showAllModels ||
-          modelCatalog.some(model => Array.isArray(model.pages) && model.pages.includes(meta.id)))
-        ensureModelViewer();
       const placedIds = [...content.querySelectorAll('[data-model-id]')].map(node => node.dataset.modelId);
       renderModelPlaceholders(content);
 
@@ -1172,17 +1217,31 @@
   }
 
   async function init() {
-    const [settingsData, navData, catalogData, sponsorData, robotsData] = await Promise.all([
+    const [settingsData, navData, catalogData, sponsorData, robotsData, fastData, subsystemFastData] = await Promise.all([
       readJson("settings.json", DEFAULT_SETTINGS),
       readJson("navigation.json", []),
       readJson("models/catalog.json", { models: [] }),
       readJson("sponsors.json", { sponsors: [] }),
-      readJson("robots.json", { robots: [] })
+      readJson("robots.json", { robots: [] }),
+      readJson("models/preview/catalog.json", {models:{}}),
+      readJson("models/preview/subsystems.json", {models:{}})
     ]);
 
     settings = settingsData || DEFAULT_SETTINGS;
     navigation = Array.isArray(navData) ? navData : [];
     modelCatalog = Array.isArray(catalogData.models) ? catalogData.models : [];
+    previewCatalog = fastData && typeof fastData.models === 'object' ? fastData : {models:{}};
+    modelCatalog.forEach(model => {
+      const preview = model.category === 'Season Robots'
+        ? previewCatalog.models[model.year]
+        : model.category === 'Robot Subsystems'
+          ? subsystemFastData?.models?.[model.id] : null;
+      if (preview?.file && /^models\/preview\/(?:subsystems\/)?[\w-]+\.glb$/.test(preview.file)) {
+        model.fastPreview = preview;
+        if (model.category === 'Season Robots')
+          model.thumbnail = 'models/preview/posters/' + model.year + '.jpg';
+      }
+    });
     sponsors = Array.isArray(sponsorData.sponsors) ? sponsorData.sponsors : [];
     robots = Array.isArray(robotsData.robots) ? robotsData.robots : [];
     pageMap = flattenNavigation(navigation);
@@ -1197,6 +1256,9 @@
     buildNavigation();
     renderFooterSponsors();
     loadWelcomeArt();
+    // These two tiny landing pages can be ready before the visitor clicks.
+    prefetchPage('design-teaching');
+    prefetchPage('robot-archive');
 
     const params = new URLSearchParams(location.search);
     const requested = params.get("page");
@@ -1218,6 +1280,14 @@
   });
 
   // The side panels and central calls-to-action use the existing in-page router.
+  $("welcomeGateway").addEventListener("pointerover", event => {
+    const link = event.target.closest('a[data-page]');
+    if (link) prefetchPage(link.dataset.page);
+  }, {passive:true});
+  $("welcomeGateway").addEventListener("focusin", event => {
+    const link = event.target.closest('a[data-page]');
+    if (link) prefetchPage(link.dataset.page);
+  });
   $("welcomeGateway").addEventListener("click", event => {
     const link = event.target.closest("a[data-page]");
     if (!link || !pageMap[link.dataset.page]) return;
