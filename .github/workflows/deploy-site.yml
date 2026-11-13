@@ -26,7 +26,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _site
-          cp index.html styles.css builder.html _site/
+          cp index.html styles.css builder.html robot-explorer.js _site/
           cp .nojekyll _site/
           for file in site.json navigation.json robots.json sponsors.json settings.json; do
             if [ -f "$file" ]; then cp "$file" _site/; fi
