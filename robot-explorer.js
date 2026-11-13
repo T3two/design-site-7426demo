@@ -407,7 +407,12 @@ function mount(host,year,models,loadPackedModel){
     orbit.minDistance=.22;orbit.maxDistance=14;
     orbit.maxPolarAngle=Math.PI*.92;
     orbit.enablePan=true;
-    orbit.addEventListener("start",()=>{cancelCamera();autoSpin=false;btnSpin.classList.remove("is-on");});
+    orbit.addEventListener("start",()=>{
+      cancelCamera();
+      autoSpin=false;
+      btnSpin.classList.remove("is-on");
+      if(action)action._manualCamera=true;
+    });
     gltfLoader=new GLTFLoader();
     const resize=()=>{
       if(!renderer||destroyed)return;
@@ -710,7 +715,10 @@ function mount(host,year,models,loadPackedModel){
   const makeHub=(center)=>{
     const hub=new THREE.Group();
     hub.position.set(center.x,0,center.z);
-    const rimMat=new THREE.MeshStandardMaterial({color:0x777e88,metalness:.43,roughness:.52});
+    const rimMat=new THREE.MeshStandardMaterial({
+      color:0x777e88,metalness:.43,roughness:.52,
+      emissive:0x9b3541,emissiveIntensity:0
+    });
     const postMat=new THREE.MeshStandardMaterial({color:0xb8bec4,metalness:.33,roughness:.65});
     const radius=1.06/Math.sqrt(3);
     const rimY=1.83, edgeCount=6;
@@ -729,6 +737,7 @@ function mount(host,year,models,loadPackedModel){
       connect(v,corners[(i+1)%edgeCount],.018,rimMat);
       connect(new THREE.Vector3(v.x,0,v.z),v,.012,postMat);
     });
+    hub.userData.rimMaterial=rimMat;
     scene.add(hub);
     return hub;
   };
@@ -737,7 +746,10 @@ function mount(host,year,models,loadPackedModel){
   const makeReefFace=(tip)=>{
     const face=new THREE.Group();
     const steel=new THREE.MeshStandardMaterial({color:0x9fa6aa,metalness:.5,roughness:.56});
-    const accent=new THREE.MeshStandardMaterial({color:0x858e98,metalness:.4,roughness:.6});
+    const accent=new THREE.MeshStandardMaterial({
+      color:0x858e98,metalness:.4,roughness:.6,
+      emissive:0x983c45,emissiveIntensity:0
+    });
     const direction=new THREE.Vector3(0,Math.sin(35*Math.PI/180),-Math.cos(35*Math.PI/180));
     const tube=(a,b,r,material)=>{
       const axis=b.clone().sub(a);
@@ -766,7 +778,7 @@ function mount(host,year,models,loadPackedModel){
     // posts are spaced 33 cm, matching a real REEF face.
     const root=new THREE.Vector3(tip.x,tip.y-.30*direction.y,centerZ);
     scene.add(face);
-    return {face,base:root,tip:tip.clone(),direction,
+    return {face,base:root,tip:tip.clone(),direction,accentMaterial:accent,
       seat:root.clone().addScaledVector(direction,.165)};
   };
   // Whole-robot choreography uses the full CAD assembly, not a miniature
@@ -976,6 +988,13 @@ function mount(host,year,models,loadPackedModel){
           ball.rotation.set(progress*7,progress*3,progress*5);
         });
 
+        // Small, material-based confirmation at the physical HUB rim when
+        // a game piece crosses it; no distracting UI flash.
+        const through=shotTimes.some(time=>{
+          const progress=(elapsed-time)/1080;
+          return progress>.89&&progress<1.13;
+        });
+        hub.userData.rimMaterial.emissiveIntensity=through?.38:0;
         setPhase(elapsed<1640?0:elapsed<2820?1:elapsed<5800?2:3);
         if(elapsed<1640)demoStep.textContent="Drive into position";
         else if(elapsed<2820)demoStep.textContent="Turret tracks the HUB";
@@ -983,10 +1002,15 @@ function mount(host,year,models,loadPackedModel){
         else demoStep.textContent="Scoring complete";
         demoFill.style.width=(t*100).toFixed(1)+"%";
         // One stable shot with both the robot and HUB in view.
-        const aim=motion.chassis.position.clone().lerp(hubCenter,.38);
-        aim.y=.82;
-        const eye=aim.clone().add(new THREE.Vector3(3.8,2.7,3.85));
-        if(elapsed>700){
+        // A slow, restrained camera move from full-robot overview to the
+        // target-facing side, inspired by interactive engineering showrooms.
+        const approach=ease(clamp((elapsed-1650)/2350,0,1));
+        const aim=motion.chassis.position.clone().lerp(hubCenter,.30+.10*approach);
+        aim.y=.81+.08*approach;
+        const eye=aim.clone().add(new THREE.Vector3(
+          4.05-.92*approach,2.77-.31*approach,3.76+.20*approach
+        ));
+        if(elapsed>700&&!action._manualCamera){
           camera.position.lerp(eye,.022);
           orbit.target.lerp(aim,.023);
         }
@@ -1084,6 +1108,9 @@ function mount(host,year,models,loadPackedModel){
         const retreat=ease(clamp((elapsed-6990)/780,0,1));
         motion.chassis.position.z-=.13*retreat;
 
+        const contact=ease(clamp((elapsed-5260)/850,0,1));
+        reef.accentMaterial.emissiveIntensity=.28*contact*
+          (1-ease(clamp((elapsed-6560)/650,0,1)));
         setPhase(elapsed<1970?0:elapsed<3910?1:elapsed<6150?2:3);
         if(elapsed<1970)demoStep.textContent="Align at the reef";
         else if(elapsed<3910)demoStep.textContent="Raise the carriage";
@@ -1091,10 +1118,16 @@ function mount(host,year,models,loadPackedModel){
         else demoStep.textContent="Release and back away";
         demoFill.style.width=(t*100).toFixed(1)+"%";
 
-        const frameCenter=motion.chassis.position.clone().lerp(reef.tip,.37);
-        frameCenter.y=.87;
-        const cameraHome=frameCenter.clone().add(new THREE.Vector3(2.8,1.95,3.15));
-        if(elapsed>650){
+        // Start wide enough to show alignment and push closer for placement,
+        // keeping the reef branch and CLAW visible in a single continuous shot.
+        const reveal=ease(clamp((elapsed-1950)/2750,0,1));
+        const frameCenter=motion.chassis.position.clone()
+          .lerp(reef.tip,.30+.12*reveal);
+        frameCenter.y=.86+.12*reveal;
+        const cameraHome=frameCenter.clone().add(new THREE.Vector3(
+          3.0-.64*reveal,2.14-.34*reveal,3.36-.38*reveal
+        ));
+        if(elapsed>650&&!action._manualCamera){
           camera.position.lerp(cameraHome,.022);
           orbit.target.lerp(frameCenter,.022);
         }
