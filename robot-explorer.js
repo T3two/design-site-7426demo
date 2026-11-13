@@ -597,7 +597,9 @@ function mount(host,year,models,loadPackedModel){
   let selected="full";
   const showSelection=key=>{
     aimControls.hidden=year!=="2026"||key!=="shooter";
-    actionPanel.hidden=key!==def.actionSubsystem;
+    // The scoring demo also works directly from the entire robot, avoiding
+    // a second heavy GLB just to watch the driving/scoring story.
+    actionPanel.hidden=!(key==="full"||key===def.actionSubsystem);
     selectNav(key);
     selected=key;
     showHotspots=false;
@@ -1095,10 +1097,21 @@ function mount(host,year,models,loadPackedModel){
     };
   };
   let preparingDemo=false;
+  let demoReturnSelection="full";
   const completeAction=()=>{
     if(!action)return;
     stopAction();
-    if(destroyed||!active||selected!==def.actionSubsystem)return;
+    if(destroyed)return;
+    if(demoReturnSelection==="full"){
+      const home=homePose();
+      Promise.all([
+        cameraTo(home.position,home.target,860),
+        fadeTo(full,1,550),
+        fadeTo(active,0,450)
+      ]).then(()=>{if(!destroyed)showSelection("full");});
+      return;
+    }
+    if(!active||selected!==def.actionSubsystem)return;
     // Return the camera to mechanism inspection after the whole-robot story.
     const ticket=seq;
     const focus=focusPose(active,false);
@@ -1116,8 +1129,12 @@ function mount(host,year,models,loadPackedModel){
     preparingDemo=true;
     try{
       if(!full)await loadFull();
-      if(selected!==def.actionSubsystem)await choose(def.actionSubsystem);
-      if(!active||selected!==def.actionSubsystem)return;
+      // An overview playback uses only the complete assembly, dramatically
+      // reducing peak GPU memory on mobile and avoiding unnecessary downloads.
+      if(selected!=="full" && selected!==def.actionSubsystem)
+        await choose(def.actionSubsystem);
+      if(selected!=="full" && (!active||selected!==def.actionSubsystem))return;
+      demoReturnSelection=selected;
       const ticket=seq;
       const requestedAim=year==="2026"
         ?Number(aimInput.value)*Math.PI/180:0;
