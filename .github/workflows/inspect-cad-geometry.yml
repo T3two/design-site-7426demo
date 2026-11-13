@@ -1,0 +1,14 @@
+name: CAD geometric landmark inspection
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'qa/inspect-cad-geometry.py'
+      - '.github/workflows/inspect-cad-geometry.yml'
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 qa/inspect-cad-geometry.py
