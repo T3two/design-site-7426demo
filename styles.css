@@ -1834,3 +1834,50 @@ html.initial-home .menu-button{display:none!important}
 }
 
 @media(max-width:780px){body.welcome-mode .welcome-gateway:not([hidden]){display:flex}}
+
+
+/* Hand-inked, stepped-frame graphic treatment for the ORIGINAL Ace 3D mascot.
+   This uses CSS print texture, not generated art or imitational movie assets. */
+.welcome-scene--design::before,
+.welcome-scene--robot::before{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle,#8c2c3d 1px,transparent 1.4px);
+  background-size:17px 17px;
+  mask-image:linear-gradient(135deg,transparent 20%,#000 115%);
+  opacity:.10;
+}
+.welcome-scene--robot::before{
+  background-image:radial-gradient(circle,#ffced4 1px,transparent 1.4px);
+  mask-image:linear-gradient(210deg,#000,transparent 80%);
+  opacity:.14;
+}
+.welcome-scene--design .welcome-art--ace.ace3d-live .ace-3d-canvas{
+  filter:drop-shadow(3px 5px 0 rgba(116,33,52,.30));
+}
+.welcome-scene--robot .welcome-art--ace.ace3d-live .ace-3d-canvas{
+  filter:drop-shadow(-3px 5px 0 rgba(63,143,161,.28));
+}
+/* Keep viewer work visible while fine-detail CAD loads; do not dim or blur
+   the whole stage. Full-detail operations are explicit, never automatic. */
+.robot-theater .theater-loading{
+  top:14px;bottom:auto;left:14px;transform:none;
+  z-index:6;max-width:calc(100% - 28px);
+  background:rgba(255,255,255,.94);box-shadow:0 3px 9px rgba(28,22,30,.04);
+}
+.robot-theater .theater-tool.theater-original-detail:not([hidden]){
+  border-color:#b42e3a;color:#9d2d37;background:#fff9f8;
+}
+.robot-theater .theater-tool.theater-original-detail:disabled{
+  opacity:.62;color:#777;
+}
+.model-actions .viewer-full-detail:not([hidden]){
+  border:1px solid #b62e3b;color:#912530;background:#fffaf8;
+  text-transform:uppercase;font-weight:750;letter-spacing:.02em;
+}
+.model-card.model-original-ready .viewer-full-detail{background:#edf5ed;color:#495b49}
+@media(prefers-reduced-motion:reduce){
+  .welcome-scene--design .welcome-art--ace.ace3d-live .ace-3d-canvas,
+  .welcome-scene--robot .welcome-art--ace.ace3d-live .ace-3d-canvas{
+    filter:none;
+  }
+}
