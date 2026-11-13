@@ -173,7 +173,7 @@ async function loadOriginalGLB(seated) {
   const model = parsed.scene;
   // Graphic, stepped 3D comic rendering. This is our original Ace character;
   // no Spider-Verse film characters, textures, or proprietary assets are used.
-  const ramp = new THREE.DataTexture(new Uint8Array([56,150,255]),3,1,THREE.RedFormat);
+  const ramp = new THREE.DataTexture(new Uint8Array([168,224,255]),3,1,THREE.RedFormat);
   ramp.minFilter = THREE.NearestFilter;
   ramp.magFilter = THREE.NearestFilter;
   ramp.generateMipmaps = false;
