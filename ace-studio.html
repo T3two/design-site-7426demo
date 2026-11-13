@@ -7,7 +7,7 @@
 <body><header><h1>ACE / Animation Studio <span style="color:#f07589">BETA</span></h1><a href="./?page=home">← Back to website</a></header>
 <main><section id="view" aria-label="3D preview"><div class="hint">Drag to orbit · Scroll to zoom · Keyframe poses in the panel</div></section>
 <aside class="panel">
-<div><label for="character">Character pose</label><select id="character"><option value="rigged">Cute Ace</option><option value="pointing">Cute Ace · Pointing</option><option value="seated">Cute Ace · Sunglasses</option></select></div>
+<div><label for="character">Character pose</label><select id="character"><option value="rigged">Original Ace · Articulated</option><option value="pointing">Original Ace · Pointing</option><option value="seated">Original Ace · Sunglasses</option></select></div>
 <div><label for="clip">Animation name</label><input id="clip" value="Ace introduction" maxlength="80"></div>
 <div class="track"><label for="timeline">Timeline <output id="timeValue">0.00s</output></label><input type="range" id="timeline" min="0" max="4" step=".016" value="0"><div class="row"><button id="play">▶ Play</button><button id="add" class="secondary">+ Keyframe</button></div></div>
 <div class="track"><label for="embedded">Built-in animation</label><select id="embedded"><option value="">Manual keyframes</option></select><button id="previewClip" class="secondary" style="margin-top:8px;width:100%">Preview animation</button></div>
@@ -17,17 +17,30 @@
 <div><h2>Keyframes</h2><div id="keylist"></div></div>
 <div class="row"><button id="export">Export JSON</button><button id="import" class="secondary">Import JSON</button></div>
 <input type="file" id="file" accept=".json,application/json" hidden>
-<div class="note">Browser-based animation authoring with the real Ace GLB. Create poses, add keyframes, preview at 12 fps, then export a reusable animation file. Changes are saved in this browser, not automatically published to the homepage. All three character options use the same Cute Rig GLB. Edit the 46-joint rig with the pose controls, or preview one of its seven original clips. Keyframe exports stay local to your browser.</div>
+<div class="note">Browser-based animation authoring with the real Ace GLB. Create poses, add keyframes, preview at 12 fps, then export a reusable animation file. Changes are saved in this browser, not automatically published to the homepage. The original pointing and sunglasses models are preserved, with 18 articulated movement pivots across the head, spine, arms, hands, hips, knees and ankles. These controls move separate mesh pieces without reshaping the original character. Exports stay local until you publish them.</div>
 <div class="status" id="status" role="status">Loading original Ace model…</div>
 </aside></main>
 <script type="module">
 import * as THREE from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {rigOriginalAce} from './assets/welcome/ace-joints.js?v=original-ace-joints-1';
 const $=id=>document.getElementById(id), host=$('view'),status=$('status');
-const channels=[['bodyX','Body lean X',-35,35],['bodyY','Body turn Y',-70,70],['bodyZ','Body lean Z',-30,30],['headX','Head nod',-30,30],['headY','Head turn',-45,45],['headZ','Head tilt',-30,30],['armZ','Arm gesture',-45,45],['bounce','Body height',-30,30]];
+const channels=[
+ ['bodyX','Body lean X',-30,30],['bodyY','Body turn Y',-65,65],['bodyZ','Body lean Z',-25,25],['bounce','Body height (cm)',-25,25],
+ ['spineX','Spine bend',-20,20],['spineY','Spine twist',-30,30],['spineZ','Spine side bend',-20,20],['neckX','Neck nod',-15,15],
+ ['headX','Head nod',-32,32],['headY','Head turn',-45,45],['headZ','Head tilt',-28,28],
+ ['leftShoulderX','Left shoulder forward',-45,45],['leftShoulderZ','Left shoulder lift',-40,40],
+ ['leftElbowX','Left elbow bend',-55,55],['leftElbowZ','Left elbow turn',-45,45],
+ ['leftWristX','Left wrist bend',-45,45],['leftWristZ','Left wrist twist',-45,45],['leftFingerZ','Left finger gesture',-35,35],
+ ['rightShoulderX','Right shoulder forward',-45,45],['rightShoulderZ','Right shoulder lift',-40,40],
+ ['rightElbowX','Right elbow bend',-55,55],['rightElbowZ','Right elbow turn',-45,45],
+ ['rightWristX','Right wrist bend',-45,45],['rightWristZ','Right wrist twist',-45,45],['rightFingerZ','Right finger gesture',-35,35],
+ ['leftHipX','Left hip',-25,25],['leftKneeX','Left knee',-40,40],['leftAnkleX','Left ankle',-30,30],
+ ['rightHipX','Right hip',-25,25],['rightKneeX','Right knee',-40,40],['rightAnkleX','Right ankle',-30,30]
+];
 const neutral=()=>Object.fromEntries(channels.map(([key])=>[key,0]));
-let mixer=null, rigged=false, selectedAction=null, storedClips=[], pose=neutral(), keys=[{t:0,p:neutral()},{t:4,p:neutral()}],duration=4,time=0,playing=false,last=0,actor=null,head=null,arm=null;
+let mixer=null, rigged=false, selectedAction=null, storedClips=[], pose=neutral(), keys=[{t:0,p:neutral()},{t:4,p:neutral()}],duration=4,time=0,playing=false,last=0,actor=null,head=null,arm=null,joints=null;
 const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(32,1,.1,100);
 camera.position.set(5,3.6,12);
 const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});
@@ -48,12 +61,24 @@ for(const [id,label,min,max] of channels){
  wrap.append(lbl,input);$('controls').append(wrap);sliders[id]={input,out};
 }
 function show(){for(const [id] of channels){sliders[id].input.value=pose[id];sliders[id].out.textContent=Math.round(pose[id])+(id==='bounce'?' cm':'°')}}
-function apply(){if(!actor)return;const rad=Math.PI/180;
- actor.rotation.set(pose.bodyX*rad,pose.bodyY*rad,pose.bodyZ*rad);actor.position.y=pose.bounce/100;
- if(head) head.rotation.set(pose.headX*rad,pose.headY*rad,pose.headZ*rad);
- if(arm) arm.rotation.z=pose.armZ*rad;
+function apply(){if(!actor||!joints)return;const rad=Math.PI/180;
+ const v=id=>(Number(pose[id])||0)*rad;
+ actor.rotation.set(v('bodyX'),v('bodyY'),v('bodyZ'));
+ actor.position.y=(Number(pose.bounce)||0)/100;
+ joints.spine.rotation.set(v('spineX'),v('spineY'),v('spineZ'));
+ joints.neck.rotation.set(v('neckX'),0,0);
+ joints.head.rotation.set(v('headX'),v('headY'),v('headZ'));
+ for(const side of ['left','right']){
+   joints[side+'Shoulder'].rotation.set(v(side+'ShoulderX'),0,v(side+'ShoulderZ'));
+   joints[side+'Elbow'].rotation.set(v(side+'ElbowX'),0,v(side+'ElbowZ'));
+   joints[side+'Wrist'].rotation.set(v(side+'WristX'),0,v(side+'WristZ'));
+   joints[side+'Fingers'].rotation.z=v(side+'FingerZ');
+   joints[side+'Hip'].rotation.x=v(side+'HipX');
+   joints[side+'Knee'].rotation.x=v(side+'KneeX');
+   joints[side+'Ankle'].rotation.x=v(side+'AnkleX');
+ }
 }
-function sample(t){let i=keys.findIndex(k=>k.t>=t);if(i<0)return {...keys[keys.length-1].p};if(i===0)return {...keys[0].p};const a=keys[i-1],b=keys[i];const f=Math.max(0,Math.min(1,(t-a.t)/Math.max(.001,b.t-a.t)));const smooth=f*f*(3-2*f);return Object.fromEntries(channels.map(([id])=>[id,a.p[id]+(b.p[id]-a.p[id])*smooth]))}
+function sample(t){let i=keys.findIndex(k=>k.t>=t);if(i<0)return {...neutral(),...keys[keys.length-1].p};if(i===0)return {...neutral(),...keys[0].p};const a=keys[i-1],b=keys[i];const f=Math.max(0,Math.min(1,(t-a.t)/Math.max(.001,b.t-a.t)));const smooth=f*f*(3-2*f);return Object.fromEntries(channels.map(([id])=>{const av=Number(a.p?.[id])||0,bv=Number(b.p?.[id])||0;return [id,av+(bv-av)*smooth]}))}
 function seek(t){time=Math.max(0,Math.min(duration,t));$('timeline').value=time;$('timeValue').textContent=time.toFixed(2)+'s';pose=sample(time);show();apply()}
 function renderKeys(){$('keylist').replaceChildren();keys.forEach(k=>{const b=document.createElement('button');b.textContent=k.t.toFixed(2)+'s';b.onclick=()=>seek(k.t);$('keylist').append(b)})}
 function save(){try{localStorage.setItem('ace-studio-v1',JSON.stringify({character:$('character').value,clip:$('clip').value,duration,keys}))}catch{}}
@@ -84,36 +109,11 @@ $('previewClip').onclick=()=>{
   $('previewClip').textContent='Stop preview';
   status.textContent='Previewing '+clip.name;
 };
-function addCuteShades(root){
-  const joint=root.getObjectByName('Head');
-  const mat=new THREE.MeshBasicMaterial({color:'#211b23',side:THREE.DoubleSide});
-  const pale=new THREE.MeshBasicMaterial({color:'#fff8ed'});
-  for(const x of [-.33,.33]){
-    const lens=new THREE.Mesh(new THREE.BoxGeometry(.548,.474,.04),mat);
-    lens.position.set(x,.12,.661);lens.name='CuteSunglassLens';joint.add(lens);
-    const shine=new THREE.Mesh(new THREE.BoxGeometry(.16,.015,.012),pale);
-    shine.position.set(x-.10,.27,.689);shine.rotation.z=.65;joint.add(shine);
-  }
-  const bridge=new THREE.Mesh(new THREE.BoxGeometry(.13,.065,.08),mat);
-  bridge.position.set(0,.15,.65);joint.add(bridge);
-}
-function addCuteChair(root){
-  const dark=new THREE.MeshStandardMaterial({color:'#44353d',roughness:1});
-  const cushion=new THREE.MeshStandardMaterial({color:'#8d4048',roughness:1});
-  const piece=(pos,size,material)=>{
-    const o=new THREE.Mesh(new THREE.BoxGeometry(...size),material);
-    o.position.set(...pos);root.add(o);
-  };
-  piece([0,1.27,.12],[1.75,.18,1.27],dark);
-  piece([0,1.38,.12],[1.69,.15,1.22],cushion);
-  piece([0,2.27,-.64],[1.70,1.14,.18],cushion);
-  for(const x of [-.75,.75]){
-    for(const z of [-.46,.65])piece([x,.66,z],[.09,1.3,.09],dark);
-  }
-}
 async function load(){
-  status.textContent='Loading Ace Cute Rig…';
+  status.textContent='Loading original Ace with articulated joints…';
   stopPreview();
+  playing=false;
+  $('play').textContent='▶ Play';
   if(actor){
     scene.remove(actor);
     actor.traverse(o=>{
@@ -125,40 +125,54 @@ async function load(){
     });
     actor=null;
   }
-  const response=await fetch('assets/welcome/ace_7426_cute_web.glb?v=cute-20261113-2',{cache:'no-cache'});
-  if(!response.ok)throw Error('Cute Ace model not deployed: HTTP '+response.status);
-  const bytes=await response.arrayBuffer();
-  if(new DataView(bytes).getUint32(0,true)!==0x46546c67)throw Error('Cute Ace asset is not a valid GLB');
-  const gltf=await new GLTFLoader().parseAsync(bytes,'assets/welcome/');
-  if(gltf.animations.length!==7||!gltf.scene.getObjectByName('Head'))
-    throw Error('Wrong Ace model version: expected Cute Rig');
-  actor=gltf.scene;
-  head=actor.getObjectByName('Head');
-  arm=actor.getObjectByName('L_UpperArm');
+  joints=null;
   const variant=$('character').value;
-  if(variant==='seated'){
-    for(const side of ['L','R']){
-      const thigh=actor.getObjectByName(side+'_Thigh');
-      const shin=actor.getObjectByName(side+'_Shin');
-      const foot=actor.getObjectByName(side+'_Foot');
-      if(thigh)thigh.rotation.x=-1.34;
-      if(shin)shin.rotation.x=1.40;
-      if(foot)foot.rotation.x=-.06;
+  const file=variant==='seated'?'ace_seated.glb.gz':'ace_pointing.glb.gz';
+  if(typeof DecompressionStream==='undefined')throw Error('This browser needs gzip stream support');
+  const response=await fetch('assets/welcome/'+file);
+  if(!response.ok||!response.body)throw Error('Original Ace asset missing: '+file);
+  const bytes=await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+  if(bytes.byteLength<12||new DataView(bytes).getUint32(0,true)!==0x46546c67)
+    throw Error('Original Ace data is not a valid GLB');
+  const gltf=await new GLTFLoader().parseAsync(bytes,'assets/welcome/');
+  actor=gltf.scene;
+  const ramp=new THREE.DataTexture(new Uint8Array([168,224,255]),3,1,THREE.RedFormat);
+  ramp.minFilter=ramp.magFilter=THREE.NearestFilter;
+  ramp.generateMipmaps=false;ramp.needsUpdate=true;
+  const ink=new THREE.MeshBasicMaterial({color:'#20191f',side:THREE.BackSide});
+  const outlinePattern=/^(head_white_|hoodie_torso_|hood_back_|hood_front_|short_leg_|shoe_body_|backpack_shell_)/i;
+  const meshes=[];
+  actor.traverse(o=>{if(o.isMesh)meshes.push(o)});
+  for(const mesh of meshes){
+    const original=Array.isArray(mesh.material)?mesh.material:[mesh.material];
+    const toon=original.map(m=>new THREE.MeshToonMaterial({
+      color:m.color||new THREE.Color('#ffffff'),vertexColors:!!mesh.geometry.getAttribute('color'),
+      gradientMap:ramp,flatShading:true,transparent:!!m.transparent,opacity:m.opacity??1,
+      side:THREE.FrontSide
+    }));
+    mesh.material=Array.isArray(mesh.material)?toon:toon[0];
+    if(outlinePattern.test(mesh.parent?.name||mesh.name||'')){
+      const border=new THREE.Mesh(mesh.geometry,ink);
+      border.name='AceGraphicInkSilhouette';
+      border.scale.setScalar(1.032);border.renderOrder=-1;
+      mesh.add(border);
     }
-    addCuteChair(actor);addCuteShades(actor);
-  }else if(variant==='pointing'){
-    arm.rotation.x=-.9;
   }
-  mixer=new THREE.AnimationMixer(actor);
-  rigged=true;
+  const rig=rigOriginalAce(actor);
+  joints=rig.joints;
+  head=joints.head;arm=joints.leftShoulder;
+  mixer=gltf.animations.length?new THREE.AnimationMixer(actor):null;
   storedClips=gltf.animations;
+  selectedAction=null;
   const menu=$('embedded');
   menu.replaceChildren(new Option('Manual keyframes',''));
-  for(const clip of storedClips)menu.add(new Option(clip.name.replace(/^\d+_/,'').replaceAll('_',' '),clip.name));
+  for(const clip of storedClips)menu.add(new Option(clip.name.replace(/^[0-9]+_/,'').replaceAll('_',' '),clip.name));
+  $('previewClip').disabled=!storedClips.length;
   scene.add(actor);
-  apply();
-  save();
-  status.textContent='Cute Ace loaded · 46 joints · '+storedClips.length+' clips · '+(variant==='seated'?'Sunglasses':variant==='pointing'?'Pointing':'Default');
+  apply();save();
+  status.textContent='Original Ace · '+(variant==='seated'?'Sunglasses':'Pointing')+
+    ' · '+rig.jointCount+' pivots · '+rig.activeJoints+' moving sections';
+  window.__aceStudioQA={source:file,joints:rig.jointCount,activeJoints:rig.activeJoints,mappedParts:rig.partCounts};
 }
 $('character').onchange=()=>load().catch(e=>status.textContent=e.message);
 $('clip').oninput=save;
