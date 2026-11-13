@@ -19,8 +19,12 @@ const years=['2026','2025','2024','2023','2022','2020','2019'];
     let element;
     if(year==='2026'||year==='2025'){
       // These two seasons use the immersive theater, not <model-viewer> cards.
-      await page.locator('.theater-launch').waitFor({state:'visible',timeout:30000});
-      await page.locator('.theater-launch').click();
+      await page.locator('.robot-theater').waitFor({state:'attached',timeout:30000});
+      // Desktop viewer may preload and dismiss the poster before we look for
+      // the button. The screenshot generator must accept either ready state.
+      const launch=page.locator('.theater-launch');
+      if(!await page.locator('.theater-stage.is-ready').count() && await launch.isVisible())
+        await launch.evaluate(el=>el.click());
       await page.locator('.theater-stage.is-ready').waitFor({timeout:90000});
       element=page.locator('.theater-canvas-home canvas').first();
     }else{
