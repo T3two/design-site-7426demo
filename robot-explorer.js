@@ -229,7 +229,7 @@ function mount(host,year,models,loadPackedModel){
   shell.append(stage,side);
   host.replaceChildren(titleBand,shell);
   const footnote=e("p","theater-footnote",
-    "Original CAD models. Game-piece paths and animated mechanism motion are illustrative.");
+    "3D previews are optimized directly from our original CAD. Select Original CAD for complete model detail. Game-piece motion is illustrative.");
   host.append(footnote);
 
   let mod=null,THREE=null,renderer=null,scene=null,camera=null,orbit=null,gltfLoader=null,studioEnv=null,floorShadow=null;
@@ -572,6 +572,8 @@ function mount(host,year,models,loadPackedModel){
       camera.position.copy(home.position);
       orbit.target.copy(home.target);
       orbit.update();
+      // Render at least one real CAD frame before dissolving the poster.
+      renderer.render(scene,camera);
       stage.classList.add("is-ready");
       btnFull.disabled=false;
       btnOriginal.disabled=fullIsOriginal;
@@ -628,8 +630,13 @@ function mount(host,year,models,loadPackedModel){
     const model=byId.get("robot-"+year+"-"+key);
     if(!model)throw Error("No uploaded subsystem GLB: "+key);
     const task=(async()=>{
-      setMessage("LOADING "+key.toUpperCase()+" CAD");
-      const gltf=await gltfLoader.loadAsync(model.file);
+      setMessage("PREPARING "+key.toUpperCase()+" 3D");
+      let gltf;
+      if(model.fastPreview?.file){
+        try{gltf=await gltfLoader.loadAsync(model.fastPreview.file);}
+        catch(error){console.warn("Subsystem fast CAD fallback:",key,error);}
+      }
+      if(!gltf)gltf=await gltfLoader.loadAsync(model.file);
       const item=makeGroup(gltf);
       applyFade(item,0);
       subsystemCache.set(key,item);
