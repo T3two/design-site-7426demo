@@ -182,8 +182,11 @@ async function loadOriginalGLB(seated) {
     color:'#20191f',side:THREE.BackSide,depthWrite:true
   });
   const outlineParts = /^(head_white_|hoodie_torso_|hood_back_|hood_front_|short_leg_|shoe_body_|backpack_shell_)/i;
-  model.traverse(obj => {
-    if (!obj.isMesh) return;
+  // Snapshot the mesh list before attaching outline children. Mutating the
+  // hierarchy during traverse() would recursively outline outlines forever.
+  const sourceMeshes = [];
+  model.traverse(obj => { if(obj.isMesh) sourceMeshes.push(obj); });
+  sourceMeshes.forEach(obj => {
     const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
     const toon = materials.map(m => new THREE.MeshToonMaterial({
       color: m.color || new THREE.Color('#ffffff'),
