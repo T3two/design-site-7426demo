@@ -22,6 +22,8 @@ Start with the entire robot, then select a subsystem to transition into its isol
 
 {{explorer:2026}}
 
+**Workbench controls:** Open the 3D model to search its assembly, select named parts, measure between mesh points, or move a section plane through the robot. The design-history steps summarize the team's documented revisions; they do not represent separate historical CAD models. Mesh dimensions are approximate and should not be used for manufacturing.
+
 ## The robot at a glance
 
 RICOCHET combines a swerve drivetrain, over-bumper intake, extendable hopper, feeder, rotating turret, scoring mechanism, and climbing system. Each subsystem has its own design constraints, but the real challenge was getting the whole robot to work together.
