@@ -15,6 +15,16 @@ async function verifyYear(browser,year,subsystem){
   await page.waitForTimeout(1000);
   await sub.evaluate(el=>el.click());
   await page.waitForFunction(slug=>document.querySelector('.theater-stage')?.dataset.readySelection===slug,subsystem,{timeout:18000});
+  const noteTabs=page.locator('.theater-evidence-tabs');
+  await noteTabs.locator('button').filter({hasText:'CAD source'}).click();
+  const cadText=await page.locator('.theater-evidence-copy').innerText();
+  if(!/original CAD/i.test(cadText)||!/optimized interactive geometry/i.test(cadText))
+    throw Error('CAD provenance is not connected to the selected subsystem: '+cadText);
+  await noteTabs.locator('button').filter({hasText:'Evidence'}).click();
+  const evidence=await page.locator('.theater-evidence-copy').innerText();
+  if(!/not (independently )?validated|not been verified/i.test(evidence))
+    throw Error('Evidence status is not transparent: '+evidence);
+  await noteTabs.locator('button').filter({hasText:'How it works'}).click();
   await page.locator('.theater-nav-button').filter({hasText:/complete robot/i}).first().evaluate(el=>el.click());
   await page.waitForFunction(()=>document.querySelector('.theater-stage')?.dataset.readySelection==='full',null,{timeout:18000});
   // This second selection should be resident in GPU memory.
