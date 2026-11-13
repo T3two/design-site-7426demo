@@ -139,10 +139,19 @@ function mount(host,year,models,loadPackedModel){
   const btnReset=e("button","theater-tool","Reset view");
   const btnSpin=e("button","theater-tool","Rotate");
   const btnExpand=e("button","theater-tool","Expand");
+  const btnPauseDemo=e("button","theater-tool theater-pause-motion","Pause");
+  btnPauseDemo.type="button";
+  btnPauseDemo.hidden=true;
+  btnPauseDemo.addEventListener("click",()=>{
+    if(!action)return;
+    action._paused=!action._paused;
+    btnPauseDemo.textContent=action._paused?"Resume":"Pause";
+    btnPauseDemo.setAttribute("aria-pressed",String(action._paused));
+  });
   [btnFull,btnReset,btnSpin,btnExpand].forEach(x=>x.type="button");
   btnFull.disabled=true;
   const controlNote=e("span","theater-controls-note","");
-  controlsBar.append(btnFull,btnReset,btnExpand);
+  controlsBar.append(btnFull,btnReset,btnExpand,btnPauseDemo);
   stage.append(viewport,controlsBar);
 
   const side=e("aside","theater-side");
@@ -442,8 +451,12 @@ function mount(host,year,models,loadPackedModel){
         const dir=camera.position.clone().sub(orbit.target).applyAxisAngle(new THREE.Vector3(0,1,0),a);
         camera.position.copy(orbit.target).add(dir);
       }
-      if(action)action.update(now);
-      else if(turretRig){
+      if(action){
+        // Advance a dedicated clock only when playback is not paused.
+        if(action._clock==null)action._clock=now;
+        if(!action._paused)action._clock+=Math.min(Math.max(now-lastTime,0),80);
+        action.update(action._clock);
+      } else if(turretRig){
         const dt=clamp((now-lastTime)/1000,0,.06);
         turretRig.rotation.y+=(turretGoal-turretRig.rotation.y)*Math.min(1,dt*7);
       }
@@ -565,6 +578,10 @@ function mount(host,year,models,loadPackedModel){
     action.clean();
     action=null;
     demoHud.hidden=true;
+    btnPauseDemo.hidden=true;
+    btnPauseDemo.textContent="Pause";
+    btnPauseDemo.setAttribute("aria-pressed","false");
+    setPhase(0);
     demoTitle.textContent=def.actionTitle;
     demoFill.style.width="0%";
     actionButton.disabled=false;
@@ -1122,6 +1139,9 @@ function mount(host,year,models,loadPackedModel){
       // Let the full robot resolve into view before any driving or scoring.
       if(year==="2026")runFuel(requestedAim);
       else runCoral();
+      btnPauseDemo.hidden=false;
+      btnPauseDemo.textContent="Pause";
+      btnPauseDemo.setAttribute("aria-pressed","false");
     }catch(error){
       console.error("Robot scoring demonstration failed:",error);
       if(action)stopAction();
