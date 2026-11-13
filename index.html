@@ -1236,8 +1236,11 @@
         ? previewCatalog.models[model.year]
         : model.category === 'Robot Subsystems'
           ? subsystemFastData?.models?.[model.id] : null;
-      if (preview?.file && /^models\/preview\/(?:subsystems\/)?[\w-]+\.glb$/.test(preview.file))
+      if (preview?.file && /^models\/preview\/(?:subsystems\/)?[\w-]+\.glb$/.test(preview.file)) {
         model.fastPreview = preview;
+        if (model.category === 'Season Robots')
+          model.thumbnail = 'models/preview/posters/' + model.year + '.jpg';
+      }
     });
     sponsors = Array.isArray(sponsorData.sponsors) ? sponsorData.sponsors : [];
     robots = Array.isArray(robotsData.robots) ? robotsData.robots : [];
