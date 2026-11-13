@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ace Animation Studio · Pair of Dice</title>
+<style>
+:root{font-family:Inter,system-ui,sans-serif;color:#f7eef1;background:#101017}*{box-sizing:border-box}body{margin:0}header{display:flex;align-items:center;justify-content:space-between;padding:17px 24px;border-bottom:1px solid #38323f;gap:12px;flex-wrap:wrap}h1{font-size:19px;margin:0}a{color:#ffabb4}main{display:grid;grid-template-columns:minmax(0,1fr) 330px;min-height:calc(100vh - 72px)}#view{position:relative;min-height:580px;background:radial-gradient(circle at 45% 40%,#35313f,#14131b 72%);overflow:hidden}#view canvas{display:block;width:100%;height:100%}.hint{position:absolute;left:18px;bottom:15px;font-size:12px;color:#d7cbd5;pointer-events:none}.panel{padding:18px;background:#1b1923;border-left:1px solid #38323f;display:grid;align-content:start;gap:15px}label{display:block;font-size:12px;color:#e0d2df;margin-bottom:5px}select,input,button{font:inherit}select,input[type=number],input[type=text]{background:#292633;color:white;border:1px solid #554b60;border-radius:8px;padding:9px;width:100%}input[type=range]{width:100%;accent-color:#ff637c}button{background:#b92f4b;border:0;color:white;border-radius:9px;padding:10px 12px;cursor:pointer;font-weight:650}button.secondary{background:#37303e}button:focus-visible,input:focus-visible{outline:2px solid #ffa1b2}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}h2{font-size:14px;margin:6px 0 0}.track{padding:12px;background:#292531;border-radius:10px}.track output{float:right;color:#ff9dab}.note{font-size:12px;color:#c5b8c4;line-height:1.5}.status{font-size:12px;color:#eab1be}#timeline{margin:4px 0}#keylist{max-height:110px;overflow:auto;font-size:12px;color:#cfc3d0}#keylist button{font-size:11px;padding:5px;margin:3px;background:#443749}@media(max-width:800px){main{grid-template-columns:1fr}#view{min-height:420px}.panel{border-left:0;border-top:1px solid #38323f}}
+</style><script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script></head>
+<body><header><h1>ACE / Animation Studio <span style="color:#f07589">BETA</span></h1><a href="./?page=home">← Back to website</a></header>
+<main><section id="view" aria-label="3D preview"><div class="hint">Drag to orbit · Scroll to zoom · Keyframe poses in the panel</div></section>
+<aside class="panel">
+<div><label for="character">Character pose</label><select id="character"><option value="pointing">Pointing Ace</option><option value="seated">Seated Ace</option></select></div>
+<div><label for="clip">Animation name</label><input id="clip" value="Ace introduction" maxlength="80"></div>
+<div class="track"><label for="timeline">Timeline <output id="timeValue">0.00s</output></label><input type="range" id="timeline" min="0" max="4" step=".016" value="0"><div class="row"><button id="play">▶ Play</button><button id="add" class="secondary">+ Keyframe</button></div></div>
+<h2>Pose controls</h2>
+<div id="controls"></div>
+<div class="row"><button id="reset" class="secondary">Reset pose</button><button id="delete" class="secondary">Delete key</button></div>
+<div><h2>Keyframes</h2><div id="keylist"></div></div>
+<div class="row"><button id="export">Export JSON</button><button id="import" class="secondary">Import JSON</button></div>
+<input type="file" id="file" accept=".json,application/json" hidden>
+<div class="note">Browser-based animation authoring with the real Ace GLB. Create poses, add keyframes, preview at 12 fps, then export a reusable animation file. Changes are saved in this browser, not automatically published to the homepage. These are simple head, arm and body pivots; individual limbs and facial acting will require a fuller rig.</div>
+<div class="status" id="status" role="status">Loading original Ace model…</div>
+</aside></main>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+const $=id=>document.getElementById(id), host=$('view'),status=$('status');
+const channels=[['bodyX','Body lean X',-35,35],['bodyY','Body turn Y',-70,70],['bodyZ','Body lean Z',-30,30],['headX','Head nod',-30,30],['headY','Head turn',-45,45],['headZ','Head tilt',-30,30],['armZ','Arm gesture',-45,45],['bounce','Body height',-30,30]];
+const neutral=()=>Object.fromEntries(channels.map(([key])=>[key,0]));
+let pose=neutral(), keys=[{t:0,p:neutral()},{t:4,p:neutral()}],duration=4,time=0,playing=false,last=0,actor=null,head=null,arm=null;
+const scene=new THREE.Scene(),camera=new THREE.PerspectiveCamera(32,1,.1,100);
+camera.position.set(5,3.6,12);
+const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;
+host.prepend(renderer.domElement);
+const orbit=new OrbitControls(camera,renderer.domElement);orbit.target.set(0,2.2,0);orbit.enableDamping=true;orbit.minDistance=5;orbit.maxDistance=24;orbit.update();
+scene.add(new THREE.AmbientLight('#ffffff',1.35));
+const light=new THREE.DirectionalLight('#fff2de',2.1);light.position.set(-3,7,8);scene.add(light);
+const fill=new THREE.DirectionalLight('#99b6ff',.65);fill.position.set(5,4,-6);scene.add(fill);
+function resize(){const w=host.clientWidth,h=host.clientHeight;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix()}
+new ResizeObserver(resize).observe(host);resize();
+const sliders={};
+for(const [id,label,min,max] of channels){
+ const wrap=document.createElement('div');wrap.className='track';
+ const lbl=document.createElement('label');lbl.textContent=label+' ';const out=document.createElement('output');out.textContent='0°';lbl.append(out);
+ const input=document.createElement('input');input.type='range';input.min=min;input.max=max;input.step=1;input.value=0;input.setAttribute('aria-label',label);
+ input.addEventListener('input',()=>{playing=false;$('play').textContent='▶ Play';pose[id]=Number(input.value);out.textContent=input.value+(id==='bounce'?' cm':'°');apply()});
+ wrap.append(lbl,input);$('controls').append(wrap);sliders[id]={input,out};
+}
+function show(){for(const [id] of channels){sliders[id].input.value=pose[id];sliders[id].out.textContent=Math.round(pose[id])+(id==='bounce'?' cm':'°')}}
+function apply(){if(!actor)return;const rad=Math.PI/180;
+ actor.rotation.set(pose.bodyX*rad,pose.bodyY*rad,pose.bodyZ*rad);actor.position.y=pose.bounce/100;
+ head.rotation.set(pose.headX*rad,pose.headY*rad,pose.headZ*rad);
+ arm.rotation.z=pose.armZ*rad;
+}
+function sample(t){let i=keys.findIndex(k=>k.t>=t);if(i<=0)return {...keys[0].p};const a=keys[i-1],b=keys[i];const f=Math.max(0,Math.min(1,(t-a.t)/Math.max(.001,b.t-a.t)));const smooth=f*f*(3-2*f);return Object.fromEntries(channels.map(([id])=>[id,a.p[id]+(b.p[id]-a.p[id])*smooth]))}
+function seek(t){time=Math.max(0,Math.min(duration,t));$('timeline').value=time;$('timeValue').textContent=time.toFixed(2)+'s';pose=sample(time);show();apply()}
+function renderKeys(){$('keylist').replaceChildren();keys.forEach(k=>{const b=document.createElement('button');b.textContent=k.t.toFixed(2)+'s';b.onclick=()=>seek(k.t);$('keylist').append(b)})}
+function save(){try{localStorage.setItem('ace-studio-v1',JSON.stringify({character:$('character').value,clip:$('clip').value,duration,keys}))}catch{}}
+function setKeys(k){if(!Array.isArray(k)||!k.length||k.length>500)throw Error('Invalid keyframes');keys=k.map(x=>{if(!Number.isFinite(x.t)||x.t<0||x.t>60||!x.p)throw Error('Invalid keyframe time');const p=neutral();for(const [id,,min,max] of channels){const v=Number(x.p[id]??0);if(!Number.isFinite(v))throw Error('Invalid pose');p[id]=Math.max(min,Math.min(max,v))}return {t:x.t,p}}).sort((a,b)=>a.t-b.t);duration=Math.max(1,keys[keys.length-1].t);$('timeline').max=duration;renderKeys();seek(0);save()}
+$('add').onclick=()=>{const t=Math.round(time*100)/100;keys=keys.filter(k=>Math.abs(k.t-t)>.005);keys.push({t,p:{...pose}});keys.sort((a,b)=>a.t-b.t);renderKeys();save();status.textContent='Keyframe added at '+t.toFixed(2)+'s'};
+$('delete').onclick=()=>{if(keys.length<=1)return;let i=keys.findIndex(k=>Math.abs(k.t-time)<.025);if(i<0)i=keys.reduce((best,k,j)=>Math.abs(k.t-time)<Math.abs(keys[best].t-time)?j:best,0);keys.splice(i,1);renderKeys();save();seek(time)};
+$('reset').onclick=()=>{pose=neutral();show();apply()};
+$('timeline').oninput=e=>{playing=false;$('play').textContent='▶ Play';seek(Number(e.target.value))};
+$('play').onclick=()=>{playing=!playing;last=0;$('play').textContent=playing?'❚❚ Pause':'▶ Play'};
+$('export').onclick=()=>{const blob=new Blob([JSON.stringify({version:1,character:$('character').value,clip:$('clip').value,fps:12,duration,keys},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ace-animation.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+$('import').onclick=()=>$('file').click();
+$('file').onchange=async e=>{try{const d=JSON.parse(await e.target.files[0].text());if(d.version!==1)throw Error('Unsupported file');$('clip').value=String(d.clip||'Ace animation').slice(0,80);$('character').value=d.character==='seated'?'seated':'pointing';setKeys(d.keys);await load();status.textContent='Animation imported'}catch(err){status.textContent='Import failed: '+err.message}e.target.value=''};
+async function load(){
+ status.textContent='Loading original Ace GLB…';if(actor){scene.remove(actor);actor.traverse(o=>{if(o.isMesh){o.geometry?.dispose();const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>m.dispose())}})}
+ const path='assets/welcome/ace_'+($('character').value==='seated'?'seated':'pointing')+'.glb.gz';
+ const res=await fetch(path);if(!res.ok||!res.body)throw Error('Ace model unavailable');
+ const bytes=await new Response(res.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+ const gltf=await new GLTFLoader().parseAsync(bytes,'assets/welcome/');actor=gltf.scene;
+ const ramp=new THREE.DataTexture(new Uint8Array([120,206,255]),3,1,THREE.RedFormat);ramp.magFilter=ramp.minFilter=THREE.NearestFilter;ramp.needsUpdate=true;
+ const source=[];actor.traverse(o=>{if(o.isMesh)source.push(o)});
+ for(const mesh of source){const old=Array.isArray(mesh.material)?mesh.material:[mesh.material];const toon=old.map(m=>new THREE.MeshToonMaterial({color:m.color||new THREE.Color('white'),gradientMap:ramp,vertexColors:!!mesh.geometry.getAttribute('color'),flatShading:true,transparent:!!m.transparent,opacity:m.opacity??1}));mesh.material=Array.isArray(mesh.material)?toon:toon[0]}
+ actor.updateMatrixWorld(true);
+ head=new THREE.Group();head.position.set(0,3.54,0);actor.add(head);
+ arm=new THREE.Group();arm.position.set(0,2.5,0);actor.add(arm);
+ const headNames=/^(head_white|dice_head|glasses_|wink|open_eye|freckle|dice_top_marks|sunglasses_)/i;
+ const armNames=/^(left_sleeve|left_elbow|left_forearm|left_cuff|left_hand|pointing_finger|finger_tip|right_sleeve|right_elbow|right_forearm|right_cuff|right_glove|seated_left_upper|seated_left_forearm|seated_right_upper|seated_right_forearm|left_glove|right_glove)/i;
+ for(const mesh of source){const name=mesh.name||mesh.parent?.name||'';if(headNames.test(name))head.attach(mesh);else if(armNames.test(name))arm.attach(mesh)}
+ scene.add(actor);apply();status.textContent='Original Ace loaded · Ready to animate';save();
+}
+$('character').onchange=()=>load().catch(e=>status.textContent=e.message);
+$('clip').oninput=save;
+try{const stored=JSON.parse(localStorage.getItem('ace-studio-v1'));if(stored){$('character').value=stored.character==='seated'?'seated':'pointing';$('clip').value=stored.clip||'Ace introduction';setKeys(stored.keys)}}catch{}
+renderKeys();load().catch(e=>status.textContent='Load failed: '+e.message);
+function loop(now){requestAnimationFrame(loop);if(playing){if(last){time+=(now-last)/1000;if(time>duration)time=0;const held=Math.floor(time*12)/12;pose=sample(held);show();apply();$('timeline').value=time;$('timeValue').textContent=time.toFixed(2)+'s'}last=now}else last=0;orbit.update();renderer.render(scene,camera)}
+requestAnimationFrame(loop);
+</script></body></html>
