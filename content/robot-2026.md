@@ -131,3 +131,33 @@ Part drawings, assembly drawings, design notebooks, and subsystem documentation 
 ## What we'd add next
 
 More workshop photographs, annotated CAD closeups, electrical and controls diagrams, and measured testing results would complete the picture. The existing assembly and source images already provide a starting point for documenting how RICOCHET was built and improved.
+
+
+## Engineering notebook / interpreting the scoring animation
+
+The 3D experience separates three things that are easy to mistake for one another: **documented CAD**, **kinematic calculations**, and **measured real-world performance**. RICOCHET's imported robot and named components provide the geometry. The shooting sequence then illustrates how the whole robot can move, how a turret can aim about its mounting axis, and how a launched FUEL object responds to gravity. It is not a substitute for a calibrated shot table.
+
+### Geometry and coordinate systems
+
+Onshape-exported robot assemblies may use a different up-axis from the browser camera. The viewer first reorients the imported CAD into a consistent upright coordinate system. The shooter exit direction is transformed by the live world matrix of the CAD component, so a moving turret also changes the direction of a simulated shot. That is essential: otherwise the ball can appear to leave in a direction that the nozzle is not pointing.
+
+### Projectile model used for the illustration
+
+For a launch speed *v*, elevation angle *θ*, horizontal distance *d*, and elapsed time *t*:
+
+- Horizontal motion: **d = v cos(θ) t**
+- Vertical motion: **Δy = v sin(θ) t − ½ g t²**
+- Standard gravitational acceleration for the illustrative model: **g = 9.81 m/s²**.
+
+The browser demonstration can derive an ideal launch speed from a chosen direction and target elevation. It ignores aerodynamic drag, ball compression, spin, feed delay, motor-speed variation, and robot vibration. Consequently, an illustrated target hit is **not** proof that a real robot would score with those settings.
+
+To turn this into a validated digital twin, we would need the verified launcher exit point, turret-axis survey, mechanical stop angles, measured wheel surface speeds, calibration shots, and release-direction observations from team testing.
+
+### Design questions to explore in the viewer
+
+- How does rotating only the turret affect the exit direction compared with turning the full chassis?
+- What happens to the shot's travel time if launch speed changes while distance stays fixed?
+- How do a high-inertia flywheel and a consistent feed path reduce the likelihood of shot-to-shot variation, and what test data would confirm the improvement?
+- Which intake or hopper clearances must be verified before commanding a scoring sequence?
+
+The **How it works**, **CAD source**, and **Evidence** tabs next to the viewer identify whether a displayed claim comes from source geometry, team-written notes, or an illustrative calculation.
