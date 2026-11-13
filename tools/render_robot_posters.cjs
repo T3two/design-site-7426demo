@@ -35,6 +35,9 @@ const years=['2026','2025','2024','2023','2022','2020','2019'];
       await page.locator('.model-card.model-loaded').first().waitFor({timeout:100000});
       element=card.locator('model-viewer');
     }
+    // The theater is often below the fold; screenshot clips must be inside
+    // the current viewport, not at offscreen document coordinates.
+    await element.scrollIntoViewIfNeeded({timeout:15000});
     await page.waitForTimeout(500);
     const file='models/preview/posters/'+year+'.jpg';
     // Animated WebGL canvases never become geometrically "stable" enough
