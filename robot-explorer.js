@@ -6,7 +6,7 @@
 "use strict";
 const seasons={
   "2026":{
-    name:"RICOCHET", season:"REBUILT", hero:"assets/document-image-2.png",
+    name:"RICOCHET", season:"REBUILT", hero:"models/preview/posters/2026.jpg",
     intro:"The 2026 REBUILT robot. Select a subsystem to inspect its CAD and design notes.",
     pieces:[
       ["drivetrain","Swerve drivetrain","A low four-module chassis with SDS MK5N modules and a 27 × 27-inch frame."],
@@ -21,7 +21,7 @@ const seasons={
     actionName:"Watch RICOCHET drive & shoot", actionSubsystem:"shooter", actionTitle:"FUEL / SCORING SEQUENCE"
   },
   "2025":{
-    name:"DEADPOOL", season:"REEFSCAPE", hero:"",
+    name:"DEADPOOL", season:"REEFSCAPE", hero:"models/preview/posters/2025.jpg",
     intro:"The 2025 REEFSCAPE robot. Select a subsystem to inspect its CAD and design notes.",
     pieces:[
       ["drivetrain","Drivetrain","View the full drive chassis independently. Detailed motor and gearing specifications remain to be verified."],
