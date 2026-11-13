@@ -171,17 +171,40 @@ async function loadOriginalGLB(seated) {
   const loader = new GLTFLoader();
   const parsed = await loader.parseAsync(glb, 'assets/welcome/');
   const model = parsed.scene;
+  // Graphic, stepped 3D comic rendering. This is our original Ace character;
+  // no Spider-Verse film characters, textures, or proprietary assets are used.
+  const ramp = new THREE.DataTexture(new Uint8Array([56,150,255]),3,1,THREE.RedFormat);
+  ramp.minFilter = THREE.NearestFilter;
+  ramp.magFilter = THREE.NearestFilter;
+  ramp.generateMipmaps = false;
+  ramp.needsUpdate = true;
+  const inkOutline = new THREE.MeshBasicMaterial({
+    color:'#20191f',side:THREE.BackSide,depthWrite:true
+  });
+  const outlineParts = /^(head_white_|hoodie_torso_|hood_back_|hood_front_|short_leg_|shoe_body_|backpack_shell_)/i;
   model.traverse(obj => {
     if (!obj.isMesh) return;
     const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
     const toon = materials.map(m => new THREE.MeshToonMaterial({
       color: m.color || new THREE.Color('#ffffff'),
       vertexColors: !!obj.geometry.getAttribute('color'),
+      gradientMap:ramp,
+      flatShading:true,
       transparent: !!m.transparent,
       opacity: m.opacity ?? 1,
       side: THREE.FrontSide
     }));
     obj.material = Array.isArray(obj.material) ? toon : toon[0];
+    // A few bold silhouette passes, not an expensive full-scene outline
+    // composer. The child shares geometry with its parent to save memory.
+    const partName=obj.parent?.name || obj.name || '';
+    if(outlineParts.test(partName)){
+      const strokeMesh=new THREE.Mesh(obj.geometry,inkOutline);
+      strokeMesh.name='AceGraphicInkSilhouette';
+      strokeMesh.scale.setScalar(1.032);
+      strokeMesh.renderOrder=-1;
+      obj.add(strokeMesh);
+    }
   });
   // Reparent each character part around simple movement pivots. This preserves
   // the authored mesh geometry while allowing head nods and shoulder movement.
@@ -226,10 +249,10 @@ function mount(slot, seated) {
   renderer.toneMapping = THREE.NoToneMapping;
 
   const scene = new THREE.Scene();
-  scene.add(new THREE.AmbientLight('#ffffff', 1.65));
-  const key = new THREE.DirectionalLight('#ffffff', 1.5);
+  scene.add(new THREE.AmbientLight('#ffffff', .82));
+  const key = new THREE.DirectionalLight('#fff5e5', 1.8);
   key.position.set(-3, 7, 9); scene.add(key);
-  const fill = new THREE.DirectionalLight('#ffffff', .5);
+  const fill = new THREE.DirectionalLight('#98d9ed', .42);
   fill.position.set(4, 2, -5); scene.add(fill);
   // Poster is visible from the first paint. Build the animated mesh only once
   // its tiny compressed GLB is available; never flash a temporary 3D blockout.
@@ -289,7 +312,8 @@ function mount(slot, seated) {
       schedule(); return;
     }
     lastFrame = time;
-    const t = reducedMotion.matches ? 0 : Math.floor((time - tickStart) / 85) * .085;
+    // Intentional held poses at 12 fps, with continuous camera motion.
+    const t = reducedMotion.matches ? 0 : Math.floor((time - tickStart) / (1000/12)) / 12;
     const enter = reducedMotion.matches ? 1 : Math.min(1, (time - tickStart) / 750);
     const eased = 1 - Math.pow(1 - enter, 3);
     actor.root.position.y = (1 - eased) * -.19 + (reducedMotion.matches ? 0 : Math.sin(t * 2.1) * .025);
