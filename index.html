@@ -470,6 +470,8 @@
     };
     const startLoad = () => {
       if (started || model.hosted === false) return;
+      // One CAD engine only when a visible 3D card actually requests it.
+      ensureModelViewer();
       started = true;
       error.hidden = true;
       status.hidden = true;
@@ -1127,9 +1129,6 @@
       content.innerHTML = window.marked && window.DOMPurify ? DOMPurify.sanitize(marked.parse(markdown), {ADD_ATTR: ["data-model-id","data-explorer-year","data-explore-system"]}) : "<pre></pre>";
       if (!window.marked || !window.DOMPurify) content.querySelector("pre").textContent = markdown;
 
-      if (content.querySelector("[data-model-id], [data-explorer-year]") || meta.showAllModels ||
-          modelCatalog.some(model => Array.isArray(model.pages) && model.pages.includes(meta.id)))
-        ensureModelViewer();
       const placedIds = [...content.querySelectorAll('[data-model-id]')].map(node => node.dataset.modelId);
       renderModelPlaceholders(content);
 
