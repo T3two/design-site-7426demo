@@ -163,6 +163,26 @@ function buildAce(seated) {
 // Prefer the real, downloadable GLB geometry. The procedural model above remains
 // a visible fallback if gzip decoding, network loading or WebGL support is unavailable.
 async function loadOriginalGLB(seated) {
+  // Prefer the new skinned Ace on the Design side. Keep the authored seated pose
+  // for the Robot side and retain the previous model as an offline fallback.
+  if (!seated) {
+    try {
+      const response = await fetch('assets/welcome/ace_7426_web.glb');
+      if (!response.ok) throw new Error('New Ace model not deployed');
+      const gltf = await new GLTFLoader().parseAsync(await response.arrayBuffer(), 'assets/welcome/');
+      const root = gltf.scene;
+      root.name = 'Ace7426Rigged';
+      const mixer = new THREE.AnimationMixer(root);
+      const idle = gltf.animations.find(clip => /Idle_Breathing/.test(clip.name));
+      if (idle) mixer.clipAction(idle).play();
+      const headPivot = new THREE.Group();
+      const armGroup = new THREE.Group();
+      root.add(headPivot, armGroup);
+      return {root, headPivot, armGroup, mixer, rigged: true};
+    } catch (error) {
+      console.info('Using original Ace model until rigged GLB is available:', error.message);
+    }
+  }
   if (typeof DecompressionStream === 'undefined') throw new Error('gzip streams unavailable');
   const path = 'assets/welcome/' + (seated ? 'ace_seated.glb.gz' : 'ace_pointing.glb.gz');
   const response = await fetch(path);
@@ -304,6 +324,7 @@ function mount(slot, seated) {
   let frame = 0;
   let active = false;
   let firstFrame = true;
+  let previousFrameTime = null;
   const schedule = () => {
     if (!frame && active && actor && slot.isConnected && !document.hidden)
       frame = requestAnimationFrame(tick);
@@ -315,6 +336,9 @@ function mount(slot, seated) {
       schedule(); return;
     }
     lastFrame = time;
+    const delta = previousFrameTime === null ? 0 : Math.min((time - previousFrameTime) / 1000, .05);
+    previousFrameTime = time;
+    if (actor.mixer && !reducedMotion.matches) actor.mixer.update(delta);
     // Intentional held poses at 12 fps, with continuous camera motion.
     // Art-directed character acting, not procedural perpetual wobble.
     // The pose is deliberately held on twos (12 poses/second) while the
@@ -335,11 +359,11 @@ function mount(slot, seated) {
     actor.root.position.y = (1-intro)*-.18;
     actor.root.rotation.y += (yawGoal-actor.root.rotation.y)*.11;
     actor.root.rotation.z = (seated?-.016:.015)*gesture;
-    actor.headPivot.rotation.y = (seated?-.14:.12)*gesture + .035*accent;
-    actor.headPivot.rotation.z = (seated?.058:-.075)*accent;
+    actor.headPivot.rotation.y = actor.rigged ? 0 : (seated?-.14:.12)*gesture + .035*accent;
+    actor.headPivot.rotation.z = actor.rigged ? 0 : (seated?.058:-.075)*accent;
     // Only a small arm-group motion is possible without a fully authored
     // joint rig; don't fake independent fingers or unsupported anatomy.
-    actor.armGroup.rotation.z = (seated?-.025:.085)*gesture;
+    actor.armGroup.rotation.z = actor.rigged ? 0 : (seated?-.025:.085)*gesture;
     camera.position.x += (pointerX*.28 + (seated?3:2.2)-camera.position.x)*.06;
     camera.position.y += (-pointerY*.11 + 3.36-camera.position.y)*.06;
     camera.lookAt(seated?0:-.21,2.1,.02);
