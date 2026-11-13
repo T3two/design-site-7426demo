@@ -1970,3 +1970,13 @@ html.initial-home .menu-button{display:none!important}
   .robot-theater .theater-evidence-tabs{margin-top:9px}
   .robot-theater .theater-evidence-copy{min-height:0}
 }
+
+/* CAD-only assembly separation; never presented as physical motion. */
+.robot-theater .theater-tool.theater-explode[aria-pressed="true"]{
+  border-color:#a32632;background:#fff0ef;color:#912b37;
+}
+.robot-theater .theater-explode-note{
+  flex:1 1 100%;font:650 10px/1.3 'Barlow',Arial,sans-serif;
+  letter-spacing:.02em;color:#7c454b;
+}
+.robot-theater .theater-explode-note[hidden]{display:none!important}
