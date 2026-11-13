@@ -16,13 +16,22 @@ const years=['2026','2025','2024','2023','2022','2020','2019'];
    page.on('pageerror',e=>errors.push(String(e)));
    try{
     await page.goto(root+'?page=robot-'+year,{waitUntil:'domcontentloaded',timeout:35000});
-    const card=page.locator('.model-card').first();
-    await card.waitFor({state:'visible',timeout:30000});
-    await card.scrollIntoViewIfNeeded();
-    await card.locator('.viewer-start').evaluate(el=>{if(el.offsetParent!==null)el.click();}).catch(()=>{});
-    await page.locator('.model-card.model-loaded').first().waitFor({timeout:100000});
+    let element;
+    if(year==='2026'||year==='2025'){
+      // These two seasons use the immersive theater, not <model-viewer> cards.
+      await page.locator('.theater-launch').waitFor({state:'visible',timeout:30000});
+      await page.locator('.theater-launch').click();
+      await page.locator('.theater-stage.is-ready').waitFor({timeout:90000});
+      element=page.locator('.theater-canvas-home canvas').first();
+    }else{
+      const card=page.locator('.model-card').first();
+      await card.waitFor({state:'visible',timeout:30000});
+      await card.scrollIntoViewIfNeeded();
+      await card.locator('.viewer-start').evaluate(el=>{if(el.offsetParent!==null)el.click();}).catch(()=>{});
+      await page.locator('.model-card.model-loaded').first().waitFor({timeout:100000});
+      element=card.locator('model-viewer');
+    }
     await page.waitForTimeout(500);
-    const element=card.locator('model-viewer');
     const file='models/preview/posters/'+year+'.jpg';
     await element.screenshot({path:file,type:'jpeg',quality:85,timeout:15000});
     const size=fs.statSync(file).size;
