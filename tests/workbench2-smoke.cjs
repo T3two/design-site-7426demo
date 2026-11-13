@@ -43,9 +43,15 @@ const {chromium}=require('playwright');
       throw Error('Measure mode toggle failed');
     if(!await page.locator('.wb2-stage-panel').first().isVisible())
       throw Error('Measurement panel did not appear');
+    // The toolbar can scroll a long document. Bring the entire CAD viewport
+    // back into the visible browser window before selecting mesh coordinates.
+    await page.locator('.theater-viewport').evaluate(el=>
+      el.scrollIntoView({block:'center',behavior:'instant'}));
+    await page.waitForTimeout(180);
     const canvas=page.locator('.theater-canvas-home canvas');
     const box=await canvas.boundingBox();
-    if(!box)throw Error('Robot canvas invisible');
+    if(!box||box.y+box.height/2<0||box.y+box.height/2>950)
+      throw Error('CAD viewport not visible after scrolling '+JSON.stringify(box));
     const coords=[[.50,.50],[.48,.43],[.53,.56],[.42,.55],[.58,.45]];
     let picked=false;
     for(const [u,v] of coords){
