@@ -29,6 +29,9 @@ const time=()=>new Date().toISOString();
       try{
         console.log(time(),year,"opening page");
         await page.goto(base+"?page=robot-"+year+"&qa=1",{waitUntil:"domcontentloaded",timeout:35000});
+        // Robot viewer is fetched only on CAD pages, rather than globally.
+        // Wait for that non-blocking script to register its physics module.
+        await page.waitForFunction(() => Boolean(window.RobotScoringPhysics), null, {timeout:35000});
         const physics=Math.PI;
         const check=await page.evaluate(()=>{
           const motion=window.RobotScoringPhysics;
