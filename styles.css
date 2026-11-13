@@ -1767,3 +1767,34 @@ article .workbench-jump:hover{background:#f2dddf;text-decoration:none}
   .welcome-scene:focus-visible .welcome-art--ace.has-art{transform:none}
   .welcome-option:hover,.welcome-option:focus-visible{transform:none}
 }
+
+
+/* Interactive 3D Ace: real mesh assets, minimalist presentation, no fake sketch texture */
+.welcome-art--ace.ace3d-ready{
+  width:clamp(230px,35vw,580px);
+  height:83%;bottom:4%;
+  overflow:visible;
+}
+.welcome-scene--robot .welcome-art--ace.ace3d-ready{right:0}
+.welcome-art--ace.ace3d-ready .ace-3d-canvas{
+  display:block;width:100%;height:100%;
+  filter:drop-shadow(0 18px 9px rgba(38,25,29,.10));
+  pointer-events:none;
+}
+.welcome-art--background:not(.has-art) .welcome-art-tag{display:none}
+.welcome-scene--design{
+  background-color:#eee2db;
+  background-image:linear-gradient(rgba(132,75,77,.09) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(132,75,77,.09) 1px,transparent 1px),
+    linear-gradient(125deg,#ead8d1 0%,#f5ebe5 75%,#fffdfa 100%);
+  background-size:35px 35px,35px 35px,auto;
+}
+.welcome-scene--robot{
+  background:radial-gradient(circle at 79% 54%,rgba(189,80,90,.19),transparent 50%),
+    linear-gradient(250deg,#363036 4%,#5a454b 66%,#736064 100%);
+}
+@media(max-width:780px){
+  .welcome-art--ace.ace3d-ready,.welcome-scene--robot .welcome-art--ace.ace3d-ready{
+    width:100%;height:92%;left:0;right:0;bottom:0;
+  }
+}
