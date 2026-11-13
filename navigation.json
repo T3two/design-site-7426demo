@@ -13,6 +13,19 @@
     ]
   },
   {
+    "label": "DESIGN TEACHING",
+    "items": [
+      {
+        "id": "design-teaching",
+        "label": "Start learning",
+        "file": "design-teaching.md",
+        "title": "Design Teaching",
+        "eyebrow": "PAIR OF DICE · DESIGN TEACHING",
+        "description": "The reasoning, CAD tools, and mechanical concepts behind our robots."
+      }
+    ]
+  },
+  {
     "label": "THE ROBOT ARCHIVE",
     "items": [
       {
