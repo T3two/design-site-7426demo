@@ -18,7 +18,7 @@
       "name": "2026 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
-      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "description": "Fast interactive 3D preview derived from original Team 7426 CAD. Full-resolution engineering assembly is available on demand.",
       "file": "models/assemblies/2026-optimized.glb",
       "pages": [
         "robot-2026"
@@ -41,7 +41,7 @@
       "name": "2025 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
-      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "description": "Fast interactive 3D preview derived from original Team 7426 CAD. Full-resolution engineering assembly is available on demand.",
       "file": "models/assemblies/2025-optimized.glb",
       "pages": [
         "robot-2025"
@@ -65,7 +65,7 @@
       "name": "2024 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
-      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "description": "Fast interactive 3D preview derived from original Team 7426 CAD. Full-resolution engineering assembly is available on demand.",
       "file": "models/assemblies/2024-optimized.glb",
       "pages": [
         "robot-2024"
@@ -93,7 +93,7 @@
       "name": "2023 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
-      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "description": "Fast interactive 3D preview derived from original Team 7426 CAD. Full-resolution engineering assembly is available on demand.",
       "file": "models/assemblies/2023-optimized.glb",
       "pages": [
         "robot-2023"
@@ -122,7 +122,7 @@
       "name": "2022 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
-      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "description": "Fast interactive 3D preview derived from original Team 7426 CAD. Full-resolution engineering assembly is available on demand.",
       "file": "models/assemblies/2022-optimized.glb",
       "pages": [
         "robot-2022"
@@ -145,7 +145,7 @@
       "name": "2020 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
-      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "description": "Fast interactive 3D preview derived from original Team 7426 CAD. Full-resolution engineering assembly is available on demand.",
       "file": "models/assemblies/2020-optimized.glb",
       "pages": [
         "robot-2020"
@@ -168,7 +168,7 @@
       "name": "2019 Robot — CAD Assembly",
       "type": "assembly",
       "category": "Season Robots",
-      "description": "CAD supplied in downloadable ZIP. The model must be uploaded to a supported static host to enable the GitHub viewer.",
+      "description": "Fast interactive 3D preview derived from original Team 7426 CAD. Full-resolution engineering assembly is available on demand.",
       "file": "models/assemblies/2019-optimized.glb",
       "pages": [
         "robot-2019"
