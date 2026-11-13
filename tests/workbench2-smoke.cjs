@@ -69,7 +69,10 @@ const {chromium}=require('playwright');
     await page.waitForFunction(()=>document.querySelector('.theater-stage')?.dataset.readySelection==='intake',
       null,{timeout:70000});
     const titles=await page.locator('.wb2-milestone').allTextContents();
-    if(!titles.some(t=>/dead.axle/i.test(t)))throw Error('Intake history not connected to subsystem');
+    if(titles.length!==3)throw Error('Intake history stages missing');
+    await page.locator('.wb2-milestone').last().click();
+    if(!/dead.axle/i.test(await page.locator('.wb2-history-note').innerText()))
+      throw Error('Intake revision history is disconnected from the documented binder');
     const tree=page.locator('.wb2-tree');
     await tree.locator('summary').click();
     await page.waitForTimeout(300);
