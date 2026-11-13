@@ -41,6 +41,27 @@ const e=(tag,className,text)=>{
   return node;
 };
 const reduced=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
+// Deterministic unit-safe kinematics shared by the interactive viewer and
+// the automated browser regression. Distances are meters; times are seconds.
+const SCORING_G=9.81;
+const deriveBallisticShot=(horizontalMeters,riseMeters,pitchRadians)=>{
+  const d=horizontalMeters,angle=pitchRadians;
+  const cosine=Math.cos(angle);
+  const clearance=d*Math.tan(angle)-riseMeters;
+  if(!(d>0 && cosine>.01 && clearance>.015))
+    throw new Error("Shooter aim cannot clear the target under gravity");
+  const speed=Math.sqrt(SCORING_G*d*d/(2*cosine*cosine*clearance));
+  const seconds=d/(speed*cosine);
+  const verticalAtTarget=speed*Math.sin(angle)-SCORING_G*seconds;
+  return {speed,seconds,verticalAtTarget,gravity:SCORING_G};
+};
+const branchGravity=(angleRadians,friction=.26)=>Math.max(
+  0,SCORING_G*(Math.sin(angleRadians)-friction*Math.cos(angleRadians))
+);
+// Keeping this math inspectable makes it possible to test trajectory/support
+// constraints independently of WebGL rendering and animation frame rate.
+window.RobotScoringPhysics={deriveBallisticShot,branchGravity};
+
 const ease=t=>t*t*(3-2*t);
 const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
 const raf=()=>new Promise(resolve=>requestAnimationFrame(resolve));
