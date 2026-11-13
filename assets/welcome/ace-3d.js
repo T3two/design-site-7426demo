@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { rigOriginalAce } from './ace-joints.js?v=original-ace-joints-1';
 
 // Original Ace 3D prototype. Geometry is deliberately flat-colored and simple;
 // no generated character art, copyrighted rigs, or stock 3D assets.
@@ -163,61 +164,9 @@ function buildAce(seated) {
 // Prefer the real, downloadable GLB geometry. The procedural model above remains
 // a visible fallback if gzip decoding, network loading or WebGL support is unavailable.
 async function loadOriginalGLB(seated) {
-  // One source of truth: the uploaded 46-joint Cute Rig for BOTH sides.
-  // The versioned URL also prevents older cached GLBs from surviving a deploy.
-  try {
-    const modelUrl = 'assets/welcome/ace_7426_cute_web.glb?v=cute-20261113-2';
-    const response = await fetch(modelUrl, {cache: 'no-cache'});
-    if (!response.ok) throw new Error('Cute Ace GLB unavailable: HTTP ' + response.status);
-    const bytes = await response.arrayBuffer();
-    if (new DataView(bytes).getUint32(0, true) !== 0x46546c67)
-      throw new Error('Cute Ace file is not a GLB');
-    const gltf = await new GLTFLoader().parseAsync(bytes, 'assets/welcome/');
-    if (gltf.animations.length !== 7 || !gltf.scene.getObjectByName('Head'))
-      throw new Error('Ace GLB version mismatch (expected Cute Rig with 7 clips)');
-    const root = gltf.scene;
-    root.name = seated ? 'Ace7426CuteSunglasses' : 'Ace7426CuteDesign';
-    if (seated) {
-      // Seat the new skinned mascot instead of loading the retired seated mesh.
-      chair(root);
-      for (const side of ['L','R']) {
-        const thigh = root.getObjectByName(side + '_Thigh');
-        const shin = root.getObjectByName(side + '_Shin');
-        const foot = root.getObjectByName(side + '_Foot');
-        if (thigh) thigh.rotation.x = -1.34;
-        if (shin) shin.rotation.x = 1.40;
-        if (foot) foot.rotation.x = -.06;
-      }
-      // Sunglasses sit on the actual Head joint and follow its animations.
-      const headBone = root.getObjectByName('Head');
-      const shades = new THREE.Group();
-      shades.name = 'AceCuteSunglasses';
-      for (const x of [-.33,.33]) {
-        cuboid(shades, 'SunglassLens', inkFlat, [x,.12,.661], [.548,.474,.039], .055);
-        stroke(shades, 'SunglassGlint', creamFlat,
-          [[x-.15,.23,.692],[x-.06,.318,.692]], .010);
-      }
-      cuboid(shades, 'SunglassesBridge', inkFlat, [0,.15,.649],[.13,.065,.08],.020);
-      headBone.add(shades);
-    }
-    const mixer = new THREE.AnimationMixer(root);
-    const idle = gltf.animations.find(clip => /Idle_Breathing/.test(clip.name));
-    if (idle) mixer.clipAction(idle).play();
-    // Separate gesture pivots are used only by the procedural fallback;
-    // do not overwrite skinned animation bones every frame.
-    const headPivot = new THREE.Group();
-    const armGroup = new THREE.Group();
-    root.add(headPivot, armGroup);
-    window.__aceModelQA = window.__aceModelQA || {};
-    window.__aceModelQA[seated ? 'robot' : 'design'] = {
-      source:'ace_7426_cute_web.glb', clips:gltf.animations.length,
-      sunglasses:seated, boneCount:gltf.scene.getObjectByName('Head') ? 46 : 0
-    };
-    return {root, headPivot, armGroup, mixer, rigged:true};
-  } catch (error) {
-    console.warn('Cute Ace failed to load; using emergency fallback:',error);
-  }
-  // Emergency compatibility path only when the new Cute Rig cannot load.
+  // Always use the original authored Ace meshes: pointing on Design,
+  // seated with his original sunglasses on Robots.
+  // The added joints are independent THREE.Group pivots on the existing parts.
   if (typeof DecompressionStream === 'undefined') throw new Error('gzip streams unavailable');
   const path = 'assets/welcome/' + (seated ? 'ace_seated.glb.gz' : 'ace_pointing.glb.gz');
   const response = await fetch(path);
@@ -264,27 +213,17 @@ async function loadOriginalGLB(seated) {
       obj.add(strokeMesh);
     }
   });
-  // Reparent each character part around simple movement pivots. This preserves
-  // the authored mesh geometry while allowing head nods and shoulder movement.
-  model.updateMatrixWorld(true);
-  const headPivot = new THREE.Group();
-  headPivot.name = 'AceHeadAnimationPivot';
-  headPivot.position.set(0, 3.54, 0);
-  model.add(headPivot);
-  const armGroup = new THREE.Group();
-  armGroup.name = 'AceArmAnimationPivot';
-  armGroup.position.set(0, 2.5, 0);
-  model.add(armGroup);
-  const headNames = /^(head_white|dice_head|glasses_|wink|open_eye|freckle|dice_top_marks|sunglasses_)/i;
-  const armNames = /^(left_sleeve|left_elbow|left_forearm|left_cuff|left_hand|pointing_finger|finger_tip|right_sleeve|right_elbow|right_forearm|right_cuff|right_glove|seated_left_upper|seated_left_forearm|seated_right_upper|seated_right_forearm|left_glove|right_glove)/i;
-  const items = [];
-  model.traverse(obj => { if (obj.isMesh) items.push(obj); });
-  for (const item of items) {
-    const nm = item.name || item.parent?.name || '';
-    if (headNames.test(nm)) headPivot.attach(item);
-    else if (armNames.test(nm)) armGroup.attach(item);
-  }
-  return {root:model,headPivot,armGroup};
+  const articulation = rigOriginalAce(model);
+  const joints = articulation.joints;
+  model.name = seated ? 'AceOriginalSunglasses' : 'AceOriginalPointing';
+  window.__aceModelQA = window.__aceModelQA || {};
+  window.__aceModelQA[seated ? 'robot' : 'design'] = {
+    source: path, jointCount: articulation.jointCount,
+    activeJoints: articulation.activeJoints,
+    mappedParts: articulation.partCounts, sunglasses: seated
+  };
+  return {root:model,headPivot:joints.head,armGroup:joints.leftShoulder,
+    joints,rigged:false};
 }
 
 function mount(slot, seated) {
@@ -399,6 +338,26 @@ function mount(slot, seated) {
     // Only a small arm-group motion is possible without a fully authored
     // joint rig; don't fake independent fingers or unsupported anatomy.
     actor.armGroup.rotation.z = actor.rigged ? 0 : (seated?-.025:.085)*gesture;
+    if (actor.joints && !reducedMotion.matches) {
+      const j=actor.joints;
+      const beat=Math.sin(held*1.15);
+      j.spine.rotation.x=(seated?.008:-.013)*beat;
+      j.spine.rotation.z=(seated?-.010:.018)*gesture;
+      j.neck.rotation.y=(seated?.025:-.03)*accent;
+      j.leftShoulder.rotation.x=(seated?-.025:.06)*gesture;
+      j.leftElbow.rotation.z=(seated?-.040:.080)*gesture;
+      j.leftWrist.rotation.x=(seated?.035:-.06)*accent;
+      j.leftFingers.rotation.z=(seated?.012:.09)*accent;
+      j.rightShoulder.rotation.z=(seated?-.04:-.055)*gesture;
+      j.rightElbow.rotation.z=(seated?.04:-.08)*gesture;
+      j.rightWrist.rotation.x=.045*accent;
+      j.leftHip.rotation.z=.014*beat;
+      j.rightHip.rotation.z=-.014*beat;
+      j.leftKnee.rotation.x=(seated?.018:.027)*accent;
+      j.rightKnee.rotation.x=(seated?-.018:-.027)*accent;
+      j.leftAnkle.rotation.x=.016*gesture;
+      j.rightAnkle.rotation.x=-.016*gesture;
+    }
     camera.position.x += (pointerX*.28 + (seated?3:2.2)-camera.position.x)*.06;
     camera.position.y += (-pointerY*.11 + 3.36-camera.position.y)*.06;
     camera.lookAt(seated?0:-.21,2.1,.02);
