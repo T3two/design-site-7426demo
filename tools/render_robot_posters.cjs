@@ -15,7 +15,7 @@ const years=['2026','2025','2024','2023','2022','2020','2019'];
    const errors=[];
    page.on('pageerror',e=>errors.push(String(e)));
    try{
-    await page.goto(root+'?page=robot-'+year+'&qa=1',{waitUntil:'domcontentloaded',timeout:35000});
+    await page.goto(root+'?page=robot-'+year+'&qa=1&poster=1',{waitUntil:'domcontentloaded',timeout:35000});
     let element;
     if(year==='2026'||year==='2025'){
       // These two seasons use the immersive theater, not <model-viewer> cards.
@@ -35,28 +35,23 @@ const years=['2026','2025','2024','2023','2022','2020','2019'];
       await page.locator('.model-card.model-loaded').first().waitFor({timeout:100000});
       element=card.locator('model-viewer');
     }
-    // The theater is often below the fold; screenshot clips must be inside
-    // the current viewport, not at offscreen document coordinates.
-    await element.scrollIntoViewIfNeeded({timeout:15000});
-    await page.waitForTimeout(500);
     const file='models/preview/posters/'+year+'.jpg';
-    // Animated WebGL canvases never become geometrically "stable" enough
-    // for locator.screenshot. Screenshot the page at their current bounds.
-    await element.evaluate(el=>el.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'}));
-    await page.waitForTimeout(180);
-    const rect=await element.boundingBox();
-    const viewport=page.viewportSize();
-    if(!rect||rect.width<50||rect.height<50)throw Error('Invalid CAD viewport for '+year);
-    // Intersect canvas with the *visible* viewport; page.screenshot clips
-    // are viewport-relative, not scroll-document coordinates.
-    const x=Math.max(0,rect.x),y=Math.max(0,rect.y);
-    const width=Math.min(rect.x+rect.width,viewport.width)-x;
-    const height=Math.min(rect.y+rect.height,viewport.height)-y;
-    if(width<50||height<50)throw Error('CAD canvas outside screenshot viewport '+JSON.stringify({year,rect,viewport}));
-    await page.screenshot({path:file,type:'jpeg',quality:85,
-      clip:{x,y,width,height},animations:'disabled',timeout:20000});
+    // Export directly from the 3D renderer; composited page screenshots are
+    // unreliable for WebGL and may include controls or miss the drawing buffer.
+    let imageData;
+    if(year==='2026'||year==='2025'){
+      imageData=await page.evaluate(y=>window.__captureRobotPoster?.[y]?.(),year);
+    }else{
+      imageData=await element.evaluate(el=>{
+        if(typeof el.toDataURL!=='function')throw Error('model-viewer missing toDataURL');
+        return el.toDataURL('image/jpeg',.86);
+      });
+    }
+    if(!/^data:image\/jpeg;base64,/.test(imageData||''))
+      throw Error('Real 3D capture failed for '+year);
+    fs.writeFileSync(file,Buffer.from(imageData.split(',')[1],'base64'));
     const size=fs.statSync(file).size;
-    if(size<3000||size>800000)throw Error('Unexpected rendered image size '+size);
+    if(size<15000||size>800000)throw Error('Unexpected rendered image size '+size);
     if(errors.length)console.log('NONFATAL_PAGE_NOTES',year,errors.slice(0,3));
     results.push({year,file,bytes:size});
     console.log('CAD_POSTER',JSON.stringify({year,file,bytes:size}));
