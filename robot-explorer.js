@@ -223,9 +223,27 @@ function mount(host,year,models,loadPackedModel){
   const detailKicker=e("span","theater-detail-kicker","SYSTEM / 00");
   const detailTitle=e("h4",null,"Complete robot");
   const detailCopy=e("p",null,def.intro);
+  const evidenceTabs=e("div","theater-evidence-tabs");
+  evidenceTabs.setAttribute("role","group");
+  evidenceTabs.setAttribute("aria-label","Engineering explanation topics");
+  const evidenceModes=[
+    ["design","How it works"],
+    ["cad","CAD source"],
+    ["verification","Evidence"]
+  ];
+  const evidenceButtons=new Map();
+  const evidenceView=e("p","theater-evidence-copy",def.intro);
+  for(const [id,label] of evidenceModes){
+    const button=e("button","theater-evidence-tab",label);
+    button.type="button";
+    button.setAttribute("aria-pressed",String(id==="design"));
+    button.classList.toggle("is-current",id==="design");
+    evidenceButtons.set(id,button);
+    evidenceTabs.append(button);
+  }
   const deeper=e("a","theater-read-more","Read the design notes ↗");
   deeper.href="#robot-explorer";
-  detail.append(detailKicker,detailTitle,detailCopy,deeper);
+  detail.append(detailKicker,detailTitle,evidenceTabs,evidenceView,deeper);
   const actionPanel=e("div","theater-action-panel");
   const actionMeta=e("span",null,"Motion preview");
   const actionButton=e("button","theater-action-button",def.actionName);
@@ -324,6 +342,46 @@ function mount(host,year,models,loadPackedModel){
   const onInspectKey=event=>{if(event.key==='Escape'&&!partInspector.hidden)clearPickedPart();};
   document.addEventListener("keydown",onInspectKey);
   cleanupObjects.push(()=>document.removeEventListener("keydown",onInspectKey));
+  let evidenceMode="design";
+  let detailSlug="full";
+  const renderEvidence=()=>{
+    evidenceButtons.forEach((btn,key)=>{
+      btn.setAttribute("aria-pressed",String(evidenceMode===key));
+      btn.classList.toggle("is-current",evidenceMode===key);
+    });
+    const key=detailSlug;
+    const index=def.pieces.findIndex(part=>part[0]===key);
+    const source=byId.get("robot-"+year+(key==="full"?"-assembly":"-"+key));
+    const speed=source?.fastPreview;
+    const part=index>=0?def.pieces[index]:null;
+    if(evidenceMode==="design"){
+      evidenceView.textContent=part?.[2] || def.intro;
+      return;
+    }
+    if(evidenceMode==="cad"){
+      const size=source?.bytes;
+      const sizes=speed?.bytes && size
+        ?("Optimized interactive geometry: "+(speed.bytes/1e6).toFixed(2)+" MB; original CAD: "+(size/1e6).toFixed(2)+" MB. ")
+        :"";
+      evidenceView.textContent=sizes+
+        "Both models come from the team's CAD, but the fast version simplifies geometry. "+
+        "Click a visible part to inspect its imported name. Use original CAD for precise visual details; these models do not establish manufacturing tolerances.";
+      return;
+    }
+    const base=year==="2025"
+      ?"Team-specific joint limits, materials, performance tests and mechanism timing have not been verified from a 2025 technical binder."
+      :"The team design notes on this page provide context, but joint travel limits, measured shot statistics and calibration are not independently validated in this visualization.";
+    const mechanics=key==="shooter"
+      ?" The animated FUEL path uses ideal gravity-based kinematics; air drag and real shot variability are not modeled."
+      :key==="claw"
+      ?" The CORAL path is illustrative until claw-joint telemetry and a verified reef collision mesh are available."
+      :" Only CAD geometry and documented design descriptions are shown as sourced evidence.";
+    evidenceView.textContent=base+mechanics;
+  };
+  evidenceButtons.forEach((button,id)=>button.addEventListener("click",()=>{
+    evidenceMode=id;
+    renderEvidence();
+  }));
   const selectNav=slug=>{
     fullNav.classList.toggle("is-selected",slug==="full");
     fullNav.setAttribute("aria-pressed",String(slug==="full"));
@@ -338,6 +396,8 @@ function mount(host,year,models,loadPackedModel){
       detailKicker.textContent="SYSTEM / 00";
       detailTitle.textContent="Complete robot";
       detailCopy.textContent=def.intro;
+      detailSlug="full";
+      renderEvidence();
       sceneStep.textContent="Full robot";
       sceneTitle.textContent=def.name+" / Complete robot";
     }else{
@@ -345,6 +405,8 @@ function mount(host,year,models,loadPackedModel){
       detailKicker.textContent="SYSTEM / "+String(index+1).padStart(2,"0");
       detailTitle.textContent=p[1];
       detailCopy.textContent=p[2];
+      detailSlug=slug;
+      renderEvidence();
       sceneStep.textContent="Subsystem";
       sceneTitle.textContent=p[1];
     }
