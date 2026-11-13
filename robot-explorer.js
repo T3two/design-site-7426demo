@@ -44,6 +44,7 @@ const reduced=()=>matchMedia("(prefers-reduced-motion: reduce)").matches;
 // Deterministic unit-safe kinematics shared by the interactive viewer and
 // the automated browser regression. Distances are meters; times are seconds.
 const SCORING_G=9.81;
+const SCORING_QA=new URLSearchParams(window.location.search).has("qa");
 const deriveBallisticShot=(horizontalMeters,riseMeters,pitchRadians)=>{
   const d=horizontalMeters,angle=pitchRadians;
   const cosine=Math.cos(angle);
@@ -948,6 +949,19 @@ function mount(host,year,models,loadPackedModel){
     const target=hubCenter.clone().setY(1.96);
     const pitch=Math.atan2(aligned.dir.y,Math.hypot(aligned.dir.x,aligned.dir.z));
     const planned=deriveBallisticShot(range,target.y-aligned.origin.y,pitch);
+    if(SCORING_QA){
+      const sourceFront=new THREE.Vector3(0,-1,0)
+        .transformDirection(shooter.matrixWorld).setY(0).normalize();
+      const exactVertical=aligned.origin.y+
+        planned.speed*aligned.dir.y*planned.seconds-
+        .5*SCORING_G*planned.seconds*planned.seconds;
+      window.__robotScoringQA={
+        type:"fuel",forwardAlignment:heading.dot(sourceFront),
+        range,launchSpeed:planned.speed,seconds:planned.seconds,
+        impactY:exactVertical,targetY:target.y,
+        verticalAtTarget:planned.verticalAtTarget
+      };
+    }
     if(planned.verticalAtTarget>0.01){
       motion.restore();
       throw Error("Illustrated launch would reach the HUB while still ascending");
@@ -1177,6 +1191,20 @@ function mount(host,year,models,loadPackedModel){
           coral.position.copy(seat);
           coral.quaternion.copy(onBranch);
           retainedScoringProps.push(reef.face,coral);
+          if(SCORING_QA){
+            const sectionStart=seatDistance-.3016/2;
+            const sectionEnd=seatDistance+.3016/2;
+            const contactLength=Math.max(0,
+              Math.min(.30,sectionEnd)-Math.max(0,sectionStart));
+            window.__robotScoringQA={
+              type:"coral",
+              retainedProps:retainedScoringProps.length,
+              centerError:coral.position.distanceTo(seat),
+              alignment:Math.abs(coral.quaternion.dot(onBranch)),
+              branchContactLength:contactLength,
+              gravitySlide:inwardAcceleration
+            };
+          }
         }else{
           removeProp(coral);
           removeProp(reef.face);
