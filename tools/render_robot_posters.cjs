@@ -15,7 +15,7 @@ const years=['2026','2025','2024','2023','2022','2020','2019'];
    const errors=[];
    page.on('pageerror',e=>errors.push(String(e)));
    try{
-    await page.goto(root+'?page=robot-'+year,{waitUntil:'domcontentloaded',timeout:35000});
+    await page.goto(root+'?page=robot-'+year+'&qa=1',{waitUntil:'domcontentloaded',timeout:35000});
     let element;
     if(year==='2026'||year==='2025'){
       // These two seasons use the immersive theater, not <model-viewer> cards.
