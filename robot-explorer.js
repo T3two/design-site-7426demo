@@ -886,6 +886,10 @@ function mount(host,year,models,loadPackedModel){
       else node.material?.dispose();
     });
   };
+  const retainedScoringProps=[];
+  const clearScoringProps=()=>{
+    while(retainedScoringProps.length)removeProp(retainedScoringProps.pop());
+  };
   const followRobot=(center,forward=.0)=>{
     if(!camera||!orbit)return;
     const aim=center.clone().add(new THREE.Vector3(0,.37,forward));
@@ -1052,113 +1056,130 @@ function mount(host,year,models,loadPackedModel){
   const runCoral=()=>{
     const motion=stageRobot();
     const claw=findCADPart(motion.root,"2025Claw <1>");
-    if(!claw){motion.restore();throw Error("Deadpool claw is missing from CAD");}
-    const localGrip=claw.worldToLocal(
+    if(!claw){motion.restore();throw Error("DEADPOOL claw is absent from CAD");}
+    const gripLocal=claw.worldToLocal(
       new THREE.Box3().setFromObject(claw).getCenter(new THREE.Vector3())
-        .add(new THREE.Vector3(0,0,.08))
+        .add(new THREE.Vector3(0,0,.075))
     );
-    const restPivot=new THREE.Box3().setFromObject(claw)
+    const pivot=new THREE.Box3().setFromObject(claw)
       .getCenter(new THREE.Vector3());
-    const lift=motion.articulate(["2025Carriage <1>","2025Claw <1>"],restPivot);
-    if(!lift){motion.restore();throw Error("Deadpool carriage joint is missing");}
-    const initialLift=lift.position.clone();
-
-    const finalHeading=.06;
-    const startHeading=-.36;
+    const lift=motion.articulate(["2025Carriage <1>","2025Claw <1>"],pivot);
+    if(!lift){motion.restore();throw Error("DEADPOOL carriage joint is absent");}
+    const liftHome=lift.position.clone();
+    const startHeading=-.36,scoreHeading=.06;
     const approach=new THREE.Vector3(-.38,0,-.58);
     motion.chassis.position.copy(motion.base);
-    motion.chassis.rotation.y=finalHeading;
-    lift.position.copy(initialLift);
+    motion.chassis.rotation.y=scoreHeading;
+    lift.position.copy(liftHome);
     motion.chassis.updateMatrixWorld(true);
-    const gripAtScore=claw.localToWorld(localGrip.clone());
+    const gripAtScore=claw.localToWorld(gripLocal.clone());
 
-    // The reef tip is only a short distance in front of DEADPOOL's claw,
-    // rather than an arbitrary marker disconnected from the robot.
-    const tip=new THREE.Vector3(gripAtScore.x,1.21,gripAtScore.z+.25);
-    const reef=makeReefFace(tip);
+    // The target is a supported L3 pipe branch, not the small circular
+    // openings in a decorative reef. Its 35° upward axis faces the robot.
+    const branchTip=new THREE.Vector3(
+      gripAtScore.x,1.21,gripAtScore.z+.27
+    );
+    const reef=makeReefFace(branchTip);
     const coral=makeCoral();
-    coral.visible=true;
+    const tubeRadius=.0508,branchRadius=.019,coralHalfLength=.3016/2;
+    if(tubeRadius<=branchRadius)throw Error("CORAL cannot fit over branch");
+    const direction=reef.direction.clone().normalize();
+    const branchAngle=35*Math.PI/180;
+    const inwardAcceleration=branchGravity(branchAngle,.26);
+    const seatDistance=coralHalfLength+.012; // end sits against branch root
+    const entranceDistance=.30+coralHalfLength*.56;
+    const entrance=reef.base.clone().addScaledVector(direction,entranceDistance);
+    const seat=reef.base.clone().addScaledVector(direction,seatDistance);
 
     motion.chassis.position.copy(motion.base).add(approach);
     motion.chassis.rotation.y=startHeading;
-    lift.position.copy(initialLift);
-    lift.position.y-=.26;
+    lift.position.copy(liftHome).add(new THREE.Vector3(0,-.26,0));
 
-    const fromHorizontal=new THREE.Quaternion()
+    const horizontal=new THREE.Quaternion()
       .setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(1,0,0));
-    const toBranch=new THREE.Quaternion()
-      .setFromUnitVectors(new THREE.Vector3(0,1,0),reef.direction);
-    const start=performance.now()+170,duration=8050;
-    demoTitle.textContent="DEADPOOL / L3 CORAL placement";
+    const onBranch=new THREE.Quaternion()
+      .setFromUnitVectors(new THREE.Vector3(0,1,0),direction);
+    const start=performance.now()+160,duration=8060;
+    demoTitle.textContent="DEADPOOL / CORAL on L3";
+    coral.visible=true;
     action={
       update(now){
-        const elapsed=Math.max(0,now-start),t=clamp(elapsed/duration,0,1);
-        // Swerve toward the chosen reef face. Stop and square the robot before
-        // moving the elevator, as the real scoring cycle generally does.
-        const drive=ease(clamp(elapsed/1940,0,1));
+        const elapsed=Math.max(0,now-start);
+        const t=clamp(elapsed/duration,0,1);
+        // Chassis first squares up to the reef; then the elevator extends.
+        const drive=ease(clamp(elapsed/1960,0,1));
         motion.chassis.position.copy(motion.base)
           .addScaledVector(approach,1-drive);
+        motion.chassis.rotation.y=startHeading+
+          (scoreHeading-startHeading)*drive;
         if(floorShadow){
           floorShadow.position.x=motion.chassis.position.x;
           floorShadow.position.z=motion.chassis.position.z;
         }
-        motion.chassis.rotation.y=startHeading+
-          (finalHeading-startHeading)*drive;
-
-        // Raise the actual carriage and claw together, rather than moving an
-        // isolated detached claw prop. Hold during the CORAL release.
-        const raise=ease(clamp((elapsed-1980)/1800,0,1));
-        const extension=ease(clamp((elapsed-3830)/680,0,1));
-        const retraction=ease(clamp((elapsed-6370)/850,0,1));
-        lift.position.copy(initialLift);
-        lift.position.y-=.26*(1-raise);
-        lift.position.z+=.11*extension*(1-retraction);
+        const rise=ease(clamp((elapsed-1980)/1740,0,1));
+        const extend=ease(clamp((elapsed-3800)/760,0,1));
+        const retract=ease(clamp((elapsed-6510)/920,0,1));
+        lift.position.copy(liftHome);
+        lift.position.y-=.26*(1-rise);
+        lift.position.z+=.11*extend*(1-retract);
         lift.updateWorldMatrix(true,false);
+        const grip=claw.localToWorld(gripLocal.clone());
 
-        // A full-size hollow CORAL stays clamped to DEADPOOL's claw through
-        // drive and lift. It then travels over a real angled L3 reef branch,
-        // rotates onto that branch axis, and stays there after release.
-        const grip=claw.localToWorld(localGrip.clone());
-        const release=ease(clamp((elapsed-4960)/1160,0,1));
-        if(release<1)
-          coral.position.lerpVectors(grip,reef.seat,release);
-        else coral.position.copy(reef.seat);
-        coral.quaternion.slerpQuaternions(fromHorizontal,toBranch,release);
+        // A pipe is not a ball. It must first line up coaxially with the
+        // 35° branch, then enter over the FREE END of that branch.
+        const alignment=ease(clamp((elapsed-4710)/790,0,1));
+        coral.quaternion.slerpQuaternions(horizontal,onBranch,alignment);
+        if(elapsed<5500){
+          coral.position.lerpVectors(grip,entrance,alignment);
+        }else{
+          // Tangential gravity pulls the 30cm CORAL toward the root.
+          // Coulomb friction opposes sliding: a = g(sin35 - μcos35).
+          // Once the tube reaches the root stop, contact constrains its
+          // position; no falling through, no teleporting below the branch.
+          const seconds=(elapsed-5500)*.00079; // 79% physical speed
+          const travel=.08*seconds+.5*inwardAcceleration*seconds*seconds;
+          const distance=Math.max(seatDistance,entranceDistance-travel);
+          coral.position.copy(reef.base).addScaledVector(direction,distance);
+          coral.quaternion.copy(onBranch);
+        }
 
-        // After scoring, back away while the CORAL remains on the branch.
-        const retreat=ease(clamp((elapsed-6990)/780,0,1));
-        motion.chassis.position.z-=.13*retreat;
-
-        const contact=ease(clamp((elapsed-5260)/850,0,1));
-        reef.accentMaterial.emissiveIntensity=.28*contact*
-          (1-ease(clamp((elapsed-6560)/650,0,1)));
-        setPhase(elapsed<1970?0:elapsed<3910?1:elapsed<6150?2:3);
-        if(elapsed<1970)demoStep.textContent="Align at the reef";
-        else if(elapsed<3910)demoStep.textContent="Raise the carriage";
-        else if(elapsed<6150)demoStep.textContent="Roll CORAL onto L3";
-        else demoStep.textContent="Release and back away";
+        // Let the robot back away while the tube remains ON its branch.
+        const retreat=ease(clamp((elapsed-6890)/840,0,1));
+        motion.chassis.position.z-=.14*retreat;
+        const contact=ease(clamp((elapsed-5510)/830,0,1));
+        reef.accentMaterial.emissiveIntensity=.20*contact*
+          (1-ease(clamp((elapsed-6710)/620,0,1)));
+        setPhase(elapsed<1960?0:elapsed<3900?1:elapsed<6410?2:3);
+        demoStep.textContent=elapsed<1960?"Line up with reef":
+          elapsed<3900?"Lift claw and CORAL":
+          elapsed<6410?"Slide tube onto L3 branch":"Retract; CORAL stays seated";
         demoFill.style.width=(t*100).toFixed(1)+"%";
 
-        // Start wide enough to show alignment and push closer for placement,
-        // keeping the reef branch and CLAW visible in a single continuous shot.
-        const reveal=ease(clamp((elapsed-1950)/2750,0,1));
-        const frameCenter=motion.chassis.position.clone()
-          .lerp(reef.tip,.30+.12*reveal);
-        frameCenter.y=.86+.12*reveal;
-        const cameraHome=frameCenter.clone().add(new THREE.Vector3(
-          3.0-.64*reveal,2.14-.34*reveal,3.36-.38*reveal
-        ));
-        if(elapsed>650&&!action._manualCamera){
-          camera.position.lerp(cameraHome,.022);
-          orbit.target.lerp(frameCenter,.022);
+        const close=ease(clamp((elapsed-2140)/2630,0,1));
+        const focal=motion.chassis.position.clone()
+          .lerp(reef.tip,.32+.12*close);
+        focal.y=.91+.09*close;
+        const eye=focal.clone().add(new THREE.Vector3(
+          2.90-.52*close,2.06-.34*close,3.13-.29*close));
+        if(elapsed>620&&!action._manualCamera){
+          camera.position.lerp(eye,.022);
+          orbit.target.lerp(focal,.023);
         }
         if(t>=1)completeAction();
       },
       clean(){
         motion.restore();
         resetStageShadow();
-        removeProp(coral);
-        removeProp(reef.face);
+        // Preserve the scored state after a successful run. If interrupted
+        // midway, remove props immediately so a replay begins cleanly.
+        if(this._completed){
+          coral.position.copy(seat);
+          coral.quaternion.copy(onBranch);
+          retainedScoringProps.push(reef.face,coral);
+        }else{
+          removeProp(coral);
+          removeProp(reef.face);
+        }
       }
     };
   };
