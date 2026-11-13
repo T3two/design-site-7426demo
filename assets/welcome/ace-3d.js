@@ -219,8 +219,8 @@ function mount(slot, seated) {
   canvas.className = 'ace-3d-canvas';
   canvas.setAttribute('aria-hidden', 'true');
   slot.appendChild(canvas);
-  slot.classList.add('has-art', 'ace3d-ready');
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.7));
+  slot.classList.add('ace3d-ready');
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.25));
   renderer.setClearColor(0xffffff, 0);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NoToneMapping;
@@ -231,14 +231,19 @@ function mount(slot, seated) {
   key.position.set(-3, 7, 9); scene.add(key);
   const fill = new THREE.DirectionalLight('#ffffff', .5);
   fill.position.set(4, 2, -5); scene.add(fill);
-  let actor = buildAce(seated);
-  scene.add(actor.root);
-  loadOriginalGLB(seated).then(actual => {
-    // Swap the placeholder mesh for the true exported 3D source model.
-    scene.remove(actor.root);
-    scene.add(actual.root);
+  // Poster is visible from the first paint. Build the animated mesh only once
+  // its tiny compressed GLB is available; never flash a temporary 3D blockout.
+  let actor = null;
+  loadOriginalGLB(seated).catch(error => {
+    console.warn('Using procedural Ace mesh fallback:', error);
+    return buildAce(seated);
+  }).then(actual => {
+    if (!slot.isConnected) return;
     actor = actual;
-  }).catch(error => console.warn('Using procedural Ace preview:', error));
+    scene.add(actor.root);
+    resize();
+    schedule();
+  });
   const camera = new THREE.OrthographicCamera(-3.1, 3.1, 3.7, -3.7, .1, 100);
   camera.position.set(seated ? 5 : 3.6, 3.3, 10.6);
   camera.lookAt(seated ? .05 : -.25, 2.1, .05);
@@ -266,20 +271,28 @@ function mount(slot, seated) {
     camera.zoom = aspect < .75 ? .76 : aspect > 1.2 ? .98 : .91;
     camera.updateProjectionMatrix();
   }
-  const ro = new ResizeObserver(resize);
+  const ro = new ResizeObserver(() => {resize(); schedule();});
   ro.observe(slot); resize();
   const tickStart = performance.now();
   let lastFrame = 0;
+  let frame = 0;
+  let active = false;
+  let firstFrame = true;
+  const schedule = () => {
+    if (!frame && active && actor && slot.isConnected && !document.hidden)
+      frame = requestAnimationFrame(tick);
+  };
   function tick(time) {
-    requestAnimationFrame(tick);
-    if (!slot.isConnected || slot.closest('[hidden]') || document.hidden) return;
-    // Character motion uses low cadence for a hand-animated feeling; camera stays smooth.
-    if (!reducedMotion.matches && time - lastFrame < 33) return;
+    frame = 0;
+    if (!active || !actor || !slot.isConnected || document.hidden) return;
+    if (!firstFrame && !reducedMotion.matches && time - lastFrame < 33) {
+      schedule(); return;
+    }
     lastFrame = time;
     const t = reducedMotion.matches ? 0 : Math.floor((time - tickStart) / 85) * .085;
-    const enter = reducedMotion.matches ? 1 : Math.min(1, (time - tickStart) / 960);
+    const enter = reducedMotion.matches ? 1 : Math.min(1, (time - tickStart) / 750);
     const eased = 1 - Math.pow(1 - enter, 3);
-    actor.root.position.y = (1 - eased) * -.34 + (reducedMotion.matches ? 0 : Math.sin(t * 2.1) * .025);
+    actor.root.position.y = (1 - eased) * -.19 + (reducedMotion.matches ? 0 : Math.sin(t * 2.1) * .025);
     actor.root.rotation.y += (pointerX * -.16 + (seated ? -.08 : .08) - actor.root.rotation.y) * .045;
     actor.root.rotation.z = reducedMotion.matches ? 0 : Math.sin(t * 1.35) * (seated ? .013 : .019);
     actor.headPivot.rotation.z = reducedMotion.matches ? 0 : Math.sin(t * 1.65 + .3) * .022;
@@ -289,8 +302,28 @@ function mount(slot, seated) {
     camera.position.y += (-pointerY * .16 + 3.36 - camera.position.y) * .035;
     camera.lookAt(seated ? 0 : -.21, 2.1, .02);
     renderer.render(scene, camera);
+    if (firstFrame) {
+      firstFrame = false;
+      slot.classList.add('ace3d-live');
+    }
+    // Never run a 60fps loop behind the user's back on archive pages.
+    if (!reducedMotion.matches) schedule();
   }
-  requestAnimationFrame(tick);
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      active = entries.some(entry => entry.isIntersecting);
+      if (active) schedule();
+    }, {rootMargin:'100px'});
+    io.observe(slot);
+  } else {
+    active = true;
+    schedule();
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) schedule();
+  });
+  // Paused scenes resume when re-entering the viewport.
+  sceneLink?.addEventListener('pointerenter', schedule, {passive:true});
 }
 function start() {
   const left = document.querySelector('[data-welcome-asset="designAce"]');
