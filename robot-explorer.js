@@ -380,19 +380,21 @@ function mount(host,year,models,loadPackedModel){
     // gltfpack may call a rendered primitive "mesh_3"; that is NOT a
     // meaningful engineering label. Find the nearest real Onshape part/group
     // name in its ancestry, and never invent a part name when none exists.
-    const isGenericLabel=value=>/^(?:mesh|node|scene|primitive|object|group)[\s_.-]*\d*$/i.test(value)
-      || /^(?:default|unnamed|root|gltf scene)$/i.test(value);
+    // gltfpack-generated identifiers are renderer bookkeeping, not CAD labels.
+    const generic=/^(?:(?:mesh|node|scene|primitive|object|group)[\s_.-]*\d*(?:[\s_.-]*instance[\s_.-]*\d+)?|(?:unnamed|default|root|gltf scene))$/i;
     const importedNames=[];
-    for(let node=mesh,depth=0;node&&node!==scene&&depth<12;node=node.parent,depth++){
+    for(let node=mesh,depth=0;node&&node!==scene&&depth<24;node=node.parent,depth++){
       const value=typeof node.name==='string'?node.name.trim():'';
-      if(value&&!isGenericLabel(value))importedNames.push(value);
+      if(value&&!generic.test(value))importedNames.push(value);
     }
-    const label=(importedNames[0] || "Unlabeled CAD geometry")
-      .replace(/[<>]/g,"").slice(0,145);
+    const label=(importedNames[0] || "Unlabeled CAD element").replace(/[<>]/g,"").slice(0,145);
     partTitle.textContent=label;
-    partSource.textContent=fullIsOriginal
-      ?"Selected geometry in the complete original CAD. Component identity comes from the model's imported labels."
-      :"Selected geometry in the optimized original-CAD preview. Complete source geometry is available using Inspect original CAD.";
+    const sourceDetail=importedNames.length
+      ?"Imported CAD hierarchy: "+importedNames.slice(0,3).map(n=>n.replace(/[<>]/g,"")).join(" / ") + ". "
+      :"The export contains no reliable part name for this element. ";
+    partSource.textContent=sourceDetail+(fullIsOriginal
+      ?"This is complete original CAD geometry."
+      :"This is optimized geometry; inspect the original CAD for more detail.");
     partInspector.hidden=false;
   };
   partClose.addEventListener("click",clearPickedPart);
