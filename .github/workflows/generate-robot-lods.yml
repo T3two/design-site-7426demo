@@ -2,7 +2,7 @@ name: Build verified fast robot CAD previews
 on:
   push:
     branches: ['feature/robot-instant-lod-and-comic-ace']
-    paths: ['tools/build_robot_lods.py', '.github/workflows/generate-robot-lods.yml']
+    paths: ['tools/build_robot_lods.py', 'tools/build_subsystem_lods.py', '.github/workflows/generate-robot-lods.yml']
   workflow_dispatch:
 
 permissions:
@@ -39,6 +39,9 @@ jobs:
           python3 tools/build_robot_lods.py --gltfpack /tmp/gltfpack/gltfpack \
             --years 2026 2025 2022 2020 2019 2024 2023
           echo "Preview build completed"
+      - name: Build fast previews of all 2025 and 2026 mechanisms
+        shell: bash
+        run: python3 tools/build_subsystem_lods.py --gltfpack /tmp/gltfpack/gltfpack
       - name: Commit verified assets to review branch
         if: always()
         shell: bash
