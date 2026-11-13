@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "robot-explorer.js"
+      - "styles.css"
       - "index.html"
       - "qa/**"
       - ".github/workflows/cad-browser-test.yml"
