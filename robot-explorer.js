@@ -181,6 +181,11 @@ function mount(host,year,models,loadPackedModel){
   const btnReset=e("button","theater-tool","Reset view");
   const btnSpin=e("button","theater-tool","Rotate");
   const btnExpand=e("button","theater-tool","Expand");
+  const btnExplode=e("button","theater-tool theater-explode","Explode parts");
+  btnExplode.type="button";
+  btnExplode.disabled=true;
+  btnExplode.title="Exploded assembly inspection; separation is visual, not mechanical travel.";
+  btnExplode.setAttribute("aria-pressed","false");
   const btnOriginal=e("button","theater-tool theater-original-detail","Inspect original CAD");
   btnOriginal.type="button";
   btnOriginal.hidden=!fastSource;
@@ -201,7 +206,7 @@ function mount(host,year,models,loadPackedModel){
   [btnFull,btnReset,btnSpin,btnExpand].forEach(x=>x.type="button");
   btnFull.disabled=true;
   const controlNote=e("span","theater-controls-note","");
-  controlsBar.append(btnFull,btnReset,btnExpand,btnOriginal,btnPauseDemo,btnSlowDemo);
+  controlsBar.append(btnFull,btnReset,btnExpand,btnExplode,btnOriginal,btnPauseDemo,btnSlowDemo);
   stage.append(viewport,controlsBar);
 
   const side=e("aside","theater-side");
@@ -282,6 +287,53 @@ function mount(host,year,models,loadPackedModel){
     playbackRate=playbackRate===1?.5:1;
     btnSlowDemo.textContent=playbackRate===1?"Slow motion · ½×":"Normal speed · 1×";
     btnSlowDemo.setAttribute("aria-pressed",String(playbackRate!==1));
+  });
+  let explodeTargets=[],explodeT=0,explodeGoal=0;
+  const clearExplodedInspection=()=>{
+    for(const t of explodeTargets)t.node.position.copy(t.base);
+    explodeTargets=[];explodeT=0;explodeGoal=0;
+    btnExplode.disabled=true;
+    btnExplode.textContent="Explode parts";
+    btnExplode.setAttribute("aria-pressed","false");
+  };
+  const setupExplodedInspection=(item)=>{
+    clearExplodedInspection();
+    if(!THREE||!item?.group)return;
+    let group=item.group,targets=[];
+    const hasGeometry=obj=>{
+      if(obj.isMesh)return true;
+      let found=false;
+      obj.traverse(node=>{if(node.isMesh)found=true;});
+      return found;
+    };
+    for(let depth=0;depth<7;depth++){
+      const present=group.children.filter(hasGeometry);
+      if(present.length>=2 && present.length<=60){targets=present;break;}
+      if(present.length!==1)break;
+      group=present[0];
+    }
+    if(targets.length<2)return;
+    const whole=new THREE.Box3().setFromObject(item.group);
+    const center=whole.getCenter(new THREE.Vector3());
+    const distance=Math.max(.04,Math.min(.16,whole.getSize(new THREE.Vector3()).length()*.11));
+    group.updateMatrixWorld(true);
+    explodeTargets=targets.map((node,i)=>{
+      const partCenter=new THREE.Box3().setFromObject(node).getCenter(new THREE.Vector3());
+      const worldDirection=partCenter.sub(center);
+      if(worldDirection.lengthSq()<.0001)
+        worldDirection.set(Math.cos(i*2.399),.35*Math.sin(i*.91),Math.sin(i*2.399));
+      const parentRotation=new THREE.Quaternion();
+      node.parent.getWorldQuaternion(parentRotation);
+      const localDirection=worldDirection.normalize().applyQuaternion(parentRotation.invert());
+      return {node,base:node.position.clone(),offset:localDirection.multiplyScalar(distance)};
+    });
+    btnExplode.disabled=false;
+  };
+  btnExplode.addEventListener("click",()=>{
+    if(!active||action||!explodeTargets.length)return;
+    explodeGoal=explodeGoal>.5?0:1;
+    btnExplode.textContent=explodeGoal?"Assemble parts":"Explode parts";
+    btnExplode.setAttribute("aria-pressed",String(!!explodeGoal));
   });
   let pickedMesh=null, pickedHelper=null, pickedBounds=null;
   let isolatedParts=[],partIsolation=false;
@@ -678,6 +730,13 @@ function mount(host,year,models,loadPackedModel){
         applyFade(f.item,f.from+(f.to-f.from)*ease(t));
         if(t>=1){f.resolve();return false;}return true;
       });
+      if(explodeTargets.length){
+        const delta=clamp((now-lastTime)/1000,0,.06);
+        explodeT+=(explodeGoal-explodeT)*Math.min(1,delta*7);
+        const blend=ease(clamp(explodeT,0,1));
+        for(const part of explodeTargets)
+          part.node.position.copy(part.base).addScaledVector(part.offset,blend);
+      }
       if(autoSpin && !cameraTween && !action){
         const delta=(now-lastTime)/1000;
         const a=Math.min(Math.max(delta,0),.06)*.12;
@@ -943,6 +1002,7 @@ function mount(host,year,models,loadPackedModel){
     selectNav(key);
     selected=key;
     btnOriginal.disabled=fullIsOriginal || key!=='full';
+    btnExplode.disabled=key==='full'||!explodeTargets.length;
     showHotspots=false;
     stage.classList.toggle("is-isolated",key!=="full");
   };
@@ -952,6 +1012,7 @@ function mount(host,year,models,loadPackedModel){
     if(destroyed)return;
     const ticket=++seq;
     clearPickedPart();
+    clearExplodedInspection();
     const navigationAt=performance.now();
     stopAction();
     clearScoringProps();
@@ -1014,6 +1075,7 @@ function mount(host,year,models,loadPackedModel){
     ]);
     await blend;
     if(ticket!==seq)return;
+    setupExplodedInspection(next);
     showSelection(key);
     stage.classList.remove('is-transitioning');
     stage.dataset.readySelection=key;
@@ -1585,6 +1647,7 @@ function mount(host,year,models,loadPackedModel){
     preparingDemo=true;
     try{
       clearScoringProps();
+      clearExplodedInspection();
       actionDisclaimer.textContent="Illustrative CAD motion using the original robot parts.";
       if(!full)await loadFull();
       // An overview playback uses only the complete assembly, dramatically
@@ -1657,6 +1720,7 @@ function mount(host,year,models,loadPackedModel){
     if(destroyed)return;
     destroyed=true;
     clearPickedPart();
+    clearExplodedInspection();
     stopAction();
     clearScoringProps();
     releaseTurretRig();
