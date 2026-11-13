@@ -158,7 +158,20 @@ function mount(host,year,models,loadPackedModel){
   };
   setPhase(0);
   demoHud.append(demoStep,demoTitle,demoTrack,phaseRail);
-  viewport.append(canvasHome,graphic,poster,hotspots,hudTop,hudBottom,loader,demoHud);
+  const partInspector=e("aside","theater-part-inspector");
+  partInspector.hidden=true;
+  partInspector.setAttribute("aria-label","CAD part inspector");
+  const partHeader=e("div","theater-part-header");
+  const partKicker=e("span",null,"DIRECTLY FROM THE TEAM CAD");
+  const partClose=e("button","theater-part-close","×");
+  partClose.type="button"; partClose.setAttribute("aria-label","Close part inspector");
+  partHeader.append(partKicker,partClose);
+  const partTitle=e("strong","theater-part-name","Selected CAD object");
+  const partSource=e("p","theater-part-source","A part name from the imported CAD.");
+  const partIsolate=e("button","theater-part-isolate","Isolate selected geometry");
+  partIsolate.type="button";
+  partInspector.append(partHeader,partTitle,partSource,partIsolate);
+  viewport.append(canvasHome,graphic,poster,hotspots,hudTop,hudBottom,loader,demoHud,partInspector);
   const controlsBar=e("div","theater-controls");
   const btnFull=e("button","theater-tool","← Full robot");
   const btnReset=e("button","theater-tool","Reset view");
@@ -238,6 +251,8 @@ function mount(host,year,models,loadPackedModel){
   const subsystemCache=new Map(), subsystemLoading=new Map();
   let fullUrl=null,seq=0,visibility=true, destroyed=false,clock=0;
   let autoSpin=false, showHotspots=false, cameraTween=null, fades=[], action=null;
+  let pickedMesh=null, pickedHelper=null, pickedBounds=null;
+  let isolatedParts=[],partIsolation=false;
   let automaticDemoPlayed=false;
   let turretRig=null, turretGoal=0, turretTargetAngle=0, turretUserAdjusted=false;
   // Pivot measured from the 2026 turret's top mounting plate in Z-up CAD
@@ -251,6 +266,60 @@ function mount(host,year,models,loadPackedModel){
     loaderText.textContent=message;
     loader.hidden=!show;
   };
+  // The inspector reads actual imported GLB names, not invented hardware labels.
+  // Box3 is used for a graphic highlight only: no fabricated part dimensions.
+  const clearPickedPart=()=>{
+    for(const [mesh,wasVisible] of isolatedParts)mesh.visible=wasVisible;
+    isolatedParts=[];partIsolation=false;
+    partIsolate.textContent="Isolate selected geometry";
+    if(pickedHelper){
+      pickedHelper.parent?.remove(pickedHelper);
+      pickedHelper.geometry?.dispose();
+      pickedHelper.material?.dispose();
+    }
+    pickedHelper=null;pickedBounds=null;pickedMesh=null;
+    partInspector.hidden=true;
+  };
+  const inspectPart=(mesh)=>{
+    if(!mesh||!THREE)return;
+    clearPickedPart();
+    pickedMesh=mesh;
+    pickedBounds=new THREE.Box3().setFromObject(mesh);
+    pickedHelper=new THREE.Box3Helper(pickedBounds,0x9c2937);
+    pickedHelper.name="CAD selection / visual guide";
+    pickedHelper.renderOrder=999;
+    scene.add(pickedHelper);
+    const label=([mesh.name,mesh.parent?.name,mesh.geometry?.name]
+      .find(value=>typeof value==='string'&&value.trim()&&!/^(mesh|node|scene)\d*$/i.test(value.trim()))||"Unnamed CAD mesh")
+      .replace(/[<>]/g,"").slice(0,145);
+    partTitle.textContent=label;
+    partSource.textContent=fullIsOriginal
+      ?"Selected geometry in the complete original CAD. Component identity comes from the model's imported labels."
+      :"Selected geometry in the optimized original-CAD preview. Complete source geometry is available using Inspect original CAD.";
+    partInspector.hidden=false;
+  };
+  partClose.addEventListener("click",clearPickedPart);
+  partIsolate.addEventListener("click",()=>{
+    if(!pickedMesh)return;
+    if(partIsolation){
+      for(const [mesh,visible] of isolatedParts)mesh.visible=visible;
+      isolatedParts=[];partIsolation=false;
+      partIsolate.textContent="Isolate selected geometry";
+      return;
+    }
+    const root=active?.alpha>.5?active?.group:full?.group;
+    if(!root)return;
+    root.traverse(node=>{
+      if(!node.isMesh||node===pickedMesh)return;
+      isolatedParts.push([node,node.visible]);
+      node.visible=false;
+    });
+    partIsolation=true;
+    partIsolate.textContent="Show all geometry";
+  });
+  const onInspectKey=event=>{if(event.key==='Escape'&&!partInspector.hidden)clearPickedPart();};
+  document.addEventListener("keydown",onInspectKey);
+  cleanupObjects.push(()=>document.removeEventListener("keydown",onInspectKey));
   const selectNav=slug=>{
     fullNav.classList.toggle("is-selected",slug==="full");
     fullNav.setAttribute("aria-pressed",String(slug==="full"));
@@ -435,6 +504,28 @@ function mount(host,year,models,loadPackedModel){
       pmrem.dispose();
     }catch(err){console.warn("Studio reflections unavailable",err);}
     canvasHome.append(renderer.domElement);
+    renderer.domElement.title="Tap or click real CAD geometry to inspect its imported part label";
+    const picker=new THREE.Raycaster();
+    const pointer=new THREE.Vector2();
+    let down=null;
+    renderer.domElement.addEventListener('pointerdown',event=>{
+      down={x:event.clientX,y:event.clientY};
+    },{passive:true});
+    renderer.domElement.addEventListener('pointerup',event=>{
+      if(!down||Math.hypot(event.clientX-down.x,event.clientY-down.y)>7){down=null;return;}
+      down=null;
+      if(!full||destroyed)return;
+      const rect=renderer.domElement.getBoundingClientRect();
+      if(!rect.width||!rect.height)return;
+      pointer.set(((event.clientX-rect.left)/rect.width)*2-1,
+        -((event.clientY-rect.top)/rect.height)*2+1);
+      picker.setFromCamera(pointer,camera);
+      const root=active?.alpha>.5?active.group:full.group;
+      const hit=picker.intersectObject(root,true).find(entry=>
+        entry.object.isMesh && entry.object.visible &&
+        entry.object.parent?.visible!==false);
+      if(hit)inspectPart(hit.object);
+    },{passive:true});
     orbit=new OrbitControls(camera,renderer.domElement);
     orbit.enableDamping=true;orbit.dampingFactor=.075;
     orbit.minDistance=.22;orbit.maxDistance=14;
@@ -514,6 +605,10 @@ function mount(host,year,models,loadPackedModel){
       orbit.update();
       if(!visibility)return;
       if(qaSoftwareRenderer&&now-lastVisualFrame<1600)return;
+      if(pickedMesh&&pickedBounds&&!partInspector.hidden){
+        pickedBounds.setFromObject(pickedMesh);
+        pickedHelper?.updateMatrixWorld(true);
+      }
       renderer.render(scene,camera);
       lastVisualFrame=now;
       if(++frames%3===0)setAllHotspots();
@@ -748,6 +843,7 @@ function mount(host,year,models,loadPackedModel){
   const choose=async key=>{
     if(destroyed)return;
     const ticket=++seq;
+    clearPickedPart();
     const navigationAt=performance.now();
     stopAction();
     clearScoringProps();
@@ -1448,6 +1544,7 @@ function mount(host,year,models,loadPackedModel){
   const destroy=()=>{
     if(destroyed)return;
     destroyed=true;
+    clearPickedPart();
     stopAction();
     clearScoringProps();
     releaseTurretRig();
