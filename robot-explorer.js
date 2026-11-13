@@ -116,7 +116,23 @@ function mount(host,year,models,loadPackedModel){
   const demoTrack=e("div","theater-demo-track");
   const demoFill=e("span");
   demoTrack.append(demoFill);
-  demoHud.append(demoStep,demoTitle,demoTrack);
+  const phaseRail=e("div","theater-phase-rail");
+  const phaseLabels=year==="2026"
+    ?["Approach","Aim","Score","Complete"]
+    :["Approach","Lift","Place","Complete"];
+  const phasePills=phaseLabels.map(label=>{
+    const part=e("span",null,label);
+    phaseRail.append(part);
+    return part;
+  });
+  const setPhase=index=>{
+    phasePills.forEach((node,i)=>{
+      node.classList.toggle("is-current",i===index);
+      node.classList.toggle("is-complete",i<index);
+    });
+  };
+  setPhase(0);
+  demoHud.append(demoStep,demoTitle,demoTrack,phaseRail);
   viewport.append(canvasHome,graphic,poster,hotspots,hudTop,hudBottom,loader,demoHud);
   const controlsBar=e("div","theater-controls");
   const btnFull=e("button","theater-tool","← Full robot");
@@ -177,7 +193,7 @@ function mount(host,year,models,loadPackedModel){
     "Original CAD models. Game-piece paths and animated mechanism motion are illustrative.");
   host.append(footnote);
 
-  let mod=null,THREE=null,renderer=null,scene=null,camera=null,orbit=null,gltfLoader=null,studioEnv=null;
+  let mod=null,THREE=null,renderer=null,scene=null,camera=null,orbit=null,gltfLoader=null,studioEnv=null,floorShadow=null;
   let full=null,fullLoad=null,fullBounds=null,active=null;
   const subsystemCache=new Map(), subsystemLoading=new Map();
   let fullUrl=null,seq=0,visibility=true, destroyed=false,clock=0;
@@ -333,8 +349,30 @@ function mount(host,year,models,loadPackedModel){
     const ground=new THREE.GridHelper(8,24,0xd3c4c5,0xe4e4e7);
     ground.position.y=-.10;
     ground.material.transparent=true;
-    ground.material.opacity=.32;
+    ground.material.opacity=.20;
     scene.add(ground);
+    // A soft studio contact shadow adds physical depth without expensive
+    // realtime shadow maps (important for large CAD scenes on mobile).
+    const shadowCanvas=document.createElement("canvas");
+    shadowCanvas.width=256;shadowCanvas.height=256;
+    const shadowCtx=shadowCanvas.getContext("2d");
+    if(shadowCtx){
+      const gradient=shadowCtx.createRadialGradient(128,128,12,128,128,124);
+      gradient.addColorStop(0,"rgba(45,42,45,.3)");
+      gradient.addColorStop(.48,"rgba(57,54,58,.12)");
+      gradient.addColorStop(1,"rgba(64,58,63,0)");
+      shadowCtx.fillStyle=gradient;
+      shadowCtx.fillRect(0,0,256,256);
+      const texture=new THREE.CanvasTexture(shadowCanvas);
+      floorShadow=new THREE.Mesh(
+        new THREE.PlaneGeometry(1.95,1.95),
+        new THREE.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,opacity:.86,side:THREE.DoubleSide})
+      );
+      floorShadow.rotation.x=-Math.PI/2;
+      floorShadow.position.y=-.089;
+      floorShadow.renderOrder=-1;
+      scene.add(floorShadow);
+    }
     // Keep the scene focused on real CAD geometry rather than decorative props.
     camera=new THREE.PerspectiveCamera(42,1,.025,150);
     camera.position.set(1.7,1.4,2.3);
@@ -440,6 +478,10 @@ function mount(host,year,models,loadPackedModel){
       if(fullUrl){URL.revokeObjectURL(fullUrl);fullUrl=null;}
       full=makeGroup(gltf);
       fullBounds=new THREE.Box3().setFromObject(full.group);
+      if(floorShadow){
+        const base=fullBounds.getCenter(new THREE.Vector3());
+        floorShadow.position.set(base.x,-.089,base.z);
+      }
       applyFade(full,1);
       const home=homePose();
       camera.position.copy(home.position);
@@ -759,6 +801,11 @@ function mount(host,year,models,loadPackedModel){
     };
     return {chassis,base,root,articulate,restore};
   };
+  const resetStageShadow=()=>{
+    if(!floorShadow||!fullBounds)return;
+    const center=fullBounds.getCenter(new THREE.Vector3());
+    floorShadow.position.set(center.x,-.089,center.z);
+  };
   const removeProp=prop=>{
     if(!prop)return;
     scene.remove(prop);
@@ -844,6 +891,10 @@ function mount(host,year,models,loadPackedModel){
         const drive=ease(clamp(elapsed/1600,0,1));
         motion.chassis.position.copy(motion.base)
           .addScaledVector(startOffset,1-drive);
+        if(floorShadow){
+          floorShadow.position.x=motion.chassis.position.x;
+          floorShadow.position.z=motion.chassis.position.z;
+        }
         motion.chassis.rotation.y=initialChassisYaw+
           (finalChassisYaw-initialChassisYaw)*drive;
         const seek=ease(clamp((elapsed-1450)/1140,0,1));
@@ -887,6 +938,7 @@ function mount(host,year,models,loadPackedModel){
           ball.rotation.set(progress*7,progress*3,progress*5);
         });
 
+        setPhase(elapsed<1640?0:elapsed<2820?1:elapsed<5800?2:3);
         if(elapsed<1640)demoStep.textContent="Drive into position";
         else if(elapsed<2820)demoStep.textContent="Turret tracks the HUB";
         else if(elapsed<5800)demoStep.textContent="FUEL leaves the shooter";
@@ -905,6 +957,7 @@ function mount(host,year,models,loadPackedModel){
       clean(){
         flywheels.forEach(({node,rotation})=>node.rotation.copy(rotation));
         motion.restore();
+        resetStageShadow();
         balls.forEach(removeProp);
         removeProp(hub);
         turretGoal=0;
@@ -962,6 +1015,10 @@ function mount(host,year,models,loadPackedModel){
         const drive=ease(clamp(elapsed/1940,0,1));
         motion.chassis.position.copy(motion.base)
           .addScaledVector(approach,1-drive);
+        if(floorShadow){
+          floorShadow.position.x=motion.chassis.position.x;
+          floorShadow.position.z=motion.chassis.position.z;
+        }
         motion.chassis.rotation.y=startHeading+
           (finalHeading-startHeading)*drive;
 
@@ -989,6 +1046,7 @@ function mount(host,year,models,loadPackedModel){
         const retreat=ease(clamp((elapsed-6990)/780,0,1));
         motion.chassis.position.z-=.13*retreat;
 
+        setPhase(elapsed<1970?0:elapsed<3910?1:elapsed<6150?2:3);
         if(elapsed<1970)demoStep.textContent="Align at the reef";
         else if(elapsed<3910)demoStep.textContent="Raise the carriage";
         else if(elapsed<6150)demoStep.textContent="Roll CORAL onto L3";
@@ -1006,6 +1064,7 @@ function mount(host,year,models,loadPackedModel){
       },
       clean(){
         motion.restore();
+        resetStageShadow();
         removeProp(coral);
         removeProp(reef.face);
       }
@@ -1096,6 +1155,7 @@ function mount(host,year,models,loadPackedModel){
     orbit?.dispose();
     clearMeshes();
     studioEnv?.dispose();
+    floorShadow?.material?.map?.dispose();
     renderer?.dispose();
   };
 
