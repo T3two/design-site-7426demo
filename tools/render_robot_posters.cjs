@@ -39,11 +39,19 @@ const years=['2026','2025','2024','2023','2022','2020','2019'];
     const file='models/preview/posters/'+year+'.jpg';
     // Animated WebGL canvases never become geometrically "stable" enough
     // for locator.screenshot. Screenshot the page at their current bounds.
+    await element.evaluate(el=>el.scrollIntoView({block:'center',inline:'nearest',behavior:'instant'}));
+    await page.waitForTimeout(180);
     const rect=await element.boundingBox();
+    const viewport=page.viewportSize();
     if(!rect||rect.width<50||rect.height<50)throw Error('Invalid CAD viewport for '+year);
+    // Intersect canvas with the *visible* viewport; page.screenshot clips
+    // are viewport-relative, not scroll-document coordinates.
+    const x=Math.max(0,rect.x),y=Math.max(0,rect.y);
+    const width=Math.min(rect.x+rect.width,viewport.width)-x;
+    const height=Math.min(rect.y+rect.height,viewport.height)-y;
+    if(width<50||height<50)throw Error('CAD canvas outside screenshot viewport '+JSON.stringify({year,rect,viewport}));
     await page.screenshot({path:file,type:'jpeg',quality:85,
-      clip:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},
-      animations:'disabled',timeout:20000});
+      clip:{x,y,width,height},animations:'disabled',timeout:20000});
     const size=fs.statSync(file).size;
     if(size<3000||size>800000)throw Error('Unexpected rendered image size '+size);
     if(errors.length)console.log('NONFATAL_PAGE_NOTES',year,errors.slice(0,3));
