@@ -380,19 +380,21 @@ function mount(host,year,models,loadPackedModel){
     // gltfpack may call a rendered primitive "mesh_3"; that is NOT a
     // meaningful engineering label. Find the nearest real Onshape part/group
     // name in its ancestry, and never invent a part name when none exists.
-    const isGenericLabel=value=>/^(?:mesh|node|scene|primitive|object|group)[\s_.-]*\d*$/i.test(value)
-      || /^(?:default|unnamed|root|gltf scene)$/i.test(value);
+    // gltfpack-generated identifiers are renderer bookkeeping, not CAD labels.
+    const generic=/^(?:(?:mesh|node|scene|primitive|object|group)[\s_.-]*\d*(?:[\s_.-]*instance[\s_.-]*\d+)?|(?:unnamed|default|root|gltf scene))$/i;
     const importedNames=[];
-    for(let node=mesh,depth=0;node&&node!==scene&&depth<12;node=node.parent,depth++){
+    for(let node=mesh,depth=0;node&&node!==scene&&depth<24;node=node.parent,depth++){
       const value=typeof node.name==='string'?node.name.trim():'';
-      if(value&&!isGenericLabel(value))importedNames.push(value);
+      if(value&&!generic.test(value))importedNames.push(value);
     }
-    const label=(importedNames[0] || "Unlabeled CAD geometry")
-      .replace(/[<>]/g,"").slice(0,145);
+    const label=(importedNames[0] || "Unlabeled CAD element").replace(/[<>]/g,"").slice(0,145);
     partTitle.textContent=label;
-    partSource.textContent=fullIsOriginal
-      ?"Selected geometry in the complete original CAD. Component identity comes from the model's imported labels."
-      :"Selected geometry in the optimized original-CAD preview. Complete source geometry is available using Inspect original CAD.";
+    const sourceDetail=importedNames.length
+      ?"Imported CAD hierarchy: "+importedNames.slice(0,3).map(n=>n.replace(/[<>]/g,"")).join(" / ") + ". "
+      :"The export contains no reliable part name for this element. ";
+    partSource.textContent=sourceDetail+(fullIsOriginal
+      ?"This is complete original CAD geometry."
+      :"This is optimized geometry; inspect the original CAD for more detail.");
     partInspector.hidden=false;
   };
   partClose.addEventListener("click",clearPickedPart);
@@ -642,7 +644,8 @@ function mount(host,year,models,loadPackedModel){
     }
     // The visual benefit of 1.65 DPR is small compared with the fill-rate cost.
     const lowPower=/Mobi|Android/i.test(navigator.userAgent) || (navigator.deviceMemory||8)<=4;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,lowPower?1.15:1.35));
+    const nativeQuality=Math.min(window.devicePixelRatio||1,lowPower?1.15:1.35);
+    renderer.setPixelRatio(nativeQuality);
     renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.toneMapping=THREE.AgXToneMapping || THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure=1.12;
@@ -712,17 +715,34 @@ function mount(host,year,models,loadPackedModel){
     let frames=0;
     let lastVisualFrame=-Infinity;
     let lastMeasuredFrame=0;
+    let lastQualityChange=0;
     const sampleFrameMs=[];
     const updatePerformanceReadout=now=>{
-      if(!perfEnabled)return;
-      if(lastMeasuredFrame && now-lastMeasuredFrame<180)
-        sampleFrameMs.push(now-lastMeasuredFrame);
+      const elapsed=lastMeasuredFrame?now-lastMeasuredFrame:0;
+      if(elapsed>=4 && elapsed<180)sampleFrameMs.push(elapsed);
       lastMeasuredFrame=now;
       if(sampleFrameMs.length>120)sampleFrameMs.shift();
-      if(sampleFrameMs.length<8 || ++frames%20!==0)return;
+      if(sampleFrameMs.length<30)return;
       const sorted=[...sampleFrameMs].sort((a,b)=>a-b);
       const med=sorted[Math.floor(sorted.length*.5)];
       const p95=sorted[Math.floor(sorted.length*.95)];
+      // Small, infrequent quality changes protect interaction frame-time p95.
+      // Do not alter resolution in the slow software-rendered CI browser.
+      if(!qaSoftwareRenderer && sampleFrameMs.length>=90 &&
+         now-lastQualityChange>6500 && !cameraTween && !action){
+        const current=renderer.getPixelRatio();
+        let desired=current;
+        if(p95>29 && current>.82)desired=Math.max(.82,current-.16);
+        else if(p95<17.5 && current<nativeQuality)
+          desired=Math.min(nativeQuality,current+.08);
+        if(Math.abs(desired-current)>.02){
+          renderer.setPixelRatio(desired);
+          resize();
+          lastQualityChange=now;
+          sampleFrameMs.length=0;
+        }
+      }
+      if(!perfEnabled || ++frames%20!==0)return;
       const stats={
         year,avgFps:Math.round(1000/(sampleFrameMs.reduce((a,b)=>a+b,0)/sampleFrameMs.length)),
         medianMs:+med.toFixed(1),p95Ms:+p95.toFixed(1),
@@ -733,7 +753,8 @@ function mount(host,year,models,loadPackedModel){
       window.__pairOfDicePerformance=window.__pairOfDicePerformance||{};
       window.__pairOfDicePerformance[year]=stats;
       perfHud.textContent=stats.avgFps+' FPS · p95 '+stats.p95Ms+' ms · '+
-        stats.drawCalls+' calls · '+(stats.triangles/1000).toFixed(0)+'k triangles';
+        stats.drawCalls+' calls · '+(stats.triangles/1000).toFixed(0)+'k triangles · '+
+        'DPR '+stats.pixelRatio.toFixed(2);
     };
     // QA has to render the real CAD on a CPU-only GitHub runner.
     // Slow its visual frames without affecting the interactive site.
@@ -1504,9 +1525,13 @@ function mount(host,year,models,loadPackedModel){
     const approach=new THREE.Vector3(-.38,0,-.58);
     motion.chassis.position.copy(motion.base);
     motion.chassis.rotation.y=scoreHeading;
+    // Calculate a release pose with the actual CAD claw and carriage.
+    // The offsets remain illustrative until the team supplies encoder limits.
     lift.position.copy(liftHome);
+    lift.position.z+=.11;
     motion.chassis.updateMatrixWorld(true);
     const gripAtScore=claw.localToWorld(gripLocal.clone());
+    lift.position.copy(liftHome);
 
     // The target is a supported L3 pipe branch, not the small circular
     // openings in a decorative reef. Its 35° upward axis faces the robot.
@@ -1521,13 +1546,19 @@ function mount(host,year,models,loadPackedModel){
     const branchAngle=35*Math.PI/180;
     const inwardAcceleration=branchGravity(branchAngle,.26);
     const seatDistance=coralHalfLength+.012; // end sits against branch root
-    const entranceDistance=.30+coralHalfLength*.56;
+    // At the instant of release the entire hollow pipe must be OUTSIDE
+    // the free end of the branch, not intersecting it by several centimeters.
+    const entranceDistance=.30+coralHalfLength+.012;
     const entrance=reef.base.clone().addScaledVector(direction,entranceDistance);
     const seat=reef.base.clone().addScaledVector(direction,seatDistance);
+    const dockingDelta=entrance.clone().sub(gripAtScore);
+    const chassisDock=new THREE.Vector3(dockingDelta.x,0,dockingDelta.z);
+    const liftDockY=dockingDelta.y;
+    let releaseGap=null;
 
-    motion.chassis.position.copy(motion.base).add(approach);
+    motion.chassis.position.copy(motion.base).add(chassisDock).add(approach);
     motion.chassis.rotation.y=startHeading;
-    lift.position.copy(liftHome).add(new THREE.Vector3(0,-.26,0));
+    lift.position.copy(liftHome).add(new THREE.Vector3(0,liftDockY-.26,0));
 
     const horizontal=new THREE.Quaternion()
       .setFromUnitVectors(new THREE.Vector3(0,1,0),new THREE.Vector3(1,0,0));
@@ -1542,7 +1573,7 @@ function mount(host,year,models,loadPackedModel){
         const t=clamp(elapsed/duration,0,1);
         // Chassis first squares up to the reef; then the elevator extends.
         const drive=ease(clamp(elapsed/1960,0,1));
-        motion.chassis.position.copy(motion.base)
+        motion.chassis.position.copy(motion.base).add(chassisDock)
           .addScaledVector(approach,1-drive);
         motion.chassis.rotation.y=startHeading+
           (scoreHeading-startHeading)*drive;
@@ -1554,23 +1585,26 @@ function mount(host,year,models,loadPackedModel){
         const extend=ease(clamp((elapsed-3800)/760,0,1));
         const retract=ease(clamp((elapsed-6510)/920,0,1));
         lift.position.copy(liftHome);
-        lift.position.y-=.26*(1-rise);
+        lift.position.y+=liftDockY-.26*(1-rise);
         lift.position.z+=.11*extend*(1-retract);
         lift.updateWorldMatrix(true,false);
         const grip=claw.localToWorld(gripLocal.clone());
 
-        // A pipe is not a ball. It must first line up coaxially with the
-        // 35° branch, then enter over the FREE END of that branch.
+        // CORAL remains attached to the tracked CAD claw until release;
+        // no free-floating interpolation between an unrelated robot and reef.
+        // Wrist travel is illustrative because the joint CAD limits are unknown.
         const alignment=ease(clamp((elapsed-4710)/790,0,1));
         coral.quaternion.slerpQuaternions(horizontal,onBranch,alignment);
         if(elapsed<5500){
-          coral.position.lerpVectors(grip,entrance,alignment);
+          coral.position.copy(grip);
+          if(elapsed>=5400 && releaseGap===null)releaseGap=grip.distanceTo(entrance);
         }else{
-          // Tangential gravity pulls the 30cm CORAL toward the root.
-          // Coulomb friction opposes sliding: a = g(sin35 - μcos35).
-          // Once the tube reaches the root stop, contact constrains its
-          // position; no falling through, no teleporting below the branch.
-          const seconds=(elapsed-5500)*.00079; // 79% physical speed
+          if(releaseGap===null)releaseGap=grip.distanceTo(entrance);
+          if(releaseGap>.06)throw Error("CAD release pose misses branch entrance by "+
+            releaseGap.toFixed(3)+" m; mechanism calibration required");
+          // The tube begins beyond the branch end. Its idealized contact
+          // motion is constrained to the branch axis and stops at the root.
+          const seconds=(elapsed-5500)*.00027; // deliberate slowed demonstration
           const travel=.08*seconds+.5*inwardAcceleration*seconds*seconds;
           const distance=Math.max(seatDistance,entranceDistance-travel);
           coral.position.copy(reef.base).addScaledVector(direction,distance);
@@ -1621,7 +1655,9 @@ function mount(host,year,models,loadPackedModel){
               centerError:coral.position.distanceTo(seat),
               alignment:Math.abs(coral.quaternion.dot(onBranch)),
               branchContactLength:contactLength,
-              gravitySlide:inwardAcceleration
+              gravitySlide:inwardAcceleration,
+              releaseGap,
+              freeEndClearance:entranceDistance-.30-coralHalfLength
             };
           }
         }else{

@@ -73,7 +73,8 @@ const time=()=>new Date().toISOString();
         }else{
           if(physical.type!=="coral"||physical.retainedProps!==2||
              physical.centerError>.002||physical.alignment<.999||
-             physical.branchContactLength<.22||physical.gravitySlide<=0)
+             physical.branchContactLength<.22||physical.gravitySlide<=0||
+             physical.freeEndClearance<.01||physical.releaseGap>.06)
             throw new Error("CORAL did not remain supported on the reef branch: "+JSON.stringify(physical));
         }
         if(overviewState.busy||overviewState.buttonDisabled||!overviewState.sceneReady)
