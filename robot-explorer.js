@@ -909,56 +909,64 @@ function mount(host,year,models,loadPackedModel){
         flywheels.push({node,rotation:node.rotation.clone()});
     });
 
-    // From the real shooter CAD: exit roller at (-.029, .276, .476)
-    // and flywheel at (.032, .099, .368) in Z-up source coordinates.
-    // Applying shooter.matrixWorld sends both the ball AND its tangent along
-    // the rotated turret, avoiding the previous fixed diagonal mismatch.
-    const muzzleCAD=new THREE.Vector3(-.029,.276,.476);
-    const exitCAD=new THREE.Vector3(-.061,.177,.108).normalize();
+    // Geometric correction: the original animation fired TOWARD the +Y
+    // source-coordinate guide rollers. The open shooter end is opposite them,
+    // toward -Y on the source Z-up CAD, with a rising exit tangent.
+    // This outlet is an illustrated point just outside that edge of the CAD.
+    const muzzleCAD=new THREE.Vector3(0,.005,.422);
+    const exitCAD=new THREE.Vector3(0,-1,1).normalize();
     const sampleMuzzle=()=>{
       shooter.updateWorldMatrix(true,false);
       const dir=exitCAD.clone().transformDirection(shooter.matrixWorld).normalize();
       const origin=muzzleCAD.clone().applyMatrix4(shooter.matrixWorld)
-        .addScaledVector(dir,.07);
+        .addScaledVector(dir,.095);
       return {origin,dir};
     };
-    const finalChassisYaw=.16;
-    const initialChassisYaw=-.51;
-    const defaultTurretYaw=.42;
-    const turretAim=clamp(Math.abs(requestedAim)>.01?requestedAim:defaultTurretYaw,-1.12,1.12);
-    const startOffset=new THREE.Vector3(-.56,0,.49);
 
-    // Position the field target using the *actual* outgoing muzzle axis in
-    // the final robot pose. We never point the balls in another direction.
+    const finalChassisYaw=.14;
+    const initialChassisYaw=-.47;
+    const turretAim=clamp(Math.abs(requestedAim)>.01?requestedAim:.40,-1.12,1.12);
+    const startOffset=new THREE.Vector3(-.53,0,.44);
+
+    // The HUB is placed AHEAD of the exit, not on the feeder side. Gravity
+    // determines the shot speed so its center clears the 1.83m rim and enters
+    // descending. Radius 7.5cm FUEL, target center 1.96m (> rim+radius).
     motion.chassis.position.copy(motion.base);
     motion.chassis.rotation.y=finalChassisYaw;
     turret.rotation.y=turretAim;
     motion.chassis.updateMatrixWorld(true);
-    const finalExit=sampleMuzzle();
-    const flat=finalExit.dir.clone().setY(0).normalize();
-    const hubCenter=finalExit.origin.clone().addScaledVector(flat,2.75);
+    const aligned=sampleMuzzle();
+    const heading=new THREE.Vector3(aligned.dir.x,0,aligned.dir.z).normalize();
+    const range=3.25;
+    const hubCenter=aligned.origin.clone().addScaledVector(heading,range);
     hubCenter.y=1.83;
+    const target=hubCenter.clone().setY(1.96);
+    const pitch=Math.atan2(aligned.dir.y,Math.hypot(aligned.dir.x,aligned.dir.z));
+    const planned=deriveBallisticShot(range,target.y-aligned.origin.y,pitch);
+    if(planned.verticalAtTarget>0.01){
+      motion.restore();
+      throw Error("Illustrated launch would reach the HUB while still ascending");
+    }
     const hub=makeHub(hubCenter);
-    const hubTarget=hubCenter.clone();
-    hubTarget.y=1.94;
 
     motion.chassis.position.copy(motion.base).add(startOffset);
     motion.chassis.rotation.y=initialChassisYaw;
-    turret.rotation.y=-.32;
-
+    turret.rotation.y=-.30;
     const balls=Array.from({length:3},makeFuel);
     balls.forEach(ball=>ball.visible=false);
-    const paths=Array(3).fill(null);
-    const shotTimes=[2930,3720,4510];
-    const start=performance.now()+170,duration=6540;
-    let prior=start,flywheelAngle=0;
+    const shots=Array(3).fill(null);
+    const shotTimes=[3260,4120,4980];
+    const start=performance.now()+160,duration=7060;
+    let prior=start,wheelAngle=0;
     demoTitle.textContent="RICOCHET / FUEL scoring";
+
     action={
       update(now){
-        const elapsed=Math.max(0,now-start),t=clamp(elapsed/duration,0,1);
+        const elapsed=Math.max(0,now-start);
+        const t=clamp(elapsed/duration,0,1);
         const dt=clamp((now-prior)/1000,0,.065);
         prior=now;
-        // Drive and turn, THEN aim and spin up before launching.
+
         const drive=ease(clamp(elapsed/1600,0,1));
         motion.chassis.position.copy(motion.base)
           .addScaledVector(startOffset,1-drive);
@@ -968,72 +976,64 @@ function mount(host,year,models,loadPackedModel){
         }
         motion.chassis.rotation.y=initialChassisYaw+
           (finalChassisYaw-initialChassisYaw)*drive;
-        const seek=ease(clamp((elapsed-1450)/1140,0,1));
-        turret.rotation.y=-.32+(turretAim+.32)*seek;
-        const turretDeg=Math.round(turret.rotation.y*180/Math.PI);
-        aimInput.value=String(turretDeg);
-        aimValue.textContent=turretDeg+"°";
-        const charge=ease(clamp((elapsed-1580)/730,0,1))*
-          (1-ease(clamp((elapsed-5480)/720,0,1)));
-        flywheelAngle+=dt*37*charge;
+        const track=ease(clamp((elapsed-1460)/1090,0,1));
+        turret.rotation.y=-.30+(turretAim+.30)*track;
+        const deg=Math.round(turret.rotation.y*180/Math.PI);
+        aimInput.value=String(deg);
+        aimValue.textContent=deg+"°";
+
+        const charged=ease(clamp((elapsed-1590)/760,0,1))*
+          (1-ease(clamp((elapsed-5840)/760,0,1)));
+        wheelAngle+=dt*37*charged;
         flywheels.forEach(({node,rotation})=>{
           node.rotation.copy(rotation);
-          node.rotation.x+=flywheelAngle;
+          node.rotation.x+=wheelAngle;
         });
 
-        // The projectile is born on the actual shooter exit, with a tangent
-        // parallel to that shooter's world-space launch axis. The arc ends
-        // above the official-height HUB opening instead of a floating ring.
         balls.forEach((ball,i)=>{
-          const progress=(elapsed-shotTimes[i])/1080;
-          if(progress>=0&&!paths[i]){
+          const timeFromLaunch=(elapsed-shotTimes[i])/1000;
+          if(timeFromLaunch>=0&&!shots[i]){
             motion.chassis.updateMatrixWorld(true);
             const {origin,dir}=sampleMuzzle();
-            const delta=hubTarget.clone().sub(origin);
-            const horizontal=new THREE.Vector3(delta.x,0,delta.z);
-            const length=horizontal.length();
-            const slope=dir.y/Math.max(.08,Math.hypot(dir.x,dir.z));
-            const gravityFall=origin.y+slope*length-hubTarget.y;
-            paths[i]={origin,delta,horizontal,length,slope,gravityFall};
+            const horizontalDistance=origin.distanceTo(
+              new THREE.Vector3(target.x,origin.y,target.z));
+            const launchPitch=Math.atan2(dir.y,Math.hypot(dir.x,dir.z));
+            const flight=deriveBallisticShot(
+              horizontalDistance,target.y-origin.y,launchPitch);
+            shots[i]={origin,dir,speed:flight.speed,time:flight.seconds};
           }
-          ball.visible=progress>=0&&progress<=1.13;
-          if(!ball.visible||!paths[i])return;
-          const p=paths[i];
-          const u=clamp(progress,0,1);
-          ball.position.copy(p.origin)
-            .addScaledVector(p.horizontal,u);
-          ball.position.y=p.origin.y+p.slope*p.length*u-
-            p.gravityFall*u*u;
-          // Drop into the opening after crossing the rim.
-          if(progress>1)ball.position.y-=(progress-1)*2.2;
-          ball.rotation.set(progress*7,progress*3,progress*5);
+          const shot=shots[i];
+          if(!shot){ball.visible=false;return;}
+          // Displayed at 78% physical speed so the ball can be followed.
+          const physicalTime=timeFromLaunch*.78;
+          ball.visible=physicalTime>=0&&
+            physicalTime<=shot.time+.20;
+          if(!ball.visible)return;
+          ball.position.copy(shot.origin)
+            .addScaledVector(shot.dir,shot.speed*physicalTime);
+          ball.position.y-=.5*SCORING_G*physicalTime*physicalTime;
+          ball.rotation.set(physicalTime*11,physicalTime*3,physicalTime*6);
         });
 
-        // Small, material-based confirmation at the physical HUB rim when
-        // a game piece crosses it; no distracting UI flash.
-        const through=shotTimes.some(time=>{
-          const progress=(elapsed-time)/1080;
-          return progress>.89&&progress<1.13;
+        const scored=shotTimes.some(time=>{
+          const past=(elapsed-time)*.00078;
+          return past>planned.seconds-.09&&past<planned.seconds+.13;
         });
-        hub.userData.rimMaterial.emissiveIntensity=through?.38:0;
-        setPhase(elapsed<1640?0:elapsed<2820?1:elapsed<5800?2:3);
-        if(elapsed<1640)demoStep.textContent="Drive into position";
-        else if(elapsed<2820)demoStep.textContent="Turret tracks the HUB";
-        else if(elapsed<5800)demoStep.textContent="FUEL leaves the shooter";
-        else demoStep.textContent="Scoring complete";
+        hub.userData.rimMaterial.emissiveIntensity=scored?.28:0;
+        setPhase(elapsed<1630?0:elapsed<3030?1:elapsed<5930?2:3);
+        demoStep.textContent=elapsed<1630?"Drive into position":
+          elapsed<3030?"Turret faces the target":
+          elapsed<5930?"FUEL follows a gravity arc":"Scoring complete";
         demoFill.style.width=(t*100).toFixed(1)+"%";
-        // One stable shot with both the robot and HUB in view.
-        // A slow, restrained camera move from full-robot overview to the
-        // target-facing side, inspired by interactive engineering showrooms.
-        const approach=ease(clamp((elapsed-1650)/2350,0,1));
-        const aim=motion.chassis.position.clone().lerp(hubCenter,.30+.10*approach);
-        aim.y=.81+.08*approach;
+
+        const zoom=ease(clamp((elapsed-1600)/2250,0,1));
+        const aim=motion.chassis.position.clone().lerp(hubCenter,.29+.10*zoom);
+        aim.y=.83+.04*zoom;
         const eye=aim.clone().add(new THREE.Vector3(
-          4.05-.92*approach,2.77-.31*approach,3.76+.20*approach
-        ));
+          3.7-.55*zoom,2.60-.22*zoom,3.6+.12*zoom));
         if(elapsed>700&&!action._manualCamera){
-          camera.position.lerp(eye,.022);
-          orbit.target.lerp(aim,.023);
+          camera.position.lerp(eye,.023);
+          orbit.target.lerp(aim,.024);
         }
         if(t>=1)completeAction();
       },
