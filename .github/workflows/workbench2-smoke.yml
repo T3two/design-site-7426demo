@@ -1,0 +1,48 @@
+name: RICOCHET Workbench 2.0 browser smoke
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'robot-workbench-2.js'
+      - 'robot-explorer.js'
+      - 'index.html'
+      - 'styles.css'
+      - 'tests/workbench2-smoke.cjs'
+      - '.github/workflows/workbench2-smoke.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: workbench2-main
+  cancel-in-progress: true
+
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check syntax
+        run: |
+          node --check robot-explorer.js
+          node --input-type=module --check < robot-workbench-2.js
+          node --check tests/workbench2-smoke.cjs
+      - name: Install browser
+        run: |
+          npm install --no-save --no-package-lock playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Serve local website
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/workbench2-http.log 2>&1 &
+          sleep 3
+      - name: Verify 2026 CAD workbench tools
+        run: node tests/workbench2-smoke.cjs
+      - name: Preserve screenshot on success or failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ricochet-workbench2-test
+          path: test-results/
+          if-no-files-found: ignore
