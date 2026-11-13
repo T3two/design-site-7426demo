@@ -18,7 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=ace-3d-instant-v2">
+  <link rel="stylesheet" href="styles.css?v=robot-fast-3d-1">
   <script type="importmap">
     {"imports":{
       "three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
@@ -130,6 +130,7 @@
   let settings = DEFAULT_SETTINGS;
   let navigation = [];
   let modelCatalog = [];
+  let previewCatalog = {models:{}};
   let sponsors = [];
   let robots = [];
   let pageMap = {};
@@ -395,7 +396,9 @@
     // Smaller models are automatically prefetched once in view; avoid automatic
     // loading of 50–250 MiB full assemblies or overwhelming mobile devices.
     const limit = 32 * 1024 * 1024;
-    const automatic = model.hosted !== false && model.bytes > 0 && model.bytes <= limit && !model.packed;
+    const hasFastPreview = !!model.fastPreview?.file;
+    const automatic = hasFastPreview ||
+      (model.hosted !== false && model.bytes > 0 && model.bytes <= limit && !model.packed);
     // Guided camera scenes replace endless turntable rotation after loading.
 
     const status = document.createElement("div");
@@ -409,6 +412,14 @@
     error.hidden = true;
     error.textContent = "Unable to display this model.";
 
+    const fullDetailButton = document.createElement("button");
+    fullDetailButton.type = "button";
+    fullDetailButton.className = "small-button viewer-full-detail";
+    fullDetailButton.textContent = "Inspect original CAD";
+    fullDetailButton.hidden = !hasFastPreview;
+    fullDetailButton.disabled = true;
+    fullDetailButton.title = "Load the full original 3D geometry on demand. This is a substantially larger file.";
+    let fullQualityRequested = false;
     const actions = document.createElement("div");
     actions.className = "viewer-overlay-actions";
     const loadButton = document.createElement("button");
@@ -460,12 +471,14 @@
       try {
         await queueModelLoad(async () => {
           if (!card.isConnected) return;
-          if (model.packed) {
+          if (hasFastPreview && !fullQualityRequested) {
+            // A real GPU-ready, meshopt-compressed view of the exact CAD robot.
+            viewer.src = model.fastPreview.file;
+          } else if (model.packed) {
             releaseModelUrl();
             temporaryModelUrl = await loadPackedModel(model, busy.lastChild);
             viewer.src = temporaryModelUrl;
           } else {
-            // Let model-viewer fetch once; avoid downloading each GLB twice.
             viewer.src = model.file;
           }
           // Hold the queue slot until the GPU renderer finishes, so a page
@@ -497,6 +510,9 @@
       busy.hidden = true;
       error.hidden = true;
       card.classList.add("model-loaded");
+      card.classList.toggle("model-original-ready",fullQualityRequested);
+      fullDetailButton.disabled = fullQualityRequested;
+      if (fullQualityRequested) fullDetailButton.textContent = "Original CAD loaded";
       releaseModelUrl();
     });
     viewer.addEventListener("progress", e => {
@@ -508,6 +524,15 @@
       setError("This CAD file could not be rendered. Try a different browser.");
     });
     loadButton.addEventListener("click", startLoad);
+    fullDetailButton.addEventListener("click", () => {
+      if (!hasFastPreview || fullQualityRequested || !card.classList.contains("model-loaded")) return;
+      fullQualityRequested = true;
+      fullDetailButton.disabled = true;
+      fullDetailButton.textContent = "Preparing full CAD…";
+      busy.lastChild.textContent = "Opening original CAD…";
+      busy.hidden = false;
+      loadModel();
+    });
     // Large assemblies still wait for user intent, but clicking anywhere on
     // the preview starts them — no tiny target required.
     viewerWrap.addEventListener("click", event => {
@@ -536,6 +561,7 @@
     description.textContent = model.description || "";
     const controls = document.createElement("div");
     controls.className = "model-actions model-actions-modern";
+    if (hasFastPreview) controls.appendChild(fullDetailButton);
 
     const tourStops = cameraTourFor(model);
     let tourIndex = 0;
@@ -1006,6 +1032,10 @@
   }
   function ensureModelViewer() {
     if (customElements.get('model-viewer') || document.querySelector('script[data-cad-model-viewer]')) return;
+    // Meshopt is required for fast-CAD previews; configure before web component registers.
+    self.ModelViewerElement = self.ModelViewerElement || {};
+    self.ModelViewerElement.meshoptDecoderLocation =
+      'https://cdn.jsdelivr.net/npm/meshoptimizer@0.25.0/meshopt_decoder.js';
     const script = document.createElement('script');
     script.dataset.cadModelViewer = 'true';
     script.type = 'module';
@@ -1172,17 +1202,25 @@
   }
 
   async function init() {
-    const [settingsData, navData, catalogData, sponsorData, robotsData] = await Promise.all([
+    const [settingsData, navData, catalogData, sponsorData, robotsData, fastData] = await Promise.all([
       readJson("settings.json", DEFAULT_SETTINGS),
       readJson("navigation.json", []),
       readJson("models/catalog.json", { models: [] }),
       readJson("sponsors.json", { sponsors: [] }),
-      readJson("robots.json", { robots: [] })
+      readJson("robots.json", { robots: [] }),
+      readJson("models/preview/catalog.json", {models:{}})
     ]);
 
     settings = settingsData || DEFAULT_SETTINGS;
     navigation = Array.isArray(navData) ? navData : [];
     modelCatalog = Array.isArray(catalogData.models) ? catalogData.models : [];
+    previewCatalog = fastData && typeof fastData.models === 'object' ? fastData : {models:{}};
+    modelCatalog.forEach(model => {
+      if (model.category !== 'Season Robots') return;
+      const preview = previewCatalog.models[model.year];
+      if (preview?.file && /^models\/preview\/[\w-]+\.glb$/.test(preview.file))
+        model.fastPreview = preview;
+    });
     sponsors = Array.isArray(sponsorData.sponsors) ? sponsorData.sponsors : [];
     robots = Array.isArray(robotsData.robots) ? robotsData.robots : [];
     pageMap = flattenNavigation(navigation);
