@@ -644,7 +644,8 @@ function mount(host,year,models,loadPackedModel){
     }
     // The visual benefit of 1.65 DPR is small compared with the fill-rate cost.
     const lowPower=/Mobi|Android/i.test(navigator.userAgent) || (navigator.deviceMemory||8)<=4;
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,lowPower?1.15:1.35));
+    const nativeQuality=Math.min(window.devicePixelRatio||1,lowPower?1.15:1.35);
+    renderer.setPixelRatio(nativeQuality);
     renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.toneMapping=THREE.AgXToneMapping || THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure=1.12;
@@ -714,17 +715,34 @@ function mount(host,year,models,loadPackedModel){
     let frames=0;
     let lastVisualFrame=-Infinity;
     let lastMeasuredFrame=0;
+    let lastQualityChange=0;
     const sampleFrameMs=[];
     const updatePerformanceReadout=now=>{
-      if(!perfEnabled)return;
-      if(lastMeasuredFrame && now-lastMeasuredFrame<180)
-        sampleFrameMs.push(now-lastMeasuredFrame);
+      const elapsed=lastMeasuredFrame?now-lastMeasuredFrame:0;
+      if(elapsed>=4 && elapsed<180)sampleFrameMs.push(elapsed);
       lastMeasuredFrame=now;
       if(sampleFrameMs.length>120)sampleFrameMs.shift();
-      if(sampleFrameMs.length<8 || ++frames%20!==0)return;
+      if(sampleFrameMs.length<30)return;
       const sorted=[...sampleFrameMs].sort((a,b)=>a-b);
       const med=sorted[Math.floor(sorted.length*.5)];
       const p95=sorted[Math.floor(sorted.length*.95)];
+      // Small, infrequent quality changes protect interaction frame-time p95.
+      // Do not alter resolution in the slow software-rendered CI browser.
+      if(!qaSoftwareRenderer && sampleFrameMs.length>=90 &&
+         now-lastQualityChange>6500 && !cameraTween && !action){
+        const current=renderer.getPixelRatio();
+        let desired=current;
+        if(p95>29 && current>.82)desired=Math.max(.82,current-.16);
+        else if(p95<17.5 && current<nativeQuality)
+          desired=Math.min(nativeQuality,current+.08);
+        if(Math.abs(desired-current)>.02){
+          renderer.setPixelRatio(desired);
+          resize();
+          lastQualityChange=now;
+          sampleFrameMs.length=0;
+        }
+      }
+      if(!perfEnabled || ++frames%20!==0)return;
       const stats={
         year,avgFps:Math.round(1000/(sampleFrameMs.reduce((a,b)=>a+b,0)/sampleFrameMs.length)),
         medianMs:+med.toFixed(1),p95Ms:+p95.toFixed(1),
@@ -735,7 +753,8 @@ function mount(host,year,models,loadPackedModel){
       window.__pairOfDicePerformance=window.__pairOfDicePerformance||{};
       window.__pairOfDicePerformance[year]=stats;
       perfHud.textContent=stats.avgFps+' FPS · p95 '+stats.p95Ms+' ms · '+
-        stats.drawCalls+' calls · '+(stats.triangles/1000).toFixed(0)+'k triangles';
+        stats.drawCalls+' calls · '+(stats.triangles/1000).toFixed(0)+'k triangles · '+
+        'DPR '+stats.pixelRatio.toFixed(2);
     };
     // QA has to render the real CAD on a CPU-only GitHub runner.
     // Slow its visual frames without affecting the interactive site.
