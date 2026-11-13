@@ -456,10 +456,18 @@ function mount(host,year,models,loadPackedModel){
         camera.position.copy(orbit.target).add(dir);
       }
       if(action){
-        // Advance a dedicated clock only when playback is not paused.
-        if(action._clock==null)action._clock=now;
-        if(!action._paused)action._clock+=Math.min(Math.max(now-lastTime,0),80);
-        action.update(action._clock);
+        // Keep a faulty animation from aborting the entire render loop.
+        // Cleanup restores the original imported robot transforms.
+        try{
+          if(action._clock==null)action._clock=now;
+          if(!action._paused)action._clock+=Math.min(Math.max(now-lastTime,0),80);
+          action.update(action._clock);
+        }catch(err){
+          console.error("Scoring playback interrupted:",err);
+          stopAction();
+          actionDisclaimer.textContent="Preview interrupted. The CAD is still available; select Watch to replay.";
+          setMessage("",false);
+        }
       } else if(turretRig){
         const dt=clamp((now-lastTime)/1000,0,.06);
         turretRig.rotation.y+=(turretGoal-turretRig.rotation.y)*Math.min(1,dt*7);
@@ -581,8 +589,12 @@ function mount(host,year,models,loadPackedModel){
   };
   const stopAction=()=>{
     if(!action)return;
-    action.clean();
+    // Release the playback lock before cleanup so a failed CAD transform
+    // cannot leave the button disabled or the robot stuck in motion mode.
+    const completed=action;
     action=null;
+    try{completed.clean();}
+    catch(err){console.error("Robot scene cleanup:",err);}
     demoHud.hidden=true;
     btnPauseDemo.hidden=true;
     btnPauseDemo.textContent="Pause";
@@ -1128,6 +1140,7 @@ function mount(host,year,models,loadPackedModel){
     if(destroyed||preparingDemo||action)return;
     preparingDemo=true;
     try{
+      actionDisclaimer.textContent="Illustrative CAD motion using the original robot parts.";
       if(!full)await loadFull();
       // An overview playback uses only the complete assembly, dramatically
       // reducing peak GPU memory on mobile and avoiding unnecessary downloads.
@@ -1171,7 +1184,11 @@ function mount(host,year,models,loadPackedModel){
       if(action)stopAction();
       actionButton.disabled=false;
       actionButton.textContent=def.actionName;
-      setMessage("Unable to show the robot scoring sequence: "+error.message,true);
+      // Show the error beside the replay button, not as a blocking overlay.
+      actionDisclaimer.textContent="Preview interrupted: "+error.message+". Select Watch to retry.";
+      setMessage("",false);
+      if(full)applyFade(full,1);
+      if(active)applyFade(active,0);
     }finally{
       preparingDemo=false;
     }
