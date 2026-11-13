@@ -15,7 +15,7 @@ for(const [year,mechanism] of cases){
   page.on("console",msg=>{if(msg.type()==="error")messages.push(msg.text());});
   page.on("requestfailed",req=>{messages.push("FAILED "+req.url()+" "+req.failure()?.errorText);});
   try{
-    await page.goto("http://127.0.0.1:8080/?page=robot-"+year,{waitUntil:"domcontentloaded",timeout:45000});
+    await page.goto("http://127.0.0.1:8080/?page=robot-"+year+"&qa=1",{waitUntil:"domcontentloaded",timeout:45000});
     await page.waitForSelector(".robot-theater .theater-launch",{timeout:35000});
     console.log("READY",year,await page.locator(".robot-theater").count());
     await page.locator(".robot-theater .theater-launch").evaluate(el=>el.click());
