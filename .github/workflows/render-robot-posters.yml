@@ -4,6 +4,7 @@ on:
     branches: ['feature/robot-instant-lod-and-comic-ace']
     paths:
       - 'tools/render_robot_posters.cjs'
+      - '.github/workflows/render-robot-posters.yml'
   workflow_dispatch:
 permissions:
   contents: write
