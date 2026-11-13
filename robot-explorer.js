@@ -617,7 +617,20 @@ function mount(host,year,models,loadPackedModel){
     // Keep the scene focused on real CAD geometry rather than decorative props.
     camera=new THREE.PerspectiveCamera(42,1,.025,150);
     camera.position.set(1.7,1.4,2.3);
-    renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
+    // Preserve the drawing buffer ONLY in the offline poster-capture workflow.
+    // Production viewers keep the faster default (preserveDrawingBuffer=false).
+    const posterCaptureMode=new URLSearchParams(location.search).has("poster");
+    renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,
+      powerPreference:"high-performance",preserveDrawingBuffer:posterCaptureMode});
+    if(posterCaptureMode){
+      window.__captureRobotPoster=window.__captureRobotPoster||{};
+      window.__captureRobotPoster[year]=()=>{
+        if(!full||!renderer||!scene||!camera)throw Error("Robot not ready for CAD frame export");
+        renderer.render(scene,camera);
+        return renderer.domElement.toDataURL("image/jpeg",.86);
+      };
+      cleanupObjects.push(()=>{delete window.__captureRobotPoster?.[year];});
+    }
     // The visual benefit of 1.65 DPR is small compared with the fill-rate cost.
     const lowPower=/Mobi|Android/i.test(navigator.userAgent) || (navigator.deviceMemory||8)<=4;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,lowPower?1.15:1.35));
