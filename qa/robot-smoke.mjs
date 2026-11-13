@@ -67,7 +67,14 @@ for(const [year,mechanism] of cases){
       stageReady:document.querySelector(".robot-theater .theater-stage")?.classList.contains("is-ready")
     }));
     console.log("RESULT",year,JSON.stringify(data));
-    await threeStage.screenshot({path:"qa-results/"+year+"-action.png"});
+    // A software-only GPU cannot always rasterize the 2025 full CAD quickly.
+    // Keep visual capture best-effort; playback and JS checks remain mandatory.
+    try{
+      await threeStage.screenshot({path:"qa-results/"+year+"-action.png",timeout:6500,animations:"disabled"});
+      console.log("STAGE_SCREENSHOT",year,"saved");
+    }catch(err){
+      console.warn("STAGE_SCREENSHOT_SKIPPED",year,err.message);
+    }
     if(!data.stageReady||data.busy||(!data.demo&&data.actionLabel?.includes("Playing")))
       throw Error("Sequence unhealthy "+JSON.stringify(data));
     if(errors.length)throw Error("Uncaught errors "+errors.join(" | "));
