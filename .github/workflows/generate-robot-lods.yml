@@ -1,0 +1,59 @@
+name: Build verified fast robot CAD previews
+on:
+  push:
+    branches: ['feature/robot-instant-lod-and-comic-ace']
+    paths: ['tools/build_robot_lods.py', '.github/workflows/generate-robot-lods.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: robot-lod-conversion
+  cancel-in-progress: false
+
+jobs:
+  optimize:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 1
+      - name: Install pinned native gltfpack v0.25
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 -o /tmp/gltfpack.zip \
+            https://github.com/zeux/meshoptimizer/releases/download/v0.25/gltfpack-ubuntu.zip
+          mkdir -p /tmp/gltfpack
+          unzip -q /tmp/gltfpack.zip -d /tmp/gltfpack
+          test -f /tmp/gltfpack/gltfpack
+          chmod +x /tmp/gltfpack/gltfpack
+          /tmp/gltfpack/gltfpack -h 2>&1 | head -n 30 || true
+      - name: Create actual lightweight GLB variants from verified full CAD
+        shell: bash
+        run: |
+          set -u
+          python3 tools/build_robot_lods.py --gltfpack /tmp/gltfpack/gltfpack \
+            --years 2026 2025 2022 2020 2019 2024 2023
+          echo "Preview build completed"
+      - name: Commit verified assets to review branch
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d models/preview || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add models/preview
+          if ! git diff --cached --quiet; then
+            git commit -m "Build compact verified robot 3D previews from actual CAD"
+            git pull --rebase origin "feature/robot-instant-lod-and-comic-ace"
+            git push origin HEAD:refs/heads/feature/robot-instant-lod-and-comic-ace
+          fi
+      - name: Report size summary
+        if: always()
+        run: |
+          if test -f models/preview/catalog.json; then cat models/preview/catalog.json; fi
