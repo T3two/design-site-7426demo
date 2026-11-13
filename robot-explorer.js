@@ -73,9 +73,11 @@ function getEngine(){
       import("three"),
       import("three/addons/loaders/GLTFLoader.js"),
       import("three/addons/controls/OrbitControls.js"),
-      import("three/addons/environments/RoomEnvironment.js")
-    ]).then(([THREE,loader,orbit,room])=>({
-      THREE,GLTFLoader:loader.GLTFLoader,OrbitControls:orbit.OrbitControls,RoomEnvironment:room.RoomEnvironment
+      import("three/addons/environments/RoomEnvironment.js"),
+      import("three/addons/libs/meshopt_decoder.module.js")
+    ]).then(([THREE,loader,orbit,room,meshopt])=>({
+      THREE,GLTFLoader:loader.GLTFLoader,OrbitControls:orbit.OrbitControls,
+      RoomEnvironment:room.RoomEnvironment,MeshoptDecoder:meshopt.MeshoptDecoder
     }))
       .catch(err=>{enginePromise=null;throw err;});
   }
@@ -86,6 +88,7 @@ function mount(host,year,models,loadPackedModel){
   if(!def)return;
   const byId=new Map(models.map(m=>[m.id,m]));
   const fullModel=byId.get("robot-"+year+"-assembly");
+  const fastSource=fullModel?.fastPreview?.file || "";
   if(!fullModel)return;
 
   host.className="robot-theater";
@@ -161,6 +164,11 @@ function mount(host,year,models,loadPackedModel){
   const btnReset=e("button","theater-tool","Reset view");
   const btnSpin=e("button","theater-tool","Rotate");
   const btnExpand=e("button","theater-tool","Expand");
+  const btnOriginal=e("button","theater-tool theater-original-detail","Inspect original CAD");
+  btnOriginal.type="button";
+  btnOriginal.hidden=!fastSource;
+  btnOriginal.disabled=true;
+  btnOriginal.title="Load the complete high-resolution CAD model only when needed.";
   const btnPauseDemo=e("button","theater-tool theater-pause-motion","Pause");
   btnPauseDemo.type="button";
   btnPauseDemo.hidden=true;
@@ -173,7 +181,7 @@ function mount(host,year,models,loadPackedModel){
   [btnFull,btnReset,btnSpin,btnExpand].forEach(x=>x.type="button");
   btnFull.disabled=true;
   const controlNote=e("span","theater-controls-note","");
-  controlsBar.append(btnFull,btnReset,btnExpand,btnPauseDemo);
+  controlsBar.append(btnFull,btnReset,btnExpand,btnOriginal,btnPauseDemo);
   stage.append(viewport,controlsBar);
 
   const side=e("aside","theater-side");
@@ -226,6 +234,7 @@ function mount(host,year,models,loadPackedModel){
 
   let mod=null,THREE=null,renderer=null,scene=null,camera=null,orbit=null,gltfLoader=null,studioEnv=null,floorShadow=null;
   let full=null,fullLoad=null,fullBounds=null,active=null;
+  let fullIsOriginal=false, originalRequest=null;
   const subsystemCache=new Map(), subsystemLoading=new Map();
   let fullUrl=null,seq=0,visibility=true, destroyed=false,clock=0;
   let autoSpin=false, showHotspots=false, cameraTween=null, fades=[], action=null;
@@ -408,7 +417,9 @@ function mount(host,year,models,loadPackedModel){
     camera=new THREE.PerspectiveCamera(42,1,.025,150);
     camera.position.set(1.7,1.4,2.3);
     renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"high-performance"});
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.65));
+    // The visual benefit of 1.65 DPR is small compared with the fill-rate cost.
+    const lowPower=/Mobi|Android/i.test(navigator.userAgent) || (navigator.deviceMemory||8)<=4;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,lowPower?1.15:1.35));
     renderer.outputColorSpace=THREE.SRGBColorSpace;
     renderer.toneMapping=THREE.AgXToneMapping || THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure=1.12;
@@ -435,7 +446,7 @@ function mount(host,year,models,loadPackedModel){
       btnSpin.classList.remove("is-on");
       if(action)action._manualCamera=true;
     });
-    gltfLoader=new GLTFLoader();
+    gltfLoader=new GLTFLoader().setMeshoptDecoder(mod.MeshoptDecoder);
     const resize=()=>{
       if(!renderer||destroyed)return;
       const rect=viewport.getBoundingClientRect();
@@ -517,19 +528,39 @@ function mount(host,year,models,loadPackedModel){
     root.updateMatrixWorld(true);
     return collectFade(root);
   };
+  // The first interactive robot is always actual CAD geometry, but *not* the
+  // multi-hundred-MB original when a validated fast GLB is available.
+  const fetchOriginal=async()=>{
+    let url=fullModel.file;
+    let temporary=null;
+    try{
+      if(fullModel.packed){
+        temporary=await loadPackedModel(fullModel,loaderText);
+        url=temporary;
+      }
+      return await gltfLoader.loadAsync(url);
+    }finally{if(temporary)URL.revokeObjectURL(temporary);}
+  };
   const loadFull=async()=>{
     if(full)return full;
     if(fullLoad)return fullLoad;
     fullLoad=(async()=>{
       await configureScene();
-      setMessage("STREAMING FULL ROBOT CAD • "+(fullModel.packed?"ASSEMBLING PARTS":"LOADING"));
-      let url=fullModel.file;
-      if(fullModel.packed){
-        url=await loadPackedModel(fullModel,loaderText);
-        fullUrl=url;
+      let gltf;
+      if(fastSource){
+        setMessage("OPENING FAST 3D ROBOT");
+        try{
+          gltf=await gltfLoader.loadAsync(fastSource);
+          fullIsOriginal=false;
+        }catch(error){
+          console.warn("Fast CAD unavailable, preserving original fallback",error);
+        }
       }
-      const gltf=await gltfLoader.loadAsync(url);
-      if(fullUrl){URL.revokeObjectURL(fullUrl);fullUrl=null;}
+      if(!gltf){
+        setMessage("LOADING ORIGINAL ROBOT CAD");
+        gltf=await fetchOriginal();
+        fullIsOriginal=true;
+      }
       full=makeGroup(gltf);
       fullBounds=new THREE.Box3().setFromObject(full.group);
       if(floorShadow){
@@ -543,6 +574,8 @@ function mount(host,year,models,loadPackedModel){
       orbit.update();
       stage.classList.add("is-ready");
       btnFull.disabled=false;
+      btnOriginal.disabled=fullIsOriginal;
+      if(fullIsOriginal)btnOriginal.textContent="Original CAD ready";
       setMessage("",false);
       hotspotsByKey.forEach(el=>el.hidden=false);
       return full;
@@ -552,6 +585,42 @@ function mount(host,year,models,loadPackedModel){
       throw err;
     });
     return fullLoad;
+  };
+  const loadOriginalDetail=async()=>{
+    if(originalRequest||fullIsOriginal)return originalRequest;
+    originalRequest=(async()=>{
+      if(!full)await loadFull();
+      if(destroyed||fullIsOriginal)return;
+      if(selected!=="full"||action)return;
+      btnOriginal.disabled=true;
+      btnOriginal.textContent="Opening detailed CAD…";
+      setMessage("PREPARING ORIGINAL CAD — FAST MODEL REMAINS VISIBLE");
+      const gltf=await fetchOriginal();
+      if(destroyed)return;
+      const original=makeGroup(gltf);
+      applyFade(original,0);
+      const previous=full;
+      await Promise.all([fadeTo(original,1,350),fadeTo(previous,0,350)]);
+      if(destroyed)return;
+      full=original;
+      fullBounds=new THREE.Box3().setFromObject(full.group);
+      scene.remove(previous.group);
+      previous.group.traverse(obj=>{
+        if(!obj.isMesh)return;
+        obj.geometry?.dispose();
+        if(Array.isArray(obj.material))obj.material.forEach(m=>m.dispose());
+        else obj.material?.dispose();
+      });
+      fullIsOriginal=true;
+      btnOriginal.textContent="Original CAD ready";
+      setMessage("",false);
+    })().catch(error=>{
+      setMessage("Original CAD unavailable. Fast 3D view remains usable.",true);
+      btnOriginal.disabled=false;
+      btnOriginal.textContent="Retry original CAD";
+      console.warn("Original model upgrade failed:",error);
+    }).finally(()=>{originalRequest=null;});
+    return originalRequest;
   };
   const loadSubsystem=async(key)=>{
     if(subsystemCache.has(key))return subsystemCache.get(key);
@@ -1335,6 +1404,7 @@ function mount(host,year,models,loadPackedModel){
     renderer?.dispose();
   };
 
+  btnOriginal.addEventListener("click",()=>loadOriginalDetail());
   launch.addEventListener("click",()=>choose("full"));
   fullNav.addEventListener("click",()=>choose("full"));
   btnFull.addEventListener("click",()=>choose("full"));
@@ -1407,7 +1477,8 @@ function mount(host,year,models,loadPackedModel){
       previewObserver.disconnect();
       const network=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
       const constrained=network?.saveData||["slow-2g","2g","3g"].includes(network?.effectiveType);
-      if(window.innerWidth>=980&&!constrained)loadFull().catch(()=>{});
+      if(window.innerWidth>=980&&!constrained && fastSource)
+        loadFull().catch(()=>{});
     },{rootMargin:"120px",threshold:.05});
     previewObserver.observe(host);
     cleanupObjects.push(()=>previewObserver.disconnect());
