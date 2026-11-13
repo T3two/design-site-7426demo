@@ -644,7 +644,8 @@ function mount(host,year,models,loadPackedModel){
     trimCache(key);
     // The first visit to the game's scoring mechanism brings the story to
     // life automatically. Playback remains optional with reduced motion.
-    if(key===def.actionSubsystem&&!automaticDemoPlayed&&!reduced()){
+    if(key===def.actionSubsystem&&!automaticDemoPlayed&&!reduced()&&
+       !new URLSearchParams(window.location.search).has("qa")){
       automaticDemoPlayed=true;
       setTimeout(()=>{
         if(!destroyed&&selected===key&&!action)playAction();
