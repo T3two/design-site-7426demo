@@ -9,6 +9,7 @@ on:
       - 'tests/welcome-startup-smoke.cjs'
       - 'tests/fast-robot-preview.cjs'
       - 'tests/ace-comic-3d.cjs'
+      - 'tests/ace-original-joints-studio.cjs'
       - 'tests/robot-interactions-smoke.cjs'
       - 'tests/robot-theater-smoke.cjs'
       - '.github/workflows/robot-theater-smoke.yml'
@@ -40,6 +41,8 @@ jobs:
         run: node tests/welcome-startup-smoke.cjs
       - name: Verify comic-styled 3D Ace actually renders
         run: node tests/ace-comic-3d.cjs
+      - name: Verify original Ace joint animation Studio
+        run: node tests/ace-original-joints-studio.cjs
       - name: Verify fast real CAD models for all seven seasons
         run: node tests/fast-robot-preview.cjs
       - name: Verify cached subsystem transitions and CAD part inspection
