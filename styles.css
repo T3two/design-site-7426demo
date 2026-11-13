@@ -2114,3 +2114,21 @@ html.initial-home .menu-button{display:none!important}
 @media(prefers-reduced-motion:reduce){
   .robot-theater .wb2-milestone{transition:none}
 }
+
+
+/* Desktop engineering bench: keep the CAD camera at a usable size even
+   when the documentation, assembly tree, and history column is long. */
+@media(min-width:751px){
+  .robot-theater .theater-shell{
+    align-items:start;overflow:visible;
+  }
+  .robot-theater .theater-stage{
+    position:sticky;top:76px;align-self:start;z-index:1;
+  }
+  .robot-theater .theater-viewport{
+    min-height:460px;
+    height:clamp(460px,47vw,620px);
+    flex:0 0 auto;
+    border-top-left-radius:4px;
+  }
+}
