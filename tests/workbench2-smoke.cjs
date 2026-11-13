@@ -27,9 +27,13 @@ const {chromium}=require('playwright');
     if(!await page.locator('.theater-stage.is-ready').count())
       await launch.evaluate(el=>el.click());
     await page.locator('.theater-stage.is-ready').waitFor({timeout:120000});
+    // Desktop prefetch can make the CAD scene ready without a navigation event.
+    // Explicitly settle the camera on the full assembly before raycast tests.
+    await page.locator('.theater-nav-button').filter({hasText:/complete robot/i}).first()
+      .evaluate(el=>el.click());
     await page.waitForFunction(()=>
       document.querySelector('.theater-stage')?.dataset.readySelection==='full',
-      null,{timeout:20000});
+      null,{timeout:30000});
     await page.waitForFunction(()=>
       !document.querySelector('.wb2-tool')?.disabled,null,{timeout:12000});
     const measure=page.locator('.wb2-tool').filter({hasText:'Measure'});
