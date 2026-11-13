@@ -397,7 +397,7 @@
     // loading of 50–250 MiB full assemblies or overwhelming mobile devices.
     const limit = 32 * 1024 * 1024;
     const hasFastPreview = !!model.fastPreview?.file;
-    const automatic = hasFastPreview ||
+    const automatic = (hasFastPreview && model.category === "Season Robots") ||
       (model.hosted !== false && model.bytes > 0 && model.bytes <= limit && !model.packed);
     // Guided camera scenes replace endless turntable rotation after loading.
 
@@ -1202,13 +1202,14 @@
   }
 
   async function init() {
-    const [settingsData, navData, catalogData, sponsorData, robotsData, fastData] = await Promise.all([
+    const [settingsData, navData, catalogData, sponsorData, robotsData, fastData, subsystemFastData] = await Promise.all([
       readJson("settings.json", DEFAULT_SETTINGS),
       readJson("navigation.json", []),
       readJson("models/catalog.json", { models: [] }),
       readJson("sponsors.json", { sponsors: [] }),
       readJson("robots.json", { robots: [] }),
-      readJson("models/preview/catalog.json", {models:{}})
+      readJson("models/preview/catalog.json", {models:{}}),
+      readJson("models/preview/subsystems.json", {models:{}})
     ]);
 
     settings = settingsData || DEFAULT_SETTINGS;
@@ -1216,9 +1217,11 @@
     modelCatalog = Array.isArray(catalogData.models) ? catalogData.models : [];
     previewCatalog = fastData && typeof fastData.models === 'object' ? fastData : {models:{}};
     modelCatalog.forEach(model => {
-      if (model.category !== 'Season Robots') return;
-      const preview = previewCatalog.models[model.year];
-      if (preview?.file && /^models\/preview\/[\w-]+\.glb$/.test(preview.file))
+      const preview = model.category === 'Season Robots'
+        ? previewCatalog.models[model.year]
+        : model.category === 'Robot Subsystems'
+          ? subsystemFastData?.models?.[model.id] : null;
+      if (preview?.file && /^models\/preview\/(?:subsystems\/)?[\w-]+\.glb$/.test(preview.file))
         model.fastPreview = preview;
     });
     sponsors = Array.isArray(sponsorData.sponsors) ? sponsorData.sponsors : [];
