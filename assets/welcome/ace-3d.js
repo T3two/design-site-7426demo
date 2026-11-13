@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 // Original Ace 3D prototype. Geometry is deliberately flat-colored and simple;
 // no generated character art, copyrighted rigs, or stock 3D assets.
@@ -159,6 +160,52 @@ function buildAce(seated) {
   }
   return {root, headPivot, armGroup};
 }
+// Prefer the real, downloadable GLB geometry. The procedural model above remains
+// a visible fallback if gzip decoding, network loading or WebGL support is unavailable.
+async function loadOriginalGLB(seated) {
+  if (typeof DecompressionStream === 'undefined') throw new Error('gzip streams unavailable');
+  const path = 'assets/welcome/' + (seated ? 'ace_seated.glb.gz' : 'ace_pointing.glb.gz');
+  const response = await fetch(path);
+  if (!response.ok || !response.body) throw new Error('GLB asset not found: ' + path);
+  const glb = await new Response(response.body.pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+  const loader = new GLTFLoader();
+  const parsed = await loader.parseAsync(glb, 'assets/welcome/');
+  const model = parsed.scene;
+  model.traverse(obj => {
+    if (!obj.isMesh) return;
+    const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+    const toon = materials.map(m => new THREE.MeshToonMaterial({
+      color: m.color || new THREE.Color('#ffffff'),
+      vertexColors: !!obj.geometry.getAttribute('color'),
+      transparent: !!m.transparent,
+      opacity: m.opacity ?? 1,
+      side: THREE.FrontSide
+    }));
+    obj.material = Array.isArray(obj.material) ? toon : toon[0];
+  });
+  // Reparent each character part around simple movement pivots. This preserves
+  // the authored mesh geometry while allowing head nods and shoulder movement.
+  model.updateMatrixWorld(true);
+  const headPivot = new THREE.Group();
+  headPivot.name = 'AceHeadAnimationPivot';
+  headPivot.position.set(0, 3.54, 0);
+  model.add(headPivot);
+  const armGroup = new THREE.Group();
+  armGroup.name = 'AceArmAnimationPivot';
+  armGroup.position.set(0, 2.5, 0);
+  model.add(armGroup);
+  const headNames = /^(head_white|dice_head|glasses_|wink|open_eye|freckle|dice_top_marks|sunglasses_)/i;
+  const armNames = /^(left_sleeve|left_elbow|left_forearm|left_cuff|left_hand|pointing_finger|finger_tip|right_sleeve|right_elbow|right_forearm|right_cuff|right_glove|seated_left_upper|seated_left_forearm|seated_right_upper|seated_right_forearm|left_glove|right_glove)/i;
+  const items = [];
+  model.traverse(obj => { if (obj.isMesh) items.push(obj); });
+  for (const item of items) {
+    const nm = item.name || item.parent?.name || '';
+    if (headNames.test(nm)) headPivot.attach(item);
+    else if (armNames.test(nm)) armGroup.attach(item);
+  }
+  return {root:model,headPivot,armGroup};
+}
+
 function mount(slot, seated) {
   if (slot.dataset.ace3dMounted) return;
   slot.dataset.ace3dMounted = 'true';
@@ -184,8 +231,14 @@ function mount(slot, seated) {
   key.position.set(-3, 7, 9); scene.add(key);
   const fill = new THREE.DirectionalLight('#ffffff', .5);
   fill.position.set(4, 2, -5); scene.add(fill);
-  const actor = buildAce(seated);
+  let actor = buildAce(seated);
   scene.add(actor.root);
+  loadOriginalGLB(seated).then(actual => {
+    // Swap the placeholder mesh for the true exported 3D source model.
+    scene.remove(actor.root);
+    scene.add(actual.root);
+    actor = actual;
+  }).catch(error => console.warn('Using procedural Ace preview:', error));
   const camera = new THREE.OrthographicCamera(-3.1, 3.1, 3.7, -3.7, .1, 100);
   camera.position.set(seated ? 5 : 3.6, 3.3, 10.6);
   camera.lookAt(seated ? .05 : -.25, 2.1, .05);
