@@ -7,6 +7,10 @@ on:
       - 'index.html'
       - 'ace-studio.html'
       - 'assets/welcome/**'
+      - 'robot-explorer.js'
+      - 'robot-workbench-2.js'
+      - 'styles.css'
+      - 'content/robot-2026.md'
       - '.github/workflows/deploy-site.yml'
   workflow_dispatch:
 
@@ -33,7 +37,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p _site
-          cp index.html styles.css builder.html ace-studio.html robot-explorer.js _site/
+          cp index.html styles.css builder.html ace-studio.html robot-explorer.js robot-workbench-2.js _site/
           cp .nojekyll _site/
           for file in site.json navigation.json robots.json sponsors.json settings.json; do
             if [ -f "$file" ]; then cp "$file" _site/; fi
@@ -45,6 +49,7 @@ jobs:
           du -sh _site
           test -f _site/index.html
           test -f _site/models/catalog.json
+          test -f _site/robot-workbench-2.js
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static site
