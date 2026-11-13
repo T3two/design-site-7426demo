@@ -4,6 +4,9 @@ on:
     paths:
       - 'robot-explorer.js'
       - 'index.html'
+      - 'styles.css'
+      - 'assets/welcome/**'
+      - 'tests/welcome-startup-smoke.cjs'
       - 'tests/robot-theater-smoke.cjs'
       - '.github/workflows/robot-theater-smoke.yml'
   workflow_dispatch:
@@ -25,6 +28,8 @@ jobs:
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/robot-http.log 2>&1 &
           sleep 3
+      - name: Verify instant welcome paint (desktop and mobile)
+        run: node tests/welcome-startup-smoke.cjs
       - name: Exercise both 3D scoring sequences in Chromium
         run: node tests/robot-theater-smoke.cjs
       - name: Attach screenshots and browser errors
