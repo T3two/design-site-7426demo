@@ -1,6 +1,13 @@
 name: Publish Pair of Dice Design
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'ace-studio.html'
+      - 'assets/welcome/**'
+      - '.github/workflows/deploy-site.yml'
   workflow_dispatch:
 
 permissions:
