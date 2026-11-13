@@ -38,17 +38,37 @@ const years=['2026','2025','2024','2023','2022','2020','2019'];
     const file='models/preview/posters/'+year+'.jpg';
     // Export directly from the 3D renderer; composited page screenshots are
     // unreliable for WebGL and may include controls or miss the drawing buffer.
-    let imageData;
-    if(year==='2026'||year==='2025'){
-      imageData=await page.evaluate(y=>window.__captureRobotPoster?.[y]?.(),year);
-    }else{
-      imageData=await element.evaluate(el=>{
-        if(typeof el.toDataURL!=='function')throw Error('model-viewer missing toDataURL');
-        return el.toDataURL('image/jpeg',.86);
-      });
-    }
+    // Capture PNG alpha from the actual CAD viewer, then explicitly composite
+    // onto the same off-white paper as the live website. Exporting an alpha
+    // WebGL buffer directly to JPEG made some valid robot previews look black.
+    const imageData=await page.evaluate(async year=>{
+      let source;
+      if(year==='2026'||year==='2025'){
+        source=window.__captureRobotPoster?.[year]?.();
+      }else{
+        const viewer=document.querySelector('.model-card.model-loaded model-viewer');
+        if(!viewer||typeof viewer.toDataURL!=='function')
+          throw Error('model-viewer PNG export unavailable');
+        source=viewer.toDataURL('image/png');
+      }
+      if(!source?.startsWith('data:image/png;base64,'))
+        throw Error('Actual-CAD PNG capture failed for '+year);
+      const img=new Image();
+      img.src=source;
+      await img.decode();
+      if(img.naturalWidth<80||img.naturalHeight<80)
+        throw Error('CAD image unexpectedly empty '+year);
+      const paper=document.createElement('canvas');
+      paper.width=img.naturalWidth;
+      paper.height=img.naturalHeight;
+      const ctx=paper.getContext('2d',{alpha:false});
+      ctx.fillStyle='#f4f0ec';
+      ctx.fillRect(0,0,paper.width,paper.height);
+      ctx.drawImage(img,0,0);
+      return paper.toDataURL('image/jpeg',.86);
+    },year);
     if(!/^data:image\/jpeg;base64,/.test(imageData||''))
-      throw Error('Real 3D capture failed for '+year);
+      throw Error('Composited real-CAD capture failed for '+year);
     fs.writeFileSync(file,Buffer.from(imageData.split(',')[1],'base64'));
     const size=fs.statSync(file).size;
     if(size<15000||size>800000)throw Error('Unexpected rendered image size '+size);
