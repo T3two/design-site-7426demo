@@ -1,0 +1,36 @@
+name: Robot theater browser smoke test
+on:
+  push:
+    paths:
+      - 'robot-explorer.js'
+      - 'index.html'
+      - 'tests/robot-theater-smoke.cjs'
+      - '.github/workflows/robot-theater-smoke.yml'
+  workflow_dispatch:
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save --no-package-lock playwright@1.57.0
+          npx playwright install --with-deps chromium
+      - name: Run static site server
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/robot-http.log 2>&1 &
+          sleep 3
+      - name: Exercise both 3D scoring sequences in Chromium
+        run: node tests/robot-theater-smoke.cjs
+      - name: Attach screenshots and browser errors
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-theater-browser-check
+          path: test-results/
+          if-no-files-found: ignore
