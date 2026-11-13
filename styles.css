@@ -1798,3 +1798,37 @@ article .workbench-jump:hover{background:#f2dddf;text-decoration:none}
     width:100%;height:92%;left:0;right:0;bottom:0;
   }
 }
+
+
+/* Fast first paint: never cover the site with a loading animation or video. */
+.site-loader,.site-loader[hidden]{display:none!important}
+/* URL is known before the page's data arrives. Home is paintable on first HTML render. */
+.welcome-gateway{display:none}
+html.initial-home .welcome-gateway:not([hidden]),
+body.welcome-mode .welcome-gateway:not([hidden]){display:grid}
+html.initial-home .layout{display:block}
+html.initial-home .sidebar,
+html.initial-home .page-intro{display:none}
+html.initial-home .content-shell{max-width:1200px;margin:auto}
+html.initial-home .menu-button{display:none!important}
+/* Each scene starts as a tiny, real render of the GLB, never a blank canvas. */
+.welcome-art--ace.ace3d-ready{display:block}
+.welcome-art--ace.ace3d-ready img.ace-3d-poster{
+  position:absolute;inset:0;display:block;
+  width:100%;height:100%;object-fit:contain;object-position:bottom center;
+  opacity:1;transition:opacity .16s ease;
+  pointer-events:none;
+}
+.welcome-art--ace.ace3d-ready .ace-3d-canvas{
+  position:absolute;inset:0;width:100%;height:100%;display:block;
+  opacity:0;transition:opacity .16s ease;
+}
+.welcome-art--ace.ace3d-live .ace-3d-canvas{opacity:1}
+.welcome-art--ace.ace3d-live img.ace-3d-poster{opacity:0}
+@media(prefers-reduced-motion:reduce){
+ .welcome-art--ace.ace3d-ready img.ace-3d-poster,
+ .welcome-art--ace.ace3d-ready .ace-3d-canvas{transition:none}
+}
+@media(max-width:780px){
+ html.initial-home .welcome-gateway:not([hidden]){display:flex}
+}
