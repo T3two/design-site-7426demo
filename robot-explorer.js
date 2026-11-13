@@ -627,7 +627,7 @@ function mount(host,year,models,loadPackedModel){
       window.__captureRobotPoster[year]=()=>{
         if(!full||!renderer||!scene||!camera)throw Error("Robot not ready for CAD frame export");
         renderer.render(scene,camera);
-        return renderer.domElement.toDataURL("image/jpeg",.86);
+        return renderer.domElement.toDataURL("image/png");
       };
       cleanupObjects.push(()=>{delete window.__captureRobotPoster?.[year];});
     }
