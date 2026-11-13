@@ -3,6 +3,8 @@ on:
   push:
     paths:
       - 'robot-explorer.js'
+      - 'robot-workbench-2.js'
+      - 'tests/workbench2-smoke.cjs'
       - 'index.html'
       - 'styles.css'
       - 'assets/welcome/**'
@@ -33,6 +35,10 @@ jobs:
         run: |
           npm install --no-save --no-package-lock playwright@1.57.0
           npx playwright install --with-deps chromium
+      - name: Validate workbench JavaScript syntax
+        run: |
+          node --check robot-explorer.js
+          node --input-type=module --check < robot-workbench-2.js
       - name: Run static site server
         run: |
           python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/robot-http.log 2>&1 &
@@ -47,6 +53,8 @@ jobs:
         run: node tests/fast-robot-preview.cjs
       - name: Verify cached subsystem transitions and CAD part inspection
         run: node tests/robot-interactions-smoke.cjs
+      - name: Verify Workbench 2.0 assembly, measurements, section tools and history
+        run: node tests/workbench2-smoke.cjs
       - name: Exercise both 3D scoring sequences in Chromium
         run: node tests/robot-theater-smoke.cjs
       - name: Attach screenshots and browser errors
