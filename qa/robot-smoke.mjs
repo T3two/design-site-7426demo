@@ -19,7 +19,7 @@ for(const [year,mechanism] of cases){
     await page.waitForSelector(".robot-theater .theater-launch",{timeout:35000});
     console.log("READY",year,await page.locator(".robot-theater").count());
     await page.locator(".robot-theater .theater-launch").evaluate(el=>el.click());
-    await page.waitForFunction(()=>document.querySelector(".robot-theater .theater-stage")?.classList.contains("is-ready"),{timeout:150000});
+    await page.waitForFunction(()=>document.querySelector(".robot-theater .theater-stage")?.classList.contains("is-ready"),null,{timeout:150000});
     console.log("CAD_LOADED",year);
     await page.locator(".robot-theater .theater-nav-button").filter({hasText:mechanism}).first().evaluate(el=>el.click());
     await page.waitForFunction((name)=>!!document.querySelector(".robot-theater .theater-detail h4")?.textContent?.toLowerCase().includes(name.toLowerCase()),mechanism,{timeout:60000});
