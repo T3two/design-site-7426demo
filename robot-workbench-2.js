@@ -143,6 +143,7 @@ export function createWorkbench2(config) {
   }
   function disableMeasure(){
     measureMode=false;measurePanel.hidden=true;setPressed(measureButton,false);clearPoints();
+    delete host.dataset.workbenchMeasureMm;
   }
   function stopClip(){
     for(const [material,original] of clippingMaterials){
@@ -352,8 +353,15 @@ export function createWorkbench2(config) {
     if(sectionMode&&loaded)renderSection();
     if(tree.open)renderTree();
   }
+  let lastSelection=getSelection();
   function onSelection(){
-    disableMeasure();disableSection();delete host.dataset.workbenchMeasureMm;
+    const nextSelection=getSelection();
+    // Initial CAD readiness and camera transitions must not discard a tool
+    // the visitor just enabled on the same subsystem.
+    if(nextSelection!==lastSelection){
+      disableMeasure();disableSection();delete host.dataset.workbenchMeasureMm;
+    }
+    lastSelection=nextSelection;
     renderHistory();filterNav();refresh();
   }
   function beforeMotion(){
