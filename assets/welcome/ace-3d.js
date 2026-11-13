@@ -316,24 +316,40 @@ function mount(slot, seated) {
     }
     lastFrame = time;
     // Intentional held poses at 12 fps, with continuous camera motion.
-    const t = reducedMotion.matches ? 0 : Math.floor((time - tickStart) / (1000/12)) / 12;
-    const enter = reducedMotion.matches ? 1 : Math.min(1, (time - tickStart) / 750);
-    const eased = 1 - Math.pow(1 - enter, 3);
-    actor.root.position.y = (1 - eased) * -.19 + (reducedMotion.matches ? 0 : Math.sin(t * 2.1) * .025);
-    actor.root.rotation.y += (pointerX * -.16 + (seated ? -.08 : .08) - actor.root.rotation.y) * .045;
-    actor.root.rotation.z = reducedMotion.matches ? 0 : Math.sin(t * 1.35) * (seated ? .013 : .019);
-    actor.headPivot.rotation.z = reducedMotion.matches ? 0 : Math.sin(t * 1.65 + .3) * .022;
-    actor.headPivot.rotation.y = reducedMotion.matches ? 0 : .028 * Math.sin(t * 1.1);
-    actor.armGroup.rotation.z = reducedMotion.matches ? 0 : Math.sin(t * 1.6) * (seated ? .007 : .025);
-    camera.position.x += (pointerX * .36 + (seated ? 3 : 2.2) - camera.position.x) * .035;
-    camera.position.y += (-pointerY * .16 + 3.36 - camera.position.y) * .035;
-    camera.lookAt(seated ? 0 : -.21, 2.1, .02);
+    // Art-directed character acting, not procedural perpetual wobble.
+    // The pose is deliberately held on twos (12 poses/second) while the
+    // camera tracks pointer input smoothly, following the split animation
+    // cadence documented by Sony Pictures Imageworks.
+    const held = reducedMotion.matches ? 0 : Math.floor((time - tickStart) / (1000/12)) / 12;
+    const phase = held % (seated ? 6.7 : 5.8);
+    const clamp01 = x => Math.max(0,Math.min(1,x));
+    const soften = x => { const q=clamp01(x); return q*q*(3-2*q); };
+    const gesture = seated
+      ? soften((phase-.36)/.40) * (1-soften((phase-4.8)/.65))
+      : soften((phase-.22)/.54) * (1-soften((phase-4.35)/.58));
+    const accent = seated
+      ? soften((phase-1.25)/.34)*(1-soften((phase-2.30)/.55))
+      : soften((phase-.77)/.3)*(1-soften((phase-1.64)/.35));
+    const intro=soften((held-.02)/.64);
+    const yawGoal = (seated?-.12:.08) + pointerX*.12 + (seated?-.12:.16)*gesture;
+    actor.root.position.y = (1-intro)*-.18;
+    actor.root.rotation.y += (yawGoal-actor.root.rotation.y)*.11;
+    actor.root.rotation.z = (seated?-.016:.015)*gesture;
+    actor.headPivot.rotation.y = (seated?-.14:.12)*gesture + .035*accent;
+    actor.headPivot.rotation.z = (seated?.058:-.075)*accent;
+    // Only a small arm-group motion is possible without a fully authored
+    // joint rig; don't fake independent fingers or unsupported anatomy.
+    actor.armGroup.rotation.z = (seated?-.025:.085)*gesture;
+    camera.position.x += (pointerX*.28 + (seated?3:2.2)-camera.position.x)*.06;
+    camera.position.y += (-pointerY*.11 + 3.36-camera.position.y)*.06;
+    camera.lookAt(seated?0:-.21,2.1,.02);
     renderer.render(scene, camera);
     if (firstFrame) {
       firstFrame = false;
       slot.classList.add('ace3d-live');
     }
-    // Never run a 60fps loop behind the user's back on archive pages.
+    // Pause completely when hidden/reduced-motion; the poster and first 3D
+    // frame remain in place with no unnecessary GPU animation work.
     if (!reducedMotion.matches) schedule();
   }
   if ('IntersectionObserver' in window) {
