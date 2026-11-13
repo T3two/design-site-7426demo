@@ -171,7 +171,11 @@ function mount(host,year,models,loadPackedModel){
   const partIsolate=e("button","theater-part-isolate","Isolate selected geometry");
   partIsolate.type="button";
   partInspector.append(partHeader,partTitle,partSource,partIsolate);
-  viewport.append(canvasHome,graphic,poster,hotspots,hudTop,hudBottom,loader,demoHud,partInspector);
+  const perfEnabled=new URLSearchParams(location.search).has("perf");
+  const perfHud=e("output","theater-perf-hud","Calculating frame timings…");
+  perfHud.hidden=!perfEnabled;
+  perfHud.setAttribute("aria-label","Live WebGL render measurements");
+  viewport.append(canvasHome,graphic,poster,hotspots,hudTop,hudBottom,loader,demoHud,partInspector,perfHud);
   const controlsBar=e("div","theater-controls");
   const btnFull=e("button","theater-tool","← Full robot");
   const btnReset=e("button","theater-tool","Reset view");
@@ -557,6 +561,30 @@ function mount(host,year,models,loadPackedModel){
     observer.observe(viewport);cleanupObjects.push(()=>observer.disconnect());
     let frames=0;
     let lastVisualFrame=-Infinity;
+    let lastMeasuredFrame=0;
+    const sampleFrameMs=[];
+    const updatePerformanceReadout=now=>{
+      if(!perfEnabled)return;
+      if(lastMeasuredFrame && now-lastMeasuredFrame<180)
+        sampleFrameMs.push(now-lastMeasuredFrame);
+      lastMeasuredFrame=now;
+      if(sampleFrameMs.length>120)sampleFrameMs.shift();
+      if(sampleFrameMs.length<8 || ++frames%20!==0)return;
+      const sorted=[...sampleFrameMs].sort((a,b)=>a-b);
+      const med=sorted[Math.floor(sorted.length*.5)];
+      const p95=sorted[Math.floor(sorted.length*.95)];
+      const stats={
+        year,avgFps:Math.round(1000/(sampleFrameMs.reduce((a,b)=>a+b,0)/sampleFrameMs.length)),
+        medianMs:+med.toFixed(1),p95Ms:+p95.toFixed(1),
+        drawCalls:renderer.info.render.calls,triangles:renderer.info.render.triangles,
+        geometries:renderer.info.memory.geometries,textures:renderer.info.memory.textures,
+        pixelRatio:renderer.getPixelRatio()
+      };
+      window.__pairOfDicePerformance=window.__pairOfDicePerformance||{};
+      window.__pairOfDicePerformance[year]=stats;
+      perfHud.textContent=stats.avgFps+' FPS · p95 '+stats.p95Ms+' ms · '+
+        stats.drawCalls+' calls · '+(stats.triangles/1000).toFixed(0)+'k triangles';
+    };
     // QA has to render the real CAD on a CPU-only GitHub runner.
     // Slow its visual frames without affecting the interactive site.
     const qaSoftwareRenderer=new URLSearchParams(window.location.search).has("qa");
@@ -611,7 +639,10 @@ function mount(host,year,models,loadPackedModel){
       }
       renderer.render(scene,camera);
       lastVisualFrame=now;
-      if(++frames%3===0)setAllHotspots();
+      updatePerformanceReadout(now);
+      // Hotspots are hidden in the current design and should not project
+      // dozens of meshes onto the screen 20 times a second.
+      if(showHotspots && ++frames%4===0)setAllHotspots();
     };
     requestAnimationFrame(tick);
   };
@@ -695,6 +726,7 @@ function mount(host,year,models,loadPackedModel){
       setMessage("PREPARING ORIGINAL CAD — FAST MODEL REMAINS VISIBLE");
       const gltf=await fetchOriginal();
       if(destroyed)return;
+      clearPickedPart();
       const original=makeGroup(gltf);
       applyFade(original,0);
       const previous=full;
