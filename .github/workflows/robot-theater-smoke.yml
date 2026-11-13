@@ -14,6 +14,11 @@ on:
       - '.github/workflows/robot-theater-smoke.yml'
   workflow_dispatch:
 
+# Never run several expensive SwiftShader robot tests on the same review ref.
+concurrency:
+  group: robot-theater-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   browser-smoke:
     runs-on: ubuntu-24.04
