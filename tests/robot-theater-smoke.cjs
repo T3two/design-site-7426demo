@@ -29,6 +29,19 @@ const time=()=>new Date().toISOString();
       try{
         console.log(time(),year,"opening page");
         await page.goto(base+"?page=robot-"+year+"&qa=1",{waitUntil:"domcontentloaded",timeout:35000});
+        const physics=Math.PI;
+        const check=await page.evaluate(()=>{
+          const motion=window.RobotScoringPhysics;
+          if(!motion)return null;
+          const gravity=motion.deriveBallisticShot(3.25,1.46,Math.PI/4);
+          return {
+            speed:gravity.speed,
+            descending:gravity.verticalAtTarget<0,
+            slide:motion.branchGravity(35*Math.PI/180,.26)
+          };
+        });
+        if(!check||!check.descending||check.speed<=0||check.slide<=0)
+          throw new Error("Gravity/branch physics calculation failed: "+JSON.stringify(check));
         await page.locator(".robot-theater .theater-launch").waitFor({timeout:35000});
         await page.locator(".robot-theater .theater-launch").evaluate(el=>el.click());
         await page.locator(".theater-stage.is-ready").waitFor({timeout:180000});
@@ -44,6 +57,22 @@ const time=()=>new Date().toISOString();
           sceneReady:document.querySelector(".theater-stage")?.classList.contains("is-ready")
         }));
         console.log(time(),year,"FULL ROBOT DEMO",JSON.stringify(overviewState));
+        const physical=await page.evaluate(()=>window.__robotScoringQA);
+        console.log(time(),year,"PHYSICAL SCORING",JSON.stringify(physical));
+        if(!physical)throw new Error("Missing scoring geometry measurements");
+        if(year==="2026"){
+          if(physical.type!=="fuel"||physical.forwardAlignment<.97)
+            throw new Error("Shooter fires opposite its forward CAD direction: "+JSON.stringify(physical));
+          if(Math.abs(physical.impactY-physical.targetY)>.003||
+             physical.verticalAtTarget>=0||
+             physical.launchSpeed<1||physical.launchSpeed>20)
+            throw new Error("FUEL failed gravity trajectory constraint: "+JSON.stringify(physical));
+        }else{
+          if(physical.type!=="coral"||physical.retainedProps!==2||
+             physical.centerError>.002||physical.alignment<.999||
+             physical.branchContactLength<.22||physical.gravitySlide<=0)
+            throw new Error("CORAL did not remain supported on the reef branch: "+JSON.stringify(physical));
+        }
         if(overviewState.busy||overviewState.buttonDisabled||!overviewState.sceneReady)
           throw new Error("Full robot direct demo unhealthy "+JSON.stringify(overviewState));
         await page.locator(".theater-nav-button").filter({hasText:part}).first().evaluate(el=>el.click());
