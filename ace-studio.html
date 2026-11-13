@@ -154,7 +154,7 @@ async function load(){
   storedClips=gltf.animations;
   const menu=$('embedded');
   menu.replaceChildren(new Option('Manual keyframes',''));
-  for(const clip of storedClips)menu.add(new Option(clip.name.replace(/^\\d+_/,'').replaceAll('_',' '),clip.name));
+  for(const clip of storedClips)menu.add(new Option(clip.name.replace(/^\d+_/,'').replaceAll('_',' '),clip.name));
   scene.add(actor);
   apply();
   save();
