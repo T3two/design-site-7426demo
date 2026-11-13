@@ -343,6 +343,14 @@ function mount(slot, seated) {
     camera.position.x += (pointerX*.28 + (seated?3:2.2)-camera.position.x)*.06;
     camera.position.y += (-pointerY*.11 + 3.36-camera.position.y)*.06;
     camera.lookAt(seated?0:-.21,2.1,.02);
+    // Test-only pose instrumentation. Never collect visitors' pointer data.
+    if (new URLSearchParams(location.search).has('aceqa')) {
+      window.__aceMotionQA = window.__aceMotionQA || {};
+      window.__aceMotionQA[seated?'robot':'design'] = {
+        gesture,accent,headYaw:actor.headPivot.rotation.y,
+        headTilt:actor.headPivot.rotation.z,armAngle:actor.armGroup.rotation.z
+      };
+    }
     renderer.render(scene, camera);
     if (firstFrame) {
       firstFrame = false;
