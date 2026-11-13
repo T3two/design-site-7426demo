@@ -21,6 +21,9 @@ for(const [year,mechanism] of cases){
     await page.locator(".robot-theater .theater-launch").evaluate(el=>el.click());
     await page.waitForFunction(()=>document.querySelector(".robot-theater .theater-stage")?.classList.contains("is-ready"),null,{timeout:150000});
     console.log("CAD_LOADED",year);
+    const threeStage=page.locator(".robot-theater .theater-stage");
+    await threeStage.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(650);
     await page.locator(".robot-theater .theater-nav-button").filter({hasText:mechanism}).first().evaluate(el=>el.click());
     await page.waitForFunction((name)=>!!document.querySelector(".robot-theater .theater-detail h4")?.textContent?.toLowerCase().includes(name.toLowerCase()),mechanism,{timeout:60000});
     // Allow the scripted isolation/transition and any automatic demo time.
@@ -54,7 +57,7 @@ for(const [year,mechanism] of cases){
       stageReady:document.querySelector(".robot-theater .theater-stage")?.classList.contains("is-ready")
     }));
     console.log("RESULT",year,JSON.stringify(data));
-    await page.screenshot({path:"qa-results/"+year+"-action.png"});
+    await threeStage.screenshot({path:"qa-results/"+year+"-action.png"});
     if(!data.stageReady||data.busy||(!data.demo&&data.actionLabel?.includes("Playing")))
       throw Error("Sequence unhealthy "+JSON.stringify(data));
     if(errors.length)throw Error("Uncaught errors "+errors.join(" | "));
@@ -66,7 +69,7 @@ for(const [year,mechanism] of cases){
   }catch(e){
     failures++;
     console.error("FAILED_CASE",year,e.stack||e);
-    try{await page.screenshot({path:"qa-results/"+year+"-failed.png"});}catch{}
+    try{await page.locator(".robot-theater .theater-stage").screenshot({path:"qa-results/"+year+"-failed.png",timeout:8000});}catch{}
   }finally{
     console.log("ERRORS",year,JSON.stringify(errors));
     console.log("CONSOLE_ERRORS",year,JSON.stringify(messages.slice(-15)));
