@@ -20,3 +20,22 @@ After art approval:
 Before upload the site displays restrained, clearly labeled layout placeholders. Empty manifest keys never issue image requests. The user requested that the original reference art not be included or republished; no reference files or generated mascots are committed here.
 
 Both scene areas and central buttons navigate to real routes: `?page=design-teaching` and `?page=robot-archive`. The existing engineering pages, robot models, and sidebar navigation remain available.
+
+## First real 3D prototype (ready on the review branch)
+
+The welcome screen now renders two versions of original Ace geometry in interactive WebGL:
+- `assets/welcome/ace_pointing.glb.gz`: pointing Ace, his usual square glasses
+- `assets/welcome/ace_seated.glb.gz`: Ace seated on a chair, crossed arms and sunglasses
+
+The gzip-compressed files contain real GLB model bytes. `assets/welcome/ace-3d.js`
+decompresses and loads those meshes through Three.js `GLTFLoader`, applies
+matte toon materials, builds pivots for simple head and arm movement, and renders
+two restrained animated scenes. A procedural geometry fallback shows the same
+character design if stream decompression or asset loading is unavailable.
+No generated illustrations, scans or personal reference images are stored in the repo.
+
+This is the first blockout/animation pass, not the final artist-reviewed model.
+It deliberately retains simple low-poly forms while the user evaluates the look.
+It does not yet have advanced skeletal rigging, frame-by-frame anime character
+acting, cinematic camera cuts or real competition robots in the background.
+The main branch remains untouched until the user approves.
