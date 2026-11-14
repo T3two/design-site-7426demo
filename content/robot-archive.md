@@ -1,9 +1,12 @@
-# Our robots, year by year
+# Robot archive / documented builds
 
-We started competing in 2019. This archive collects the CAD we have for seven competition seasons: 2019, 2020, 2022, 2023, 2024, 2025, and 2026.
+Our team began competing in 2019, but this public engineering archive focuses on the two robots we can currently document in depth:
 
-Open a year below to explore its assembly. For 2026, we also have detailed subsystem notes from our RICOCHET technical binder. Other years have editable sections where the team can add photos, tradeoffs, and lessons as they're verified.
+- **2026 / RICOCHET — REBUILT.** Explore the full robot, its subsystems, and its technical design notes through the interactive CAD workbench.
+- **2025 / DEADPOOL — REEFSCAPE.** Explore its 28 × 28-inch MK4i chassis, three-stage elevator, carriage and wrist, CORAL/ALGAE claw, and deep-cage climber. The engineering details and documented iterations come from our 2025 Technical Binder.
 
-The **T-shirt Cannon** is an offseason project and has its own page, separate from the competition archive.
+Older robot CAD has been preserved privately in the website's source repository, but 2019–2024 are temporarily omitted from public navigation and model browsing because the engineering explanations are incomplete. They can return when their documentation is verified.
 
-> Large CAD assemblies are downloaded only when you choose to open the viewer. On school computers, some models may need extra time or memory to render.
+**The T-shirt Cannon remains in our offseason projects** and continues to have its own page and CAD entry.
+
+Open a robot below to explore its 3D model and its documented engineering decisions. High-resolution CAD is downloaded only when requested.
