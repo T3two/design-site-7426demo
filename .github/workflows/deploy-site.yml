@@ -10,7 +10,10 @@ on:
       - 'robot-explorer.js'
       - 'robot-workbench-2.js'
       - 'styles.css'
-      - 'content/robot-2026.md'
+      - 'content/**'
+      - 'navigation.json'
+      - 'robots.json'
+      - 'models/catalog.json'
       - '.github/workflows/deploy-site.yml'
   workflow_dispatch:
 
