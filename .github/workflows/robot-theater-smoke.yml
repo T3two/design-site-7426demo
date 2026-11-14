@@ -49,7 +49,7 @@ jobs:
         run: node tests/ace-comic-3d.cjs
       - name: Verify original Ace joint animation Studio
         run: node tests/ace-original-joints-studio.cjs
-      - name: Verify fast real CAD models for all seven seasons
+      - name: Verify fast 2025 and 2026 CAD models
         run: node tests/fast-robot-preview.cjs
       - name: Verify cached subsystem transitions and CAD part inspection
         run: node tests/robot-interactions-smoke.cjs
