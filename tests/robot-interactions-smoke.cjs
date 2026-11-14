@@ -41,7 +41,7 @@ async function verifyYear(browser,year,subsystem){
     throw Error('CAD provenance is not connected to the selected subsystem: '+cadText);
   await noteTabs.locator('button').filter({hasText:'Evidence'}).click();
   const evidence=await page.locator('.theater-evidence-copy').innerText();
-  if(!/not (independently )?validated|not been verified/i.test(evidence))
+  if(!/not (independently )?validated|not been verified|not established/i.test(evidence))
     throw Error('Evidence status is not transparent: '+evidence);
   await noteTabs.locator('button').filter({hasText:'How it works'}).click();
   await page.locator('.theater-nav-button').filter({hasText:/complete robot/i}).first().evaluate(el=>el.click());
