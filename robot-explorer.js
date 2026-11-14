@@ -7,16 +7,16 @@
 const seasons={
   "2026":{
     name:"RICOCHET", season:"REBUILT", hero:"models/preview/posters/2026.jpg",
-    intro:"The 2026 REBUILT robot. Select a subsystem to inspect its CAD and design notes.",
+    intro:"RICOCHET / 2026 REBUILT. Explore the robot alongside the team's original 19-page technical binder, including dimensions and design revisions.",
     pieces:[
-      ["drivetrain","Swerve drivetrain","A low four-module chassis with SDS MK5N modules and a 27 × 27-inch frame."],
-      ["intake","Over-bumper intake","The pivoting roller intake collects FUEL and transfers it toward storage. Its geometry evolved through testing."],
-      ["hopper","Extending hopper","A storage mechanism that extends for capacity and retracts for field clearance."],
-      ["feeder-queuer","Feeder / queuer","The compact belt-guided path transports FUEL toward the scoring system."],
-      ["turret","Turret","Independent aiming packages the scoring assembly above the robot chassis."],
-      ["shooter","Shooter","The high-inertia flywheel and fixed-geometry hood support consistent scoring."],
-      ["climber","Climber","The endgame climbing structure is packaged within a compact robot envelope."],
-      ["bumpers","Bumpers","A separate protective structure with mounting interfaces for easier service."]
+      ["drivetrain","SDS MK5N swerve drivetrain","27 × 27-inch frame; SDS MK5N, R3 reduction, 4-inch high-grip wheels, Kraken X60 drive and Kraken X44 steering. Binder p. 5."],
+      ["intake","Over-bumper intake","1.5-inch polycarbonate rollers driven by a Kraken X60; pivot uses two X60s and 1/4-inch 7075-aluminum plates. Dead-axle revision followed lost bearings. Binder pp. 6 and 17."],
+      ["hopper","Horizontal extending hopper","Four 1/8-inch SRPP plates, cabinet drawer slides and friction-reducing bearings. The front wall extends beyond the intake for protection. Binder p. 7."],
+      ["feeder-queuer","Five-belt feeder and indexer","Five guiding belts, 1/4-inch aluminum side plates, angled LEXAN index panels and 1/4-inch 7075 helicopter blades with 9:1 Kraken 44 drives. Binder p. 8."],
+      ["turret","370-degree turret and vision","Custom turret hardware, PLA Matte 3D-printed energy chain, and three Limelights with a 360-degree vision mount. Binder p. 9."],
+      ["shooter","40.125-degree fixed-hood shooter","Fixed 40.125° hood, 1-inch FUEL compression, 4-inch 8 lb solid-brass flywheel with Kraken X60 drive; post-Arizona 1-inch aluminum backrollers reduced backspin. Binder pp. 10, 15 and 18."],
+      ["climber","Three-stage telescoping L1 climber","30-inch maximum extension; Kraken X60 at 45:1 with 7075-aluminum hook and plates. Prior design concepts were not fabricated. Binder pp. 11 and 16."],
+      ["bumpers","Bumpers and brackets","Custom brackets support quick bumper swaps around the 27 × 27-inch frame. Binder p. 5."]
     ],
     actionName:"Watch RICOCHET drive & shoot", actionSubsystem:"shooter", actionTitle:"FUEL / SCORING SEQUENCE"
   },
@@ -260,12 +260,12 @@ function mount(host,year,models,loadPackedModel){
   actionButton.type="button";
   const actionDisclaimer=e("p",null,"Drive paths, joint movement and game-piece motion are illustrative, not measured match data.");
   const aimControls=e("div","theater-aim-controls");
-  const aimCaption=e("label","theater-aim-caption","Turret angle");
+  const aimCaption=e("label","theater-aim-caption","Turret yaw / limited preview");
   const aimValue=e("output","theater-aim-value","0°");
   const aimInput=e("input","theater-aim-slider");
   aimInput.type="range";
   aimInput.min="-65";aimInput.max="65";aimInput.step="1";aimInput.value="0";
-  aimInput.setAttribute("aria-label","Illustrative turret yaw angle in degrees");
+  aimInput.setAttribute("aria-label","Illustrative turret yaw in degrees, limited to plus or minus 65 degrees; binder specifies a 370-degree turret design");
   aimControls.append(aimCaption,aimValue,aimInput);
   aimControls.hidden=true;
   actionPanel.append(actionMeta,aimControls,actionButton,actionDisclaimer);
@@ -449,7 +449,7 @@ function mount(host,year,models,loadPackedModel){
     }
     const base=year==="2025"
       ?"The 2025 DEADPOOL binder documents mechanical dimensions, materials, motor ratios, sensors, and design iterations. Measured joint travel limits, actuation timing, collision behavior, and scoring reliability are not established by the browser animation."
-      :"The team design notes on this page provide context, but joint travel limits, measured shot statistics and calibration are not independently validated in this visualization.";
+      :"The 2026 RICOCHET technical binder documents chassis geometry, mechanism materials, gearing, the 370-degree turret and 40.125-degree fixed hood. The stated 95% shot accuracy was a design requirement, not a measured result. Joint travel, actual shot statistics, and calibration are not independently validated in this browser visualization.";
     const mechanics=key==="shooter"
       ?" The animated FUEL path uses ideal gravity-based kinematics; air drag and real shot variability are not modeled."
       :key==="claw"
@@ -1365,7 +1365,12 @@ function mount(host,year,models,loadPackedModel){
     // toward -Y on the source Z-up CAD, with a rising exit tangent.
     // This outlet is an illustrated point just outside that edge of the CAD.
     const muzzleCAD=new THREE.Vector3(0,.005,.422);
-    const exitCAD=new THREE.Vector3(0,-1,1).normalize();
+    // The RICOCHET binder p. 10 specifies a FIXED 40.125-degree hood.
+    // The source CAD uses Z up and the open shooter outlet faces -Y.
+    // The exit is still a simplified tangent, not a calibrated muzzle survey.
+    const documentedHoodAngle=40.125*Math.PI/180;
+    const exitCAD=new THREE.Vector3(0,-Math.cos(documentedHoodAngle),
+      Math.sin(documentedHoodAngle)).normalize();
     const sampleMuzzle=()=>{
       shooter.updateWorldMatrix(true,false);
       const dir=exitCAD.clone().transformDirection(shooter.matrixWorld).normalize();
