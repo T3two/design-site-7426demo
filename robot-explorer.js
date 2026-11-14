@@ -1393,7 +1393,11 @@ function mount(host,year,models,loadPackedModel){
     motion.chassis.updateMatrixWorld(true);
     const aligned=sampleMuzzle();
     const heading=new THREE.Vector3(aligned.dir.x,0,aligned.dir.z).normalize();
-    const range=3.25;
+    // Illustrative HUB placement only: with the binder's fixed 40.125-degree
+    // exit tangent and this CAD muzzle height, 3.25 m would reach the hub
+    // while still ASCENDING. At 3.9 m the ideal path is descending.
+    // This is not a measured shot distance or a real field calibration.
+    const range=3.90;
     const hubCenter=aligned.origin.clone().addScaledVector(heading,range);
     hubCenter.y=1.83;
     const target=hubCenter.clone().setY(1.96);
