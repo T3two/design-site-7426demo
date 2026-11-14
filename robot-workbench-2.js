@@ -18,7 +18,7 @@ export function createWorkbench2(config) {
   const sourceSteps={
     full:[
       ['Kickoff','Compare strategy','Team members analyzed the game manual, potential scoring strategies, and a list of needs, wants and dislikes. Binder p. 14.'],
-      ['Prototyping','Evaluate requirements','The team required 95% shot accuracy as a target, favored compact mechanisms, and considered match failure risk; the binder does not report an achieved accuracy. Binder p. 14.'],
+      ['Prototyping','Evaluate requirements','During prototyping, the team required 95% shot accuracy as a target, favored compact mechanisms, and considered match failure risk; the binder does not report an achieved accuracy. Binder p. 14.'],
       ['Final integration','Package all mechanisms','The 27 × 27-inch swerve chassis packages an over-bumper intake, extending hopper, feeder, turret, shooter, and compact L1 climber. Binder pp. 4–12.']
     ],
     intake:[
