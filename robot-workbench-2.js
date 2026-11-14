@@ -13,45 +13,48 @@ export function createWorkbench2(config) {
     if(text!==undefined)node.textContent=text;
     return node;
   };
+  // Each note summarizes the supplied RICOCHET 2025–2026 technical binder.
+  // Historical CAD concepts are described; this timeline does not swap meshes.
   const sourceSteps={
     full:[
-      ['Strategy','Game priorities','The team compared scoring opportunities, constraints, and priorities before locking in mechanisms.'],
-      ['Prototyping','Adjustable subsystems','Independent prototypes helped the team investigate feed consistency, packaging, and reliability.'],
-      ['Integration','Complete machine','Intake, storage, feeder, turret, scorer, and climber were packaged as one robot.']
+      ['Kickoff','Compare strategy','Team members analyzed the game manual, potential scoring strategies, and a list of needs, wants and dislikes. Binder p. 14.'],
+      ['Prototyping','Evaluate requirements','The team required 95% shot accuracy as a target, favored compact mechanisms, and considered match failure risk; the binder does not report an achieved accuracy. Binder p. 14.'],
+      ['Final integration','Package all mechanisms','The 27 × 27-inch swerve chassis packages an over-bumper intake, extending hopper, feeder, turret, shooter, and compact L1 climber. Binder pp. 4–12.']
     ],
     intake:[
-      ['Early design','Roller and pivot layout','The over-bumper intake uses a polycarbonate roller with a pivoting assembly. Geometry and motor position changed between prototypes.'],
-      ['Iteration','Improved fuel transfer','A kick plate and backing plate were added to improve stability and reduce fuel getting trapped.'],
-      ['Later revision','Dead-axle arrangement','After a bearing-retention issue, the team changed to a dead-axle arrangement.']
+      ['Initial concepts','Roller and pivot geometry','The intake uses 1.5-inch polycarbonate rollers and a pivot driven by two Kraken X60 motors. Binder p. 6.'],
+      ['Revision','Stability and compression','A kick plate, changed motor placement, and an upper backing plate improved the geometry and addressed trapped FUEL. Binder p. 17.'],
+      ['Final changes','Dead-axle arrangement','The team changed from a live axle to a dead axle after bearings fell out, and added bearings to reduce hopper/intake friction. Binder p. 17.']
     ],
     hopper:[
-      ['Concept','Expandable storage','An extending hopper holds fuel and retracts to clear the field trench.'],
-      ['Refinement','Reduce sliding friction','Cabinet-style slides and additional bearings addressed friction in the moving structure.'],
-      ['Integration','Intake clearance','The team checked how hopper travel and intake geometry interact.']
+      ['Capacity','Horizontal extension','The hopper extends for more FUEL capacity and retracts to fit below the trench. Binder p. 7.'],
+      ['Motion','Cabinet slides and bearings','The design repurposes cabinet drawer slides; bearings along the front wall reduce friction. Binder p. 7.'],
+      ['Protection','Extended front wall','The hopper front extends slightly farther than the intake to protect it near other robots and field walls. Binder p. 7.']
     ],
     'feeder-queuer':[
-      ['Design','Guide fuel toward scoring','Belt-guided paths and angled panels move fuel from storage toward the scoring assembly.'],
-      ['Packaging','Compact routing','The feeder was laid out with the overall robot packaging in mind.']
+      ['Transfer','Five guiding belts','Five guide belts move FUEL through the robot; 1/4-inch aluminum side plates form the conveyor support. Binder p. 8.'],
+      ['Indexing','Gravity and spinning blades','Angled LEXAN panels collect balls; 1/4-inch 7075-aluminum helicopter blades with 9:1 Kraken 44 drive help avoid shooter-entry jams. Binder p. 8.']
     ],
     turret:[
-      ['Design','Independent aiming','The turret aims the scoring mechanism without requiring the chassis to face the target.'],
-      ['Integration','Vision and packaging','Three Limelight cameras support field awareness and pose estimation within the compact layout.']
+      ['Range','370-degree turret','Custom turret hardware allows the shooter to change direction while the chassis moves; the binder describes a 370-degree turret. Binder p. 9.'],
+      ['Cable management','Custom energy chain','The turret uses a custom 3D-printed PLA Matte energy chain to accommodate movement. Binder p. 9.'],
+      ['Vision','Three Limelights','Three Limelights with a custom 360-degree vision mount support field pose estimation. Binder p. 9.']
     ],
     shooter:[
-      ['Concept','Flywheel and fixed hood','A high-inertia flywheel and fixed-geometry hood were selected for repeatable scoring behavior.'],
-      ['Iteration','Rework the package','Early scoring assemblies were revised for packaging and consistency.'],
-      ['Post-Arizona','Revisit the feed path','A later revision addressed fuel feeding behavior observed during competition.']
+      ['Initial','Adjustable hood and smaller wheel','The early shooter included an adjustable hood and a 3-inch brass wheel. Binder p. 15.'],
+      ['Fixed hood','40.125-degree shot geometry','The final approach uses a fixed 40.125-degree hood, 1-inch compression, a 4-inch 8 lb brass flywheel, and direct coupling instead of pulleys. Binder pp. 10 and 15.'],
+      ['Post-Arizona','Backrollers reduced backspin','After FUEL bounced into the neutral zone, the team added 1-inch aluminum backrollers to reduce backspin. The binder calls this the fourth shooter. Binder p. 18.']
     ],
     climber:[
-      ['Concepts','Explore alternatives','Several climber concepts were considered in CAD for the endgame.'],
-      ['Final direction','Simplify the system','The selected layout focused on a compact footprint, serviceability, and reliability.']
+      ['Proposed concepts','CAD alternatives only','Three prior climber designs were considered but were not fabricated. Time, resources, and packaging led to the chosen direction. Binder p. 16.'],
+      ['Final design','Compact telescoping arm','The finished concept is a three-stage telescoping L1 climber with 30-inch maximum extension and a Kraken X60 at 45:1; hook and plates are 7075 aluminum. Binder pp. 11 and 16.']
     ],
     drivetrain:[
-      ['Architecture','Swerve base','A 27 × 27-inch frame with SDS MK5N modules serves as the base for the robot.'],
-      ['Integration','Access and service','Internal frame members leave wiring routes and the team designed removable bumper brackets.']
+      ['Architecture','27 × 27-inch swerve chassis','SDS MK5N modules, R3 reduction, 4-inch high-grip wheels, X60 drive and X44 steering motors. Binder p. 5.'],
+      ['Service','Structure and bumper brackets','2 × 1 × 1/8-inch aluminum rails, a 1/8-inch belly pan, wiring cutouts, and custom quick-swap bumper brackets. Binder p. 5.']
     ],
     bumpers:[
-      ['Design','Separate protective assembly','Bumpers are stored as their own CAD subsystem for service and inspection.']
+      ['Mounting','Custom swap brackets','Custom bumper mounts support fast bumper swaps; the binder does not provide measured bumper performance. Binder p. 5.']
     ]
   };
   const btn=(text,cls)=>{
