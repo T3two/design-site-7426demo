@@ -1,6 +1,6 @@
 const {chromium}=require('playwright');
 const base='http://127.0.0.1:8765/';
-const YEARS=['2026','2025','2024','2023','2022','2020','2019'];
+const YEARS=['2026','2025'];
 (async()=>{
  const browser=await chromium.launch({headless:true,args:[
   '--no-sandbox','--disable-dev-shm-usage','--use-gl=angle',
@@ -18,7 +18,7 @@ const YEARS=['2026','2025','2024','2023','2022','2020','2019'];
    const start=Date.now();
    try{
     await page.goto(base+'?page=robot-'+year+'&qa=1',{waitUntil:'domcontentloaded',timeout:35000});
-    if(year==='2026'||year==='2025'){
+    if(true){
       await page.locator('.robot-theater .theater-launch').waitFor({timeout:18000});
       await page.locator('.robot-theater .theater-launch').evaluate(el=>el.click());
       await page.locator('.theater-stage.is-ready').waitFor({timeout:90000});
