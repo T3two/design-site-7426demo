@@ -3,6 +3,11 @@ on:
   push:
     paths:
       - 'robot-explorer.js'
+      - 'navigation.json'
+      - 'robots.json'
+      - 'models/catalog.json'
+      - 'content/**'
+      - 'tests/archive-curation-smoke.cjs'
       - 'robot-workbench-2.js'
       - 'tests/workbench2-smoke.cjs'
       - 'index.html'
@@ -49,6 +54,8 @@ jobs:
         run: node tests/ace-comic-3d.cjs
       - name: Verify original Ace joint animation Studio
         run: node tests/ace-original-joints-studio.cjs
+      - name: Check curated robot archive and binder-backed DEADPOOL page
+        run: node tests/archive-curation-smoke.cjs
       - name: Verify fast 2025 and 2026 CAD models
         run: node tests/fast-robot-preview.cjs
       - name: Verify cached subsystem transitions and CAD part inspection
