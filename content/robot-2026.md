@@ -28,12 +28,7 @@ Start with the entire robot, then select a subsystem to transition into its isol
 
 RICOCHET combines a swerve drivetrain, over-bumper intake, extendable hopper, feeder, rotating turret, scoring mechanism, and climbing system. Each subsystem has its own design constraints, but the real challenge was getting the whole robot to work together.
 
-## Drivetrain / a foundation we can trust
-
-<figure class="ricochet-inline">
-  <img src="assets/document-image-12.png" alt="CAD view of the four-module swerve drivetrain and compact red-and-black frame" loading="lazy">
-  <figcaption>A low, serviceable swerve chassis with four corner modules.</figcaption>
-</figure>
+## Drivetrain 
 
 The drivetrain uses SDS MK5N swerve modules with R3 drive reduction, four-inch high-grip wheels, and Kraken X60 drive motors paired with Kraken X44 steering motors. The frame footprint is **27 × 27 inches**.
 
@@ -41,7 +36,7 @@ We also designed custom bumper brackets for quicker swaps. Aluminum tube rails f
 
 <a class="workbench-jump" href="#robot-explorer" data-explore-system="drivetrain">↑ Isolate drivetrain in the interactive workbench</a>
 
-## Intake / built to work with the hopper
+## Intake 
 
 Our over-bumper intake brings fuel into the robot using a polycarbonate roller on a pivoting assembly. The design pairs a Kraken X60 roller motor with two pivot motors and aluminum support plates.
 
@@ -51,7 +46,7 @@ The important lesson was that an intake doesn't operate independently. Small cha
 
 <a class="workbench-jump" href="#robot-explorer" data-explore-system="intake">↑ Isolate intake in the interactive workbench</a>
 
-## Hopper / making room when it matters
+## Hopper 
 
 The hopper acts as an adjustable storage space between the intake and feeder. Its extending design allows the robot to carry fuel while also retracting to travel beneath the field's trench.
 
@@ -59,13 +54,13 @@ The mechanism uses cabinet-style drawer slides and added bearings to reduce fric
 
 <a class="workbench-jump" href="#robot-explorer" data-explore-system="hopper">↑ Isolate hopper in the interactive workbench</a>
 
-## Feeder / keeping fuel moving
+## Feeder 
 
 The feeder takes fuel from the robot's storage area and directs it into the scoring mechanism. Its layout uses multiple guide belts and a compact internal transfer path, with angled panels to help collect fuel. The feeder was designed with the overall robot package in mind, rather than as a separate oversized assembly.
 
 <a class="workbench-jump" href="#robot-explorer" data-explore-system="feeder-queuer">↑ Isolate feeder / queuer in the interactive workbench</a>
 
-## Turret and vision / more flexibility
+## Turret and vision 
 
 A rotating turret allows the scoring assembly to aim independently of the robot's drivetrain heading. The team integrated three Limelight cameras for awareness of the field and robot pose.
 
@@ -73,7 +68,7 @@ This arrangement was part of the goal to give the drivers more flexibility durin
 
 <a class="workbench-jump" href="#robot-explorer" data-explore-system="turret">↑ Isolate turret in the interactive workbench</a>
 
-## Scoring mechanism / consistent performance
+## Scoring mechanism 
 
 RICOCHET's scoring assembly uses a fixed-geometry hood and a high-inertia flywheel. The team wanted predictable performance during movement and sought to reduce speed variation between scoring cycles.
 
@@ -81,7 +76,7 @@ The design changed significantly during the season. Early versions were reworked
 
 <a class="workbench-jump" href="#robot-explorer" data-explore-system="shooter">↑ Isolate shooter in the interactive workbench</a>
 
-## Climber / focused on the endgame
+## Climber 
 
 The climber extends upward to engage the endgame structure. The final design emphasizes a simpler arrangement than earlier concepts, with a compact footprint and a focus on reliability.
 
@@ -89,7 +84,7 @@ The team explored several concepts in CAD before settling on the version that fi
 
 <a class="workbench-jump" href="#robot-explorer" data-explore-system="climber">↑ Isolate climber in the interactive workbench</a>
 
-## Bumpers / protection and serviceability
+## Bumpers 
 
 Our bumpers are separate from the main chassis in the CAD archive, so the assembly can be examined without the rest of the robot in the way.
 
