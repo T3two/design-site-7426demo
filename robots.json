@@ -6,62 +6,17 @@
       "pageId": "robot-2026",
       "markdown": "robot-2026.md",
       "modelId": "robot-2026-assembly",
-      "binderPdf": "binders/2026-ricochet-technical-binder.pdf",
-      "status": "CAD available · 2026 design story and subsystem notes"
+      "binderPdf": null,
+      "status": "RICOCHET · CAD and team design notes"
     },
     {
       "season": "2025",
-      "name": "REEFSCAPE",
+      "name": "DEADPOOL",
       "pageId": "robot-2025",
       "markdown": "robot-2025.md",
       "modelId": "robot-2025-assembly",
       "binderPdf": null,
-      "status": "CAD available · notes in progress"
-    },
-    {
-      "season": "2024",
-      "name": "CRESCENDO",
-      "pageId": "robot-2024",
-      "markdown": "robot-2024.md",
-      "modelId": "robot-2024-assembly",
-      "binderPdf": null,
-      "status": "CAD available · notes in progress"
-    },
-    {
-      "season": "2023",
-      "name": "CHARGED UP",
-      "pageId": "robot-2023",
-      "markdown": "robot-2023.md",
-      "modelId": "robot-2023-assembly",
-      "binderPdf": null,
-      "status": "CAD available · notes in progress"
-    },
-    {
-      "season": "2022",
-      "name": "RAPID REACT",
-      "pageId": "robot-2022",
-      "markdown": "robot-2022.md",
-      "modelId": "robot-2022-assembly",
-      "binderPdf": null,
-      "status": "CAD available · notes in progress"
-    },
-    {
-      "season": "2020",
-      "name": "INFINITE RECHARGE",
-      "pageId": "robot-2020",
-      "markdown": "robot-2020.md",
-      "modelId": "robot-2020-assembly",
-      "binderPdf": null,
-      "status": "CAD available · notes in progress"
-    },
-    {
-      "season": "2019",
-      "name": "DESTINATION: DEEP SPACE",
-      "pageId": "robot-2019",
-      "markdown": "robot-2019.md",
-      "modelId": "robot-2019-assembly",
-      "binderPdf": null,
-      "status": "CAD available · notes in progress"
+      "status": "2025 technical binder · CAD and subsystem documentation"
     }
   ]
 }
