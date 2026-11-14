@@ -38,7 +38,29 @@ const {chromium}=require('playwright');
     }
     if(/Verified engineering documentation pending/i.test(deadpool))
       throw Error('Old unverified placeholders still published');
+    // RICOCHET data is transcribed from the supplied 2025–2026 binder;
+    // the 95% target must never be shown as a achieved performance result.
+    await page.goto('http://127.0.0.1:8765/?page=robot-2026',{waitUntil:'domcontentloaded',timeout:30000});
+    await page.waitForFunction(()=>
+      document.querySelector('article')?.innerText.includes('40.125'),null,{timeout:30000});
+    const ricochet=await page.locator('article').first().innerText();
+    for(const phrase of [
+      'SDS MK5N','27 × 27','Kraken X44','1.5-inch','7075','SRPP',
+      'five guiding belts','9:1','370-degree','three Limelights',
+      '40.125','8 lb','1-inch aluminum backrollers','30 inches','45:1',
+      '95% shot accuracy','not fabricated'
+    ]){
+      if(!ricochet.toLowerCase().includes(phrase.toLowerCase()))
+        throw Error('2026 binder specification missing: '+phrase);
+    }
+    if(!/95% shot accuracy[\\s\\S]{0,160}(design target|does not state)/i.test(ricochet))
+      throw Error('The 95% accuracy requirement is being presented as an achieved statistic');
+    if(!/not fabricated/i.test(ricochet))
+      throw Error('Climber CAD concepts must not be treated as built prototypes');
+    const ricochetNav=await page.locator('#navigation').innerText();
+    if(!ricochetNav.includes('T-shirt Cannon'))throw Error('Offseason entry missing on 2026 page');
     if(errors.length)throw Error('Page JS errors: '+errors.join(' | '));
+    console.log('RICOCHET_BINDER_2026_PASS',{hoodDegrees:40.125,designTargetOnly:true,originalClimberConceptsFabricated:false});
     console.log('CURATED_ARCHIVE_PASS',JSON.stringify({robots:names.map(s=>s.trim()),catalogCount:data.catalog.length,offseason:true,deadpoolBinder:true}));
     await page.close();
   }finally{await browser.close()}
