@@ -22,14 +22,14 @@ const seasons={
   },
   "2025":{
     name:"DEADPOOL", season:"REEFSCAPE", hero:"models/preview/posters/2025.jpg",
-    intro:"The 2025 REEFSCAPE robot. Select a subsystem to inspect its CAD and design notes.",
+    intro:"DEADPOOL / 2025 REEFSCAPE. Inspect the CAD alongside specifications documented in the team's 11-page technical binder.",
     pieces:[
-      ["drivetrain","Drivetrain","View the full drive chassis independently. Detailed motor and gearing specifications remain to be verified."],
-      ["elevator","Elevator","The upright mechanism positions the manipulator across different vertical levels."],
-      ["carriage","Carriage","A moving mounting structure connecting the elevator with the scoring mechanism."],
-      ["claw","Claw","The game-piece interface, isolated for close CAD inspection."],
-      ["climber","Climber","A dedicated endgame mechanism separated from the main assembly."],
-      ["bumpers","Bumpers","Chassis-protection geometry and structural mounting interfaces."]
+      ["drivetrain","SDS MK4i drivetrain","28 × 28-inch chassis; SDS MK4i L2 swerve modules with 4-inch Colson wheels, Kraken motors, and field-oriented control. Binder p. 2."],
+      ["elevator","Three-stage elevator","Approx. 41–90-inch elevator height; two Krakens at 24:1, Dyneema rope runs, bottom zeroing switch and CTRE Through Bore encoder. Binder p. 3; redesign explained on p. 9."],
+      ["carriage","Carriage and wrist","One Kraken at 48:1 turns the wrist. The mount extends 8.5 inches behind the carriage; 1/2-inch aluminum churros reinforce the assembly. Binder p. 4."],
+      ["claw","CORAL / ALGAE claw","Separate CORAL and ALGAE roller systems: 2:1 and 20:1 NEO 550 drive arrangements, respectively, with beam-break detection. Binder p. 5; iterations p. 8."],
+      ["climber","Deep-cage climber","One NEO at 25:1 powers the winch; a NEO 550 at 5:1 deploys the arms. The team revised cage guidance after center-of-gravity testing. Binder pp. 6 and 10."],
+      ["bumpers","Bumpers","Custom quick-swap brackets mount the protective bumpers around the 28 × 28-inch chassis. Binder p. 2."]
     ],
     actionName:"Watch DEADPOOL place CORAL",actionSubsystem:"claw",actionTitle:"CORAL / PLACEMENT SEQUENCE"
   }
@@ -448,7 +448,7 @@ function mount(host,year,models,loadPackedModel){
       return;
     }
     const base=year==="2025"
-      ?"Team-specific joint limits, materials, performance tests and mechanism timing have not been verified from a 2025 technical binder."
+      ?"The 2025 DEADPOOL binder documents mechanical dimensions, materials, motor ratios, sensors, and design iterations. Measured joint travel limits, actuation timing, collision behavior, and scoring reliability are not established by the browser animation."
       :"The team design notes on this page provide context, but joint travel limits, measured shot statistics and calibration are not independently validated in this visualization.";
     const mechanics=key==="shooter"
       ?" The animated FUEL path uses ideal gravity-based kinematics; air drag and real shot variability are not modeled."
