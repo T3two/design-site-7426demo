@@ -1,133 +1,198 @@
 # RICOCHET
 
-**2026 · REBUILT · FRC Team 7426**
+**2026 · REBUILT · FIRST Robotics Competition Team 7426**
 
-RICOCHET is the result of a season spent thinking about more than just scoring. We wanted a robot that could move effectively, work through tight field spaces, handle fuel consistently, and give drivers useful options as a match changed. The design came together as a group of tightly packaged subsystems that could be improved without rebuilding everything else.
+RICOCHET is our 2026 robot. Its architecture puts a full-width over-bumper intake, horizontally extending fuel hopper, feeder, rotating turret, fixed-hood flywheel shooter, and compact telescoping climber on a **27 × 27-inch swerve chassis**. The mechanism details and design changes below are taken from **Pair of Dice Robotics, RICOCHET Technical Binder (2025–2026), pages 4–18**. Where the binder gives a design goal rather than a measured result, this page keeps that distinction.
 
 <figure class="ricochet-hero">
-  <img src="assets/document-image-2.png" alt="CAD render of RICOCHET, the 2026 Pair of Dice competition robot, in a red-and-black assembly" loading="lazy">
-  <figcaption>RICOCHET — the assembled 2026 robot, with a low chassis and a compact superstructure.</figcaption>
+  <img src="assets/document-image-2.png" alt="CAD render of RICOCHET's complete 2026 robot assembly" loading="lazy">
+  <figcaption>RICOCHET / 2026 — the full REBUILT competition robot in CAD.</figcaption>
 </figure>
 
 <div class="ricochet-facts">
   <div><span>TEAM</span><strong>7426</strong></div>
-  <div><span>SEASON</span><strong>2026 / REBUILT</strong></div>
-  <div><span>DRIVE</span><strong>SWERVE</strong></div>
-  <div><span>DESIGN APPROACH</span><strong>MODULAR</strong></div>
+  <div><span>CHASSIS</span><strong>27 × 27 IN</strong></div>
+  <div><span>TURRET</span><strong>370°</strong></div>
+  <div><span>SHOOTER HOOD</span><strong>40.125°</strong></div>
 </div>
 
 ## Explore RICOCHET / interactive workbench
 
-Start with the entire robot, then select a subsystem to transition into its isolated CAD. The technical reasoning appears next to the viewer, with full engineering chapters below.
+Explore the entire robot or isolate its drivetrain, intake, hopper, feeder, turret, shooter, climber, and bumpers. The 3D model is exported CAD, while some movements and scoring trajectories are **illustrative**, not performance data from the team.
 
 {{explorer:2026}}
 
-**Workbench controls:** Open the 3D model to search its assembly, select named parts, measure between mesh points, or move a section plane through the robot. The design-history steps summarize the team's documented revisions; they do not represent separate historical CAD models. Mesh dimensions are approximate and should not be used for manufacturing.
+**Workbench controls:** Search the imported assembly, select mesh parts, measure approximate point-to-point distances, and move a section plane through rendered geometry. The timeline summarizes stages described in the technical binder; it does **not** load separate historical CAD versions. Use the original engineering drawings—not the optimized browser mesh—for manufacturing measurements.
 
-## The robot at a glance
+## Robot layout / how fuel moves
 
-RICOCHET combines a swerve drivetrain, over-bumper intake, extendable hopper, feeder, rotating turret, scoring mechanism, and climbing system. Each subsystem has its own design constraints, but the real challenge was getting the whole robot to work together.
+The binder identifies the **intake → hopper → feeder → shooter** sequence, with the shooter mounted to the **turret**. The hopper expands horizontally to store more fuel but can retract so the robot fits below the trench. A separate climber targets the **L1 rung**. The team prioritized shooting while moving, fuel capacity, and preserving room for a compact climbing system.
 
-## Drivetrain 
+*Binder reference: subsystem overview, pp. 4–11.*
 
-The drivetrain uses SDS MK5N swerve modules with R3 drive reduction, four-inch high-grip wheels, and Kraken X60 drive motors paired with Kraken X44 steering motors. The frame footprint is **27 × 27 inches**.
+## Drivetrain
 
-We also designed custom bumper brackets for quicker swaps. Aluminum tube rails form the perimeter and inner structure, while the internal rails leave openings for wire routing and an aluminum belly pan supports the layout. That packaging helps other systems sit within a predictable frame.
+The chassis uses **SDS MK5N swerve modules** with **R3 drive reduction**, **4-inch high-grip molded wheels**, **Kraken X60 drive motors**, and **Kraken X44 steering motors**, with **field-oriented control**.
 
-<a class="workbench-jump" href="#robot-explorer" data-explore-system="drivetrain">↑ Isolate drivetrain in the interactive workbench</a>
+| Chassis part | Binder specification |
+|---|---|
+| Frame footprint | **27 × 27 inches** |
+| Outside rails | **2 × 1 × 1/8-inch aluminum tubing** |
+| Inside rails | **2 × 1 × 1/8-inch aluminum tubing**, with wiring cutouts |
+| Belly pan | **1/8-inch aluminum** |
+| Bumper mounting | Custom brackets for quick bumper swaps |
 
-## Intake 
+*Binder reference: p. 5.*
 
-Our over-bumper intake brings fuel into the robot using a polycarbonate roller on a pivoting assembly. The design pairs a Kraken X60 roller motor with two pivot motors and aluminum support plates.
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="drivetrain">↑ Inspect drivetrain CAD</a>
 
-The intake wasn't finalized in one pass. Across prototypes, the team changed the geometry and motor placement, added a stabilizing kick plate, and used a backing plate to reduce the chance of fuel getting stuck. The later design also moved to a dead-axle arrangement after a bearing-retention problem.
+## Intake
 
-The important lesson was that an intake doesn't operate independently. Small changes in roller position, compression, and pivot geometry affected how well it handed fuel off to the hopper.
+The team's over-bumper intake was chosen to gather FUEL quickly and maximize the number of balls collected. A **Kraken X60** drives the **1.5-inch polycarbonate tube rollers**. The pivot uses **two Kraken X60 motors** and **1/4-inch 7075-aluminum pivot plates**.
 
-<a class="workbench-jump" href="#robot-explorer" data-explore-system="intake">↑ Isolate intake in the interactive workbench</a>
+### What changed during prototyping
 
-## Hopper 
+The iterations on page 17 describe actual changes, rather than a generic redesign:
 
-The hopper acts as an adjustable storage space between the intake and feeder. Its extending design allows the robot to carry fuel while also retracting to travel beneath the field's trench.
+- Added a **kick plate** to stabilize the intake.
+- Changed plate size and motor location to accommodate compression and packaging changes; moved the intake motor closer to the roller.
+- Added a **backing plate above the roller** to keep FUEL from becoming stuck.
+- Changed the intake motor to an **X60** for greater torque and increased the intake pulley ratio.
+- Converted from a **live axle to a dead axle** after bearings came out.
+- Adjusted the backing churro and roller positions to find better compression.
+- Added bearings to reduce friction between the hopper and intake.
 
-The mechanism uses cabinet-style drawer slides and added bearings to reduce friction during movement. We paid particular attention to clearance between the hopper and intake, since both systems needed to move without interfering with one another.
+The final mechanism shown in the binder is an over-bumper intake; it is not the same as DEADPOOL's abandoned 2025 floor-intake concept.
 
-<a class="workbench-jump" href="#robot-explorer" data-explore-system="hopper">↑ Isolate hopper in the interactive workbench</a>
+*Binder references: pp. 6 and 17.*
 
-## Feeder 
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="intake">↑ Inspect intake CAD</a>
 
-The feeder takes fuel from the robot's storage area and directs it into the scoring mechanism. Its layout uses multiple guide belts and a compact internal transfer path, with angled panels to help collect fuel. The feeder was designed with the overall robot package in mind, rather than as a separate oversized assembly.
+## Hopper
 
-<a class="workbench-jump" href="#robot-explorer" data-explore-system="feeder-queuer">↑ Isolate feeder / queuer in the interactive workbench</a>
+The hopper holds FUEL collected by the intake. Its **horizontal extension** was a deliberate tradeoff: more storage when extended, and a lower profile to travel under the trench when retracted. The front wall projects slightly **beyond the intake** to help protect it during contact with other robots, field walls, and field elements.
 
-## Turret and vision 
+The binder specifies **four 1/8-inch SRPP enclosure plates**, **repurposed cabinet drawer slides** for the extending mechanism, and **bearings along the front wall** to reduce friction.
 
-A rotating turret allows the scoring assembly to aim independently of the robot's drivetrain heading. The team integrated three Limelight cameras for awareness of the field and robot pose.
+*Binder reference: p. 7.*
 
-This arrangement was part of the goal to give the drivers more flexibility during matches while still preserving a compact robot layout.
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="hopper">↑ Inspect hopper CAD</a>
 
-<a class="workbench-jump" href="#robot-explorer" data-explore-system="turret">↑ Isolate turret in the interactive workbench</a>
+## Feeder / queuer
 
-## Scoring mechanism 
+The feeder transfers FUEL from the intake and hopper to the shooter. Its **five guiding belts** move game pieces through the robot, with **1/4-inch aluminum side plates** supporting the belt structure. **Angled LEXAN plates** form an indexing area in which balls collect under gravity.
 
-RICOCHET's scoring assembly uses a fixed-geometry hood and a high-inertia flywheel. The team wanted predictable performance during movement and sought to reduce speed variation between scoring cycles.
+Near the shooter's entrance, spinning **helicopter blades** are intended to prevent jams and improve feeding. The binder specifies **Kraken 44 motors with 9:1 gearing** for the blades and **1/4-inch 7075-aluminum blade plates**.
 
-The design changed significantly during the season. Early versions were reworked to improve packaging and consistency, and the post-Arizona revision addressed fuel feeding behavior that had shown up in competition. These iterations show why testing a complete mechanism matters as much as testing individual components.
+*Binder reference: p. 8. The binder calls the motors “Kraken 44”; this page does not infer an unstated motor variant.*
 
-<a class="workbench-jump" href="#robot-explorer" data-explore-system="shooter">↑ Isolate shooter in the interactive workbench</a>
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="feeder-queuer">↑ Inspect feeder / queuer CAD</a>
 
-## Climber 
+## Turret and field vision
 
-The climber extends upward to engage the endgame structure. The final design emphasizes a simpler arrangement than earlier concepts, with a compact footprint and a focus on reliability.
+The shooter sits on a **370-degree turret**. The design intent was to shoot from a range of field positions, including while the chassis moves, without always turning the whole robot. The turret uses **custom machined hardware** and a **custom energy chain**, **3D-printed in PLA Matte**, to accommodate motion.
 
-The team explored several concepts in CAD before settling on the version that fit the available space and matched the endgame strategy.
+The binder documents **three Limelights** for field pose, with a custom mount intended to provide **360-degree vision**. This is a statement of the intended field-of-view arrangement, not an independently validated localization accuracy figure.
 
-<a class="workbench-jump" href="#robot-explorer" data-explore-system="climber">↑ Isolate climber in the interactive workbench</a>
+*Binder reference: p. 9. The plate-thickness fraction in the binder's turret bullet is illegible/incorrectly typeset, so no thickness is asserted here.*
 
-## Bumpers 
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="turret">↑ Inspect turret CAD</a>
 
-Our bumpers are separate from the main chassis in the CAD archive, so the assembly can be examined without the rest of the robot in the way.
+## Shooter / fixed-angle flywheel
 
-<a class="workbench-jump" href="#robot-explorer" data-explore-system="bumpers">↑ Isolate bumpers in the interactive workbench</a>
+RICOCHET's flywheel shooter was designed around the goal of shooting while moving. To simplify controls, the team settled on a **fixed hood angle of 40.125°** instead of the adjustable hood shown in earlier concepts.
 
-## Robot positions
+| Shooter component | Binder specification |
+|---|---|
+| Hood side plates | **1/4-inch 6061 aluminum** |
+| Hood guide rails | **1/4-inch 6061 aluminum** |
+| Hood angle | **40.125° fixed** |
+| Guide-rail standoffs | **1/8-inch aluminum** |
+| Game-piece compression | **1 inch** |
+| Flywheel | **8 lb solid brass**, **4-inch diameter** |
+| Flywheel motors | **Kraken X60** |
 
-The robot was documented in three distinct configurations:
+The heavy brass wheel was intended to reduce wheel-speed loss between shots. The binder does not report measured RPM retention or shot accuracy achieved by the final robot.
 
-- **Normal:** Compact for general driving and the start of a match.
-- **Operating:** Intake and hopper extended for collecting fuel while the superstructure stays clear of surrounding mechanisms.
-- **Climbing:** Climbing system deployed for the endgame sequence.
+### Shooter development / iterations I, II and final
 
-Those positions made it easier to check that moving subsystems could coexist inside the full robot envelope.
+Pages 15 and 18 document the evolution:
 
-## Our design process
+1. Increased compression by changing the **distance between the flywheel and backing plate**.
+2. Increased solid-brass flywheel diameter from **3 to 4 inches**, adding mass and compression.
+3. Removed the **adjustable hood** to save space; adopted the fixed shot angle.
+4. Removed pulleys and **directly coupled the wheel** to save space and avoid pulley melting.
+5. **After Arizona:** Introduced **1-inch aluminum backrollers** to reduce backspin. The team had found that FUEL rebounded from the floor toward the neutral zone, preventing the desired feeding behavior. The revision was described as a faster shot and marked the **fourth shooter**.
 
-### Kickoff: choose priorities before mechanisms
+The post-Arizona design should not be described merely as a cosmetic shooter change: its documented purpose was to change **backspin and FUEL feeding behavior**. No quantitative before/after speed data is supplied.
 
-We began by reviewing the game together, splitting into groups to analyze strategy and scoring opportunities. The team developed a list of needs, wants, and dislikes before moving too far into specific mechanism concepts.
+*Binder references: pp. 10, 15 and 18.*
 
-### Prototyping: make it adjustable
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="shooter">↑ Inspect shooter CAD</a>
 
-A major offseason goal was to improve our prototyping process. We favored modular assemblies that could be adjusted and tested independently, rather than committing to one full robot design too early.
+## Climber / L1 rung
 
-We considered scoring consistency, subsystem size, space for fuel, failure risk, and whether each mechanism actually supported the match strategy.
+The climber targets the **L1 rung**, while leaving space for the hopper and shooter. Its final design uses a **three-stage telescoping arm** with a maximum documented extension of **30 inches**, driven by a **Kraken X60 at 45:1 gearing**. The **hook** and **mounting plates** are **7075 aluminum**.
 
-### Iteration: solve the problems we saw
+### Prototype decisions
 
-| Subsystem | What changed | What we learned |
+The binder shows three proposed climber concepts, but explicitly says those earlier climb designs were **not fabricated**. They were brainstormed and explored before the final design was chosen in light of **time constraints, resources, packaging, and programming simplicity**. They must not be labeled as physically tested climb prototypes.
+
+*Binder references: pp. 11 and 16.*
+
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="climber">↑ Inspect climber CAD</a>
+
+## Bumpers and protection
+
+Custom bumper brackets help speed up installation and removal. In the imported CAD archive, the bumper assembly can be isolated from the chassis. The binder does not specify bumper material, fastening torque, or measured impact performance.
+
+*Binder reference: p. 5.*
+
+<a class="workbench-jump" href="#robot-explorer" data-explore-system="bumpers">↑ Inspect bumper CAD</a>
+
+## Three documented robot positions
+
+The binder illustrates three robot configurations on page 12:
+
+- **Normal position:** The compact robot at the beginning of a match.
+- **Operating position:** Both the hopper and intake extend over the bumper. The hopper front protrudes slightly farther to protect the intake from field contact.
+- **Climbing position:** The robot is prepared to climb, with its climbing mechanism deployed and what the binder describes as the **elevator fully actuated**.
+
+These are documented configurations, not an automatic claim that the browser animations reproduce every linkage or clearance.
+
+*Binder reference: p. 12.*
+
+## Design process and documented priorities
+
+### Kickoff
+
+The team watched the game reveal together, split into groups to read the game manual, compared scoring strategies, and wrote **needs, wants, and dislikes**. Parents helped construct a wooden partial field for testing.
+
+### Prototype requirements
+
+The binder says the team **required 95% shot accuracy** as a design target. **It does not state that this target was measured or achieved.** The team also prioritized smaller mechanisms to increase speed and preserve hopper space, evaluated the likelihood of match failures, and considered whether climbing supported its strategy. The page distinguishes CAD concepts from fabricated prototypes.
+
+### Parts management and documentation
+
+The team used **parts drawings** to communicate how individual components are fabricated, **assembly drawings** to explain subsystem integration, and a **design notebook** to record iterations and why decisions were made. The technical binder serves as a summary for students and external readers.
+
+*Binder reference: p. 14.*
+
+## Verified changes at a glance
+
+| Subsystem | Decision documented in the binder | Source |
 |---|---|---|
-| Intake | Roller geometry, plate layout, motor position, stability features and bearing arrangement | Reliable fuel transfer depends on the intake and hopper working together |
-| Hopper | Clearance and friction between moving structures | Packaging details can determine whether an adjustable subsystem is dependable |
-| Scoring | Several geometry and feed-path revisions, including a post-Arizona redesign | Full-system testing exposes behaviors a standalone prototype can miss |
-| Climber | Multiple concepts explored before simplifying the final design | A dependable, maintainable concept can matter more than adding complexity |
+| Intake | Changed geometry, compression, and bearing arrangement; adopted dead axle | p. 17 |
+| Shooter | Fixed 40.125° hood; enlarged brass flywheel; removed pulley drive | pp. 10, 15 |
+| Shooter after Arizona | Added 1-inch backrollers to reduce backspin during feeding | p. 18 |
+| Climber | Selected compact three-stage telescoping design; earlier concepts not fabricated | pp. 11, 16 |
+| Hopper | Used sliding extension to balance storage capacity and trench clearance | p. 7 |
 
-### Documentation: leave useful work behind
+## Source and accuracy notes
 
-Part drawings, assembly drawings, design notebooks, and subsystem documentation help different groups communicate. They also give future Pair of Dice students something better than a finished CAD file: the reasoning behind the design.
+**Primary technical source:** *Pair of Dice Robotics — RICOCHET Technical Binder, 2025–2026*, 19 pages. This page preserves the binder's stated measurements and design intent. It does not invent missing tolerances, a confirmed shot percentage, calibrated turret stops, current limits, or measured motion timings.
 
-## What we'd add next
-
-More workshop photographs, annotated CAD closeups, electrical and controls diagrams, and measured testing results would complete the picture. The existing assembly and source images already provide a starting point for documenting how RICOCHET was built and improved.
+The supplied PDF is the source for the page; the website does not currently host the original PDF as a downloadable file.
 
 
 ## Engineering notebook / interpreting the scoring animation
