@@ -45,51 +45,11 @@
       },
       {
         "id": "robot-2025",
-        "label": "2025 — REEFSCAPE",
+        "label": "2025 — DEADPOOL",
         "file": "robot-2025.md",
-        "title": "2025 / REEFSCAPE",
+        "title": "2025 / DEADPOOL",
         "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "robot-2024",
-        "label": "2024 — CRESCENDO",
-        "file": "robot-2024.md",
-        "title": "2024 / CRESCENDO",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "robot-2023",
-        "label": "2023 — CHARGED UP",
-        "file": "robot-2023.md",
-        "title": "2023 / CHARGED UP",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "robot-2022",
-        "label": "2022 — RAPID REACT",
-        "file": "robot-2022.md",
-        "title": "2022 / RAPID REACT",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "robot-2020",
-        "label": "2020 — INFINITE RECHARGE",
-        "file": "robot-2020.md",
-        "title": "2020 / INFINITE RECHARGE",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
-      },
-      {
-        "id": "robot-2019",
-        "label": "2019 — DESTINATION: DEEP SPACE",
-        "file": "robot-2019.md",
-        "title": "2019 / DESTINATION: DEEP SPACE",
-        "eyebrow": "PAIR OF DICE · ROBOT ARCHIVE",
-        "description": "Interactive CAD assembly and technical documentation."
+        "description": "Binder-verified drivetrain, elevator, carriage, claw, climber, and design revisions."
       },
       {
         "id": "tshirt-cannon",
