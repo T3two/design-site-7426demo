@@ -18,7 +18,7 @@ const YEARS=['2026','2025'];
    const start=Date.now();
    try{
     await page.goto(base+'?page=robot-'+year+'&qa=1',{waitUntil:'domcontentloaded',timeout:35000});
-    if(true){
+    if(year==='2026'||year==='2025'){
       await page.locator('.robot-theater .theater-launch').waitFor({timeout:18000});
       await page.locator('.robot-theater .theater-launch').evaluate(el=>el.click());
       await page.locator('.theater-stage.is-ready').waitFor({timeout:90000});
