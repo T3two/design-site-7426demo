@@ -53,7 +53,7 @@ const {chromium}=require('playwright');
       if(!ricochet.toLowerCase().includes(phrase.toLowerCase()))
         throw Error('2026 binder specification missing: '+phrase);
     }
-    if(!/95% shot accuracy[\\s\\S]{0,160}(design target|does not state)/i.test(ricochet))
+    if(!ricochet.includes('as a design target') || !ricochet.includes('does not state that this target was measured or achieved'))
       throw Error('The 95% accuracy requirement is being presented as an achieved statistic');
     if(!/not fabricated/i.test(ricochet))
       throw Error('Climber CAD concepts must not be treated as built prototypes');
