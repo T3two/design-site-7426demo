@@ -1921,7 +1921,7 @@ function mount(host,year,models,loadPackedModel){
     });
   }
   if(year==="2026"){
-    import("./robot-workbench-2.js?v=workbench-2-20261113-2").then(({createWorkbench2})=>{
+    import("./robot-workbench-2.js?v=ricochet-binder-20261114").then(({createWorkbench2})=>{
       if(destroyed||!host.isConnected)return;
       workbench2=createWorkbench2({
         host,stage,side,controlsBar,partInspector,partIsolate,
